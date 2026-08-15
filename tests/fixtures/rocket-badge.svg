@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#fffdf7"/>
+  <circle cx="512" cy="500" r="360" fill="#f4e0d6" stroke="#24221f" stroke-width="34"/>
+  <path d="M512 202c-103 77-164 185-164 310 0 73 21 143 61 204h206c40-61 61-131 61-204 0-125-61-233-164-310Z" fill="#ffffff" stroke="#24221f" stroke-width="32" stroke-linejoin="round"/>
+  <circle cx="512" cy="452" r="82" fill="#4e846d" stroke="#24221f" stroke-width="28"/>
+  <circle cx="512" cy="452" r="34" fill="#cde8ff"/>
+  <path d="M385 560 270 673l139-16m230-97 115 113-139-16" fill="#dc6b55" stroke="#24221f" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M453 712c-13 74 6 132 59 174 53-42 72-100 59-174Z" fill="#ffc830" stroke="#24221f" stroke-width="28" stroke-linejoin="round"/>
+  <path d="M480 732c-4 38 6 68 32 91 26-23 36-53 32-91Z" fill="#fd543d"/>
+  <circle cx="245" cy="300" r="22" fill="#3677d2"/>
+  <circle cx="770" cy="265" r="16" fill="#b90095"/>
+  <circle cx="818" cy="410" r="28" fill="#ade946"/>
+  <path d="m207 464 10 29 29 10-29 10-10 29-10-29-29-10 29-10Z" fill="#ffc830"/>
+</svg>

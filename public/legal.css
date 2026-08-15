@@ -1,0 +1,27 @@
+:root {
+  color: #24221f;
+  background: #fbfaf7;
+  font: 15px/1.75 Inter, system-ui, "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+main {
+  width: min(760px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 36px 0 64px;
+}
+
+h1 { margin-bottom: 4px; font-size: clamp(30px, 7vw, 44px); line-height: 1.18; }
+h2 { margin: 30px 0 6px; font-size: 19px; }
+a { color: #87351c; }
+.meta { margin-top: 0; color: #6d675f; }
+.notice { padding: 14px 16px; background: #f3f0e9; border: 1px solid #d8d2c8; border-radius: 10px; }
+.links { margin-top: 36px; }
+
+.centered { display: grid; min-height: 100vh; place-items: center; background: #ece9e2; }
+.error-card { max-width: 480px; padding: 32px; text-align: center; background: #fbfaf7; border: 1px solid #d8d2c8; border-radius: 18px; box-shadow: 0 18px 50px #342d241f; }
+.error-code { display: block; font-size: 54px; line-height: 1; }
+.primary-link { display: inline-block; min-height: 44px; margin-top: 12px; padding: 10px 16px; color: #fff; background: #a94726; border-radius: 8px; text-decoration: none; font-weight: 700; }

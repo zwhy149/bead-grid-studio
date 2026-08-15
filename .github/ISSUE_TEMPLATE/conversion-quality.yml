@@ -1,0 +1,67 @@
+name: Conversion quality
+description: Report extra/missing beads, merged components, wrong color, background, or scale instability.
+title: "[Conversion] "
+labels: [conversion-quality, needs-reproduction]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A small original/CC0 synthetic fixture is ideal. Do not publish customer images, private photos, copyrighted characters, shop screenshots, or social-media examples without permission.
+  - type: dropdown
+    id: defect
+    attributes:
+      label: Main defect
+      options:
+        - Extra beads
+        - Missing beads or feature
+        - Separate parts merged
+        - One part split
+        - Wrong or unstable color
+        - Background/white-bead error
+        - Aspect ratio/crop error
+        - Different result after source rescaling
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source dimensions and format
+      placeholder: 1024×1024 PNG, opaque
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: Target grid or board
+      placeholder: 24-cell long side / 52×52 board with 52×37 pattern
+    validations:
+      required: true
+  - type: input
+    id: settings
+    attributes:
+      label: Mode, fit, background, colors
+      placeholder: cartoon, contain, auto background, max 16 colors
+    validations:
+      required: true
+  - type: textarea
+    id: structure
+    attributes:
+      label: Structure that must be preserved
+      placeholder: Two eyes must remain separate; open gap under the arm must stay empty.
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Actual result and comparison
+      description: Attach only images you are allowed to redistribute. Mark exact rows/columns when possible.
+    validations:
+      required: true
+  - type: checkboxes
+    id: rights
+    attributes:
+      label: Fixture rights
+      options:
+        - label: I have the right to publish any attached fixture under terms that allow maintainers to use it for debugging.
+          required: true

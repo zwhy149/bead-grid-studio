@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies and browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium firefox webkit
+      - name: Verify and build release
+        run: |
+          test "v$(node -p \"require('./package.json').version\")" = "$GITHUB_REF_NAME"
+          npm run qa
+      - name: Package portable assets
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          zip -j "release/bead-grid-studio-v${VERSION}.zip" \
+            "release/bead-grid-studio-v${VERSION}.html" README.md README.zh-CN.md LICENSE NOTICE TRADEMARKS.md
+          (cd release && sha256sum "bead-grid-studio-v${VERSION}.html" "bead-grid-studio-v${VERSION}.zip" > SHA256SUMS.txt)
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="docs/release-notes-${GITHUB_REF_NAME}.md"
+          test -f "$NOTES" || { echo "Missing $NOTES"; exit 1; }
+          gh release create "$GITHUB_REF_NAME" \
+            release/bead-grid-studio-v*.html \
+            release/bead-grid-studio-v*.zip \
+            release/SHA256SUMS.txt \
+            --title "Bead Grid Studio $GITHUB_REF_NAME" \
+            --notes-file "$NOTES"

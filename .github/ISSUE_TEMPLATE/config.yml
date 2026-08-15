@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage questions and show-and-tell
+    url: https://github.com/zwhy149/bead-grid-studio/discussions
+    about: Ask for help or share a finished pattern in Discussions.
+  - name: Security vulnerability
+    url: https://github.com/zwhy149/bead-grid-studio/security/advisories/new
+    about: Report security issues privately.

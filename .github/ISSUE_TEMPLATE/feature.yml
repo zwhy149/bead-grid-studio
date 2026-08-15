@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose a measurable user outcome, not only a new technology or platform shell.
+title: "[Feature] "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What cannot a maker accomplish today?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome and acceptance criteria
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: maintenance
+    attributes:
+      label: Maintenance impact
+      description: For a new platform, identify the capability, Adapter, tests, release path, and maintainer.

@@ -1,0 +1,30 @@
+{
+  "name": "豆格工坊 · 拼豆图纸生成器",
+  "short_name": "豆格工坊",
+  "description": "本机处理图片，生成带逐格色号、辅助线和用量统计的拼豆施工图。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ece9e2",
+  "theme_color": "#fbfaf7",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
