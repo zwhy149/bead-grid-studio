@@ -6,6 +6,6 @@ authors:
   - name: "zwhy149"
 repository-code: "https://github.com/zwhy149/bead-grid-studio"
 url: "https://zwhy149.github.io/bead-grid-studio/"
-version: 1.0.0
-date-released: 2026-08-15
+version: 1.0.1
+date-released: 2026-08-16
 license: Apache-2.0

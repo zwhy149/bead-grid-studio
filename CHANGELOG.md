@@ -2,6 +2,15 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-08-16
+
+### Fixed
+
+- Synced the public third-party notice with the repository `NOTICE`.
+- Embedded the Apache-2.0 license and all third-party notices in the portable single-file HTML for offline redistribution.
+- Added release gates that prevent notice and version metadata drift.
+- Reworded automatic sizing as a recommendation rather than an unverifiable “clearest” claim.
+
 ## [1.0.0] - 2026-08-15
 
 ### Added

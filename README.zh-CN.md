@@ -130,7 +130,7 @@ GitHub Pages 不会应用仓库里的可选 `_headers` 文件；具体托管安�
 
 ## 多端路线
 
-当前主线是同一套响应式 Web/PWA，并附带单 HTML。它已经覆盖 Windows、macOS、Linux、Android 和 iOS 的现代浏览器，不需要先维护四套空壳应用。
+当前主线是同一套响应式 Web/PWA，并附带单 HTML，面向 Windows、macOS、Linux、Android 和 iOS 的现代浏览器，不需要先维护四套空壳应用。
 
 后续顺序是：可测试核心 → 专心制作/进度模式 → 矢量分页导出 → 有真实需求再加 Tauri 桌面 Adapter → 最后才考虑应用商店或微信小程序 Adapter。详见 [ROADMAP.md](ROADMAP.md)。
 

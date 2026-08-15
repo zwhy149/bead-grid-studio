@@ -1,12 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import { PALETTE } from '../src/palettes/mard221.js';
 
-const [html, app, geometry, manifest, worker] = await Promise.all([
+const [html, app, geometry, manifest, worker, notice, publicNotice, packageJson, versionJson, healthJson] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('src/app.js', 'utf8'),
   readFile('src/core/geometry.js', 'utf8'),
   readFile('public/manifest.webmanifest', 'utf8'),
   readFile('public/sw.js', 'utf8'),
+  readFile('NOTICE', 'utf8'),
+  readFile('public/NOTICE.txt', 'utf8'),
+  readFile('package.json', 'utf8'),
+  readFile('public/version.json', 'utf8'),
+  readFile('public/healthz.json', 'utf8'),
 ]);
 
 const failures = [];
@@ -35,6 +40,16 @@ check(!worker.includes("cache.put('/')"), 'service worker must not overwrite the
 check(!/https?:/.test(worker), 'service worker must not cache cross-origin requests');
 check(worker.includes("key.startsWith(CACHE_PREFIX)"), 'service worker cache cleanup is not scoped to this project');
 check(worker.includes('caches.match(request, { ignoreSearch: true })'), 'offline navigation must prefer a cached requested page');
+check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
+check(notice.includes('Copyright (c) 2019-present, VoidZero Inc. and Vite contributors'), 'Vite MIT attribution is missing');
+
+const packageVersion = JSON.parse(packageJson).version;
+const publicVersion = JSON.parse(versionJson);
+check(publicVersion.version === packageVersion, 'public/version.json does not match package.json');
+check(JSON.parse(healthJson).version === packageVersion, 'public/healthz.json does not match package.json');
+check(app.includes(`const APP_VERSION = '${packageVersion}'`), 'APP_VERSION does not match package.json');
+check(app.includes(`const BUILD_DATE = '${publicVersion.buildDate}'`), 'BUILD_DATE does not match public/version.json');
+check(worker.includes(`v${packageVersion}`), 'service-worker cache version does not match package.json');
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join('\n'));

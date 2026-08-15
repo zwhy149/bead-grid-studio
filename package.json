@@ -1,6 +1,6 @@
 {
   "name": "bead-grid-studio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Topology-aware, local-first fuse-bead pattern generator with printable color codes and material counts.",
   "type": "module",

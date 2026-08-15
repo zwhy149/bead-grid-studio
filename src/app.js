@@ -12,8 +12,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.0.0';
-    const BUILD_DATE = '2026-08-15';
+    const APP_VERSION = '1.0.1';
+    const BUILD_DATE = '2026-08-16';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
 
@@ -572,7 +572,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         els.smartGenerateBtn.textContent='恢复智能生成方案';els.smartGenerateBtn.dataset.action='generate';
         els.smartExportBtn.hidden=stats.total===0||quality.severeDetail||quality.aspectWarning;
       }else{
-        els.smartTitle.textContent='已准备最清晰方案';
+        els.smartTitle.textContent='已准备推荐方案';
         els.smartSummary.textContent=`${settings.cols}×${settings.rows} · 容量 ${formatNumber(settings.capacity)} 格 · 最多 ${settings.maxColors} 色 · ${state.autoTrimApplied?`已去除外围纯白空白约 ${Math.round(state.autoTrimFraction*100)}% · `:''}兼容基础 221 色号 · 黑白校准 · 逐格色号`;
         els.smartGenerateBtn.textContent='一键智能生成';els.smartGenerateBtn.dataset.action='generate';
         els.smartExportBtn.hidden=true;

@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { stat } from 'node:fs/promises';
+import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
+const packageVersion = JSON.parse(await readFile(resolve('package.json'), 'utf8')).version;
 
 test('loads the full local-first editor without runtime errors', async ({ page }) => {
   const errors = [];
@@ -39,7 +41,7 @@ test('portable single-file release runs without a server', async ({ page }) => {
   const errors = [];
   page.on('console', (message) => messages.push(message.text()));
   page.on('pageerror', (error) => errors.push(error.message));
-  const file = pathToFileURL(resolve('release/bead-grid-studio-v1.0.0.html'));
+  const file = pathToFileURL(resolve(`release/bead-grid-studio-v${packageVersion}.html`));
   file.search = 'selftest=1';
   await page.goto(file.href);
   await expect(page).toHaveTitle(/豆格工坊/);
