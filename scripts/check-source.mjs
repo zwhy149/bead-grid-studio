@@ -1,29 +1,57 @@
-import { readFile } from 'node:fs/promises';
+import { access, readFile, readdir } from 'node:fs/promises';
+import { dirname, extname, join, resolve } from 'node:path';
 import { PALETTE } from '../src/palettes/mard221.js';
 
-const [html, app, geometry, manifest, worker, notice, publicNotice, packageJson, versionJson, healthJson] = await Promise.all([
+const [html, app, geometry, manifest, worker, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('src/app.js', 'utf8'),
   readFile('src/core/geometry.js', 'utf8'),
   readFile('public/manifest.webmanifest', 'utf8'),
   readFile('public/sw.js', 'utf8'),
+  readFile('LICENSE', 'utf8'),
+  readFile('public/LICENSE.txt', 'utf8'),
   readFile('NOTICE', 'utf8'),
   readFile('public/NOTICE.txt', 'utf8'),
   readFile('package.json', 'utf8'),
   readFile('public/version.json', 'utf8'),
   readFile('public/healthz.json', 'utf8'),
+  readFile('README.md', 'utf8'),
+  readFile('README.en.md', 'utf8'),
+  readFile('README.zh-CN.md', 'utf8'),
+  readFile('docs/adr/0003-apache-license.md', 'utf8'),
+  readFile('docs/deployment.zh-CN.md', 'utf8'),
+  readFile('docs/deployment.md', 'utf8'),
 ]);
 
 const failures = [];
 const check = (condition, message) => {
   if (!condition) failures.push(message);
 };
+const normalizeText = (value) => value.replace(/\r\n?/g, '\n');
+
+const ignoredSourceDirectories = new Set(['.git', 'dist', 'node_modules', 'playwright-report', 'release', 'test-results']);
+const searchableSourceExtensions = new Set(['.cff', '.css', '.html', '.js', '.json', '.md', '.mjs', '.txt', '.yaml', '.yml']);
+async function collectSearchableSource(directory = '.') {
+  const chunks = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!ignoredSourceDirectories.has(entry.name)) chunks.push(...await collectSearchableSource(join(directory, entry.name)));
+      continue;
+    }
+    if (searchableSourceExtensions.has(extname(entry.name).toLowerCase()) || ['LICENSE', 'NOTICE'].includes(entry.name)) {
+      chunks.push(await readFile(join(directory, entry.name), 'utf8'));
+    }
+  }
+  return chunks;
+}
 
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
 const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
 check(duplicates.length === 0, `duplicate HTML ids: ${duplicates.join(', ')}`);
 check(!/(?:href|src)="\//.test(html), 'root-relative asset path found in index.html');
 check(!/<script[^>]+https?:\/\//i.test(html), 'external script found in index.html');
+check((html.match(/<h1\b/g) || []).length === 1, 'application must expose exactly one stable h1');
+check(html.includes('<h1 class="visually-hidden">豆格工坊：在线拼豆图纸生成器</h1>'), 'stable application h1 is missing');
 check(app.includes('window.runBeadStudioSelfTests=runSelfTests'), 'browser self-test hook missing');
 check(app.includes("from './core/geometry.js'"), 'geometry Module is not wired into the app');
 check(geometry.includes('export function fitPatternInsideBoard'), 'geometry public Interface missing');
@@ -40,7 +68,11 @@ check(!worker.includes("cache.put('/')"), 'service worker must not overwrite the
 check(!/https?:/.test(worker), 'service worker must not cache cross-origin requests');
 check(worker.includes("key.startsWith(CACHE_PREFIX)"), 'service worker cache cleanup is not scoped to this project');
 check(worker.includes('caches.match(request, { ignoreSearch: true })'), 'offline navigation must prefer a cached requested page');
+check(worker.includes("'./LICENSE.txt'"), 'service worker must cache the Apache-2.0 license');
+check(normalizeText(publicLicense) === normalizeText(license), 'public/LICENSE.txt must match the repository LICENSE');
 check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
+check(notice.includes('pinned data commit 94b99999652866f1a1879d6369fe735f811949e5'), 'pinned palette attribution is missing');
+check(notice.includes('Copyright (c) 2020 maxcleme'), 'palette MIT attribution is missing');
 check(notice.includes('Copyright (c) 2019-present, VoidZero Inc. and Vite contributors'), 'Vite MIT attribution is missing');
 
 const packageVersion = JSON.parse(packageJson).version;
@@ -50,6 +82,34 @@ check(JSON.parse(healthJson).version === packageVersion, 'public/healthz.json do
 check(app.includes(`const APP_VERSION = '${packageVersion}'`), 'APP_VERSION does not match package.json');
 check(app.includes(`const BUILD_DATE = '${publicVersion.buildDate}'`), 'BUILD_DATE does not match public/version.json');
 check(worker.includes(`v${packageVersion}`), 'service-worker cache version does not match package.json');
+
+const publishedText = (await collectSearchableSource()).join('\n');
+const removedReferenceTerms = ['Zip' + 'pland', 'perler' + '-beads', 'AG' + 'PL', 'Aff' + 'ero'];
+check(!removedReferenceTerms.some((term) => publishedText.toLowerCase().includes(term.toLowerCase())), 'removed project-reference term found in published source');
+check(['拼豆图纸生成器', '图片转拼豆', '拼豆像素画', '逐格色号', '辅助线', '用料统计'].every((term) => readmeZh.includes(term)), 'Chinese README search terms are incomplete');
+check(['local-first fuse-bead pattern generator', 'editable', 'printable', 'per-cell color codes', 'board guides', 'material counts'].every((term) => readmeEn.includes(term)), 'English README search terms are incomplete');
+check(readmeZh.includes('README.en.md') && readmeEn.includes('README.md'), 'README language switch is incomplete');
+check(deployZh.includes('GitHub Pages') && deployZh.includes('Cloudflare Pages') && deployEn.includes('GitHub Pages') && deployEn.includes('Cloudflare Pages'), 'bilingual deployment guide is incomplete');
+
+const markdownFiles = [
+  ['README.md', readmeZh],
+  ['README.en.md', readmeEn],
+  ['README.zh-CN.md', readmeRedirect],
+  ['docs/deployment.zh-CN.md', deployZh],
+  ['docs/deployment.md', deployEn],
+];
+for (const [file, content] of markdownFiles) {
+  for (const match of content.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
+    const href = match[1].trim().replace(/^<|>$/g, '');
+    if (!href || href.startsWith('#') || /^[a-z][a-z0-9+.-]*:/i.test(href)) continue;
+    const target = decodeURIComponent(href.split('#')[0]);
+    try {
+      await access(resolve(dirname(file), target));
+    } catch {
+      failures.push(`${file} has a broken local link: ${href}`);
+    }
+  }
+}
 
 if (failures.length) {
   console.error(failures.map((failure) => `- ${failure}`).join('\n'));

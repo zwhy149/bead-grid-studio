@@ -11,4 +11,4 @@ Release independently authored community code under Apache License 2.0, retain t
 
 Apache-2.0 lowers adoption friction and includes an express patent grant, but permits commercial and closed-source reuse. It does not prevent another party from selling a modified build. Brand marks and third-party marks are not licensed.
 
-AGPL was considered but not selected because the current priority is broad adoption and straightforward reuse of community fixes in separately maintained products. No code or data from the AGPL reference project is copied into this repository.
+A stronger reciprocal license was considered but not selected because the current priority is broad adoption and straightforward reuse of community fixes in separately maintained products. Every redistributed third-party component or dataset must still keep its own required notice.

@@ -2,6 +2,16 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] - 2026-08-16
+
+### Changed
+
+- Made Simplified Chinese the repository landing language and added a complete English README with symmetric language navigation.
+- Added beginner instructions for browser use, offline download, local development, GitHub Pages, and Cloudflare Pages.
+- Added Chinese and English search terminology to the repository landing content without claiming lossless conversion.
+- Normalized embedded legal-text line endings for reproducible portable builds across Windows and Linux.
+- Expanded the release ZIP so README links and deployment documentation remain available after extraction.
+
 ## [1.0.1] - 2026-08-16
 
 ### Fixed

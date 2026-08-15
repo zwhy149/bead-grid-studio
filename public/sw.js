@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'bead-grid-studio-community-';
-const CACHE_NAME = `${CACHE_PREFIX}v1.0.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v1.0.2`;
 const APP_SHELL = [
   './manifest.webmanifest',
   './app-icon.svg',
@@ -8,6 +8,7 @@ const APP_SHELL = [
   './legal.css',
   './privacy.html',
   './terms.html',
+  './LICENSE.txt',
   './NOTICE.txt',
   './version.json',
 ];

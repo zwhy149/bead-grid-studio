@@ -76,6 +76,18 @@
 
     .skip-link:focus { transform: translateY(0); }
 
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0 0 0 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
     .app-shell {
       display: grid;
       grid-template-rows: var(--topbar-h) minmax(0, 1fr) var(--status-h);
@@ -126,7 +138,7 @@
     .brand-mark i:nth-child(8) { background: #dc6b55; }
 
     .brand-copy { line-height: 1.05; }
-    .brand-copy strong { display: block; font-size: 15px; letter-spacing: .04em; }
+    .brand-copy strong { display: block; margin: 0; font: inherit; font-size: 15px; font-weight: 700; letter-spacing: .04em; }
     .brand-copy span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; letter-spacing: .12em; }
 
     .project-meta {
@@ -793,7 +805,7 @@
       box-shadow: inset 3px 3px 4px rgba(255,255,255,.5), inset -2px -2px 4px rgba(0,0,0,.12);
     }
 
-    .empty-card h1 { margin: 0; font-size: clamp(20px, 3vw, 28px); letter-spacing: -.03em; }
+    .empty-card h2 { margin: 0; font-size: clamp(20px, 3vw, 28px); letter-spacing: -.03em; }
     .empty-card p { margin: 10px auto 16px; color: var(--muted); font-size: 12px; line-height: 1.7; }
     .empty-card .privacy-note { margin-top: 12px; color: var(--faint); font-size: 10px; }
 
@@ -1203,7 +1215,7 @@
       .board-shell { padding: 7px; border-radius: 10px; }
       .legend-strip { min-height: 44px; max-height: 56px; }
       .empty-card { padding: 20px 17px; }
-      .empty-card h1 { font-size: 21px; }
+      .empty-card h2 { font-size: 21px; }
       .empty-card p { font-size: 11px; }
     }
 

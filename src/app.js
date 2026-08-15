@@ -12,7 +12,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.0.1';
+    const APP_VERSION = '1.0.2';
     const BUILD_DATE = '2026-08-16';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;

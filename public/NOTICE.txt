@@ -32,9 +32,6 @@ The upstream dataset is distributed under the MIT License:
 The third-party license permits use of the data. It does not imply that MARD or
 any other bead manufacturer is affiliated with or endorses this project.
 
-Zippland/perler-beads is credited as product inspiration in README.md. No code,
-artwork, icons, UI text, or palette files from that AGPL-3.0 project are included.
-
 The production bundle is built with Vite, which may inject its module preload
 polyfill into generated JavaScript:
 

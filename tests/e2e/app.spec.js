@@ -102,4 +102,7 @@ test('service worker preserves other projects and serves legal pages offline', a
   await page.reload();
   await expect(page).toHaveTitle(/隐私/);
   await expect(page.locator('#emptyUploadBtn')).toHaveCount(0);
+  const licenseText = await page.evaluate(() => fetch('./LICENSE.txt').then((response) => response.text()));
+  expect(licenseText).toContain('Apache License');
+  expect(licenseText).toContain('END OF TERMS AND CONDITIONS');
 });

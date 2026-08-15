@@ -5,7 +5,7 @@
 - CI now rejects notice drift and inconsistent application, health, PWA cache, or release version metadata.
 - Automatic sizing copy now describes a recommended result without making an unsupported “clearest” claim.
 
-No conversion algorithm, project format, palette value, or private/product edition behavior changed in this patch.
+No conversion algorithm, project format, or palette value changed in this patch.
 
 ## Integrity
 

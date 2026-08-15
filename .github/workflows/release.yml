@@ -32,8 +32,12 @@ jobs:
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          zip -j "release/bead-grid-studio-v${VERSION}.zip" \
-            "release/bead-grid-studio-v${VERSION}.html" README.md README.zh-CN.md LICENSE NOTICE TRADEMARKS.md
+          PACKAGE_DIR="release/bead-grid-studio-v${VERSION}"
+          mkdir -p "$PACKAGE_DIR"
+          cp "release/bead-grid-studio-v${VERSION}.html" "$PACKAGE_DIR/"
+          cp README.md README.en.md README.zh-CN.md LICENSE NOTICE TRADEMARKS.md SECURITY.md CONTRIBUTING.md ROADMAP.md "$PACKAGE_DIR/"
+          cp -R docs "$PACKAGE_DIR/docs"
+          (cd release && zip -r "bead-grid-studio-v${VERSION}.zip" "bead-grid-studio-v${VERSION}")
           (cd release && sha256sum "bead-grid-studio-v${VERSION}.html" "bead-grid-studio-v${VERSION}.zip" > SHA256SUMS.txt)
       - name: Create GitHub Release
         env:
