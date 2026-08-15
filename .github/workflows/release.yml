@@ -25,7 +25,8 @@ jobs:
           npx playwright install --with-deps chromium firefox webkit
       - name: Verify and build release
         run: |
-          test "v$(node -p \"require('./package.json').version\")" = "$GITHUB_REF_NAME"
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          test "v${PACKAGE_VERSION}" = "${GITHUB_REF_NAME}"
           npm run qa
       - name: Package portable assets
         shell: bash
