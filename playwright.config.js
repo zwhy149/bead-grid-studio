@@ -5,6 +5,9 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 8_000 },
   fullyParallel: true,
+  // Conversion tests are CPU-heavy. Keeping three workers avoids false
+  // watchdog timeouts when Chromium, Firefox, and WebKit quantize in parallel.
+  workers: 3,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
