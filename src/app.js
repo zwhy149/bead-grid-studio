@@ -2438,7 +2438,7 @@ import {
         if(structuralOnly){
           const documentPreview=els.processMode.value==='document';
           toast(documentPreview?'toast.documentPreview':'toast.documentDetected');
-          setStatus('status.documentPreview',{kind:t(documentPreview?'status.structurePreview':'status.complexPreview'),size:localizedPatternSize(placement),action:t(documentPreview?'status.cropSuggested':'status.modeSuggested')});
+          setStatus('status.documentPreview',{kind:t(documentPreview?'status.structurePreview':'status.complexPreview'),size:localizedPatternSize(placement),advice:t(documentPreview?'status.cropSuggested':'status.modeSuggested')});
         }else if(lineDetailIssues(result.diagnostics).total>0){
           const issues=lineDetailIssues(result.diagnostics),warning=lineDetailWarningCopy(issues,{short:true});
           toast('toast.generatedWarning','info',{warning});
