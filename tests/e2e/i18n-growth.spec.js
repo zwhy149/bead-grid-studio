@@ -70,6 +70,11 @@ test('English key interface contains no accidental Chinese UI', async ({ page })
   const text = await page.locator(selectors.join(',')).allTextContents();
   const visibleCopy = text.join(' ').replace(/豆格工坊|中文|MARD/g, '');
   expect(visibleCopy).not.toMatch(/[\u4e00-\u9fff]/);
+  const exposedLabels = await page.locator('[aria-label],[title]').evaluateAll((nodes) => nodes.flatMap((node) => [
+    node.getAttribute('aria-label'),
+    node.getAttribute('title'),
+  ]).filter(Boolean));
+  expect(exposedLabels.filter((value) => /^[a-z][\w-]*\.[\w.-]+$/.test(value))).toEqual([]);
 });
 
 test('onboarding and core actions do not overflow at supported widths', async ({ page }, testInfo) => {

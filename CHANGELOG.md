@@ -2,6 +2,14 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-08-17
+
+### Fixed
+
+- Completed Chinese and English coverage for dynamically selected color-code labels, document diagnostics, image-decoding errors, and conversion failures.
+- Hardened the source gate so every runtime translation key literal is checked, including keys selected through conditional expressions.
+- Added a browser regression that prevents internal translation keys from leaking into accessible labels or tooltips.
+
 ## [1.1.0] - 2026-08-17
 
 ### Added

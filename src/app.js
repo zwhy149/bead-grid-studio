@@ -24,7 +24,7 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '1.1.1';
     const BUILD_DATE = '2026-08-17';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;

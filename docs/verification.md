@@ -1,6 +1,6 @@
 # Verification report
 
-Release target: 1.1.0
+Release target: 1.1.1
 Date: 2026-08-17
 
 ## Repeatable repository gates
