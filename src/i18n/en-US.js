@@ -23,7 +23,7 @@ const enUS = {
   'action.trySample': 'Try a Sample',
   'action.downloadOffline': 'Download Offline',
   'action.exportPattern': 'Export Pattern',
-  'action.exportBuildSheet': 'Export Pattern',
+  'action.exportBuildSheet': 'Export Build Sheet',
   'action.adjust': 'Adjust Settings',
   'action.restoreFullImage': 'Restore Full Image',
   'action.applyRecommended': 'Use Recommended Size',
