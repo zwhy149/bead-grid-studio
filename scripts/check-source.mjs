@@ -1,8 +1,11 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, extname, join, resolve } from 'node:path';
+import enUS from '../src/i18n/en-US.js';
+import zhCN from '../src/i18n/zh-CN.js';
+import { DEFAULT_PALETTE_PROVIDER_ID, getPaletteProvider } from '../src/palettes/catalog.js';
 import { PALETTE } from '../src/palettes/mard221.js';
 
-const [html, app, geometry, manifest, worker, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn] = await Promise.all([
+const [html, app, geometry, manifest, worker, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn, privacyEn, termsEn, robots, sitemap] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('src/app.js', 'utf8'),
   readFile('src/core/geometry.js', 'utf8'),
@@ -21,6 +24,10 @@ const [html, app, geometry, manifest, worker, license, publicLicense, notice, pu
   readFile('docs/adr/0003-apache-license.md', 'utf8'),
   readFile('docs/deployment.zh-CN.md', 'utf8'),
   readFile('docs/deployment.md', 'utf8'),
+  readFile('public/privacy.en.html', 'utf8'),
+  readFile('public/terms.en.html', 'utf8'),
+  readFile('public/robots.txt', 'utf8'),
+  readFile('public/sitemap.xml', 'utf8'),
 ]);
 
 const failures = [];
@@ -51,15 +58,29 @@ check(duplicates.length === 0, `duplicate HTML ids: ${duplicates.join(', ')}`);
 check(!/(?:href|src)="\//.test(html), 'root-relative asset path found in index.html');
 check(!/<script[^>]+https?:\/\//i.test(html), 'external script found in index.html');
 check((html.match(/<h1\b/g) || []).length === 1, 'application must expose exactly one stable h1');
-check(html.includes('<h1 class="visually-hidden">豆格工坊：在线拼豆图纸生成器</h1>'), 'stable application h1 is missing');
+check(/<h1\b[^>]*data-i18n="app\.heading"/.test(html), 'stable translated application h1 is missing');
 check(app.includes('window.runBeadStudioSelfTests=runSelfTests'), 'browser self-test hook missing');
 check(app.includes("from './core/geometry.js'"), 'geometry Module is not wired into the app');
 check(geometry.includes('export function fitPatternInsideBoard'), 'geometry public Interface missing');
+
+const zhKeys = Object.keys(zhCN).sort();
+const enKeys = Object.keys(enUS).sort();
+check(JSON.stringify(zhKeys) === JSON.stringify(enKeys), 'zh-CN and en-US dictionaries must expose the same keys');
+const markupI18nKeys = [...html.matchAll(/\bdata-i18n(?:-aria|-title|-placeholder|-alt)?="([^"]+)"/g)].map((match) => match[1]);
+const missingMarkupKeys = [...new Set(markupI18nKeys.filter((key) => !(key in zhCN) || !(key in enUS)))];
+check(missingMarkupKeys.length === 0, `HTML references missing i18n keys: ${missingMarkupKeys.join(', ')}`);
+const runtimeI18nKeys = [...app.matchAll(/\b(?:t|toast|setStatus|setProjectSubtitle|commitHistory)\(\s*['"]([a-z][\w.-]+)['"]/g)].map((match) => match[1]);
+const missingRuntimeKeys = [...new Set(runtimeI18nKeys.filter((key) => !(key in zhCN) || !(key in enUS)))];
+check(missingRuntimeKeys.length === 0, `app references missing i18n keys: ${missingRuntimeKeys.join(', ')}`);
+check(app.includes("from './i18n/index.js'"), 'i18n runtime is not wired into the app');
 
 const paletteCodes = PALETTE.map((color) => color.code);
 check(paletteCodes.length === 221, `expected 221 base palette entries, found ${paletteCodes.length}`);
 check(new Set(paletteCodes).size === 221, 'duplicate MARD-compatible palette codes found');
 check(PALETTE.every((color) => /^[A-HM]\d{1,2}$/.test(color.code)), 'non-base series leaked into MARD 221 data');
+const provider = getPaletteProvider();
+check(provider.id === DEFAULT_PALETTE_PROVIDER_ID && provider.colors === PALETTE, 'default palette provider is not wired to the pinned 221 colors');
+check(provider.colors.filter(provider.autoMatchable).length === 220, 'transparent H1 must stay outside automatic image matching');
 
 const parsedManifest = JSON.parse(manifest);
 check(parsedManifest.start_url === './', 'manifest start_url must remain repository-subpath safe');
@@ -69,6 +90,7 @@ check(!/https?:/.test(worker), 'service worker must not cache cross-origin reque
 check(worker.includes("key.startsWith(CACHE_PREFIX)"), 'service worker cache cleanup is not scoped to this project');
 check(worker.includes('caches.match(request, { ignoreSearch: true })'), 'offline navigation must prefer a cached requested page');
 check(worker.includes("'./LICENSE.txt'"), 'service worker must cache the Apache-2.0 license');
+check(worker.includes("'./privacy.en.html'") && worker.includes("'./terms.en.html'"), 'service worker must cache English legal pages');
 check(normalizeText(publicLicense) === normalizeText(license), 'public/LICENSE.txt must match the repository LICENSE');
 check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
 check(notice.includes('pinned data commit 94b99999652866f1a1879d6369fe735f811949e5'), 'pinned palette attribution is missing');
@@ -90,6 +112,38 @@ check(['拼豆图纸生成器', '图片转拼豆', '拼豆像素画', '逐格色
 check(['local-first fuse-bead pattern generator', 'editable', 'printable', 'per-cell color codes', 'board guides', 'material counts'].every((term) => readmeEn.includes(term)), 'English README search terms are incomplete');
 check(readmeZh.includes('README.en.md') && readmeEn.includes('README.md'), 'README language switch is incomplete');
 check(deployZh.includes('GitHub Pages') && deployZh.includes('Cloudflare Pages') && deployEn.includes('GitHub Pages') && deployEn.includes('Cloudflare Pages'), 'bilingual deployment guide is incomplete');
+check(privacyEn.includes('<html lang="en-US">') && termsEn.includes('<html lang="en-US">'), 'English privacy or terms page is missing');
+const canonicalSitemapUrl = 'https://zwhy149.github.io/bead-grid-studio/sitemap.xml';
+const robotDirectives = new Set(robots.split(/\r?\n/).map((line) => line.trim()).filter(Boolean));
+check(robotDirectives.has(`Sitemap: ${canonicalSitemapUrl}`), 'robots.txt does not expose the canonical sitemap');
+
+const sitemapUrls = new Set([
+  ...[...sitemap.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/g)].map((match) => match[1]),
+  ...[...sitemap.matchAll(/<xhtml:link\b[^>]*\bhref="([^"]+)"[^>]*\/?\s*>/g)].map((match) => match[1]),
+]);
+const isOfficialSiteUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.origin === 'https://zwhy149.github.io'
+      && url.pathname.startsWith('/bead-grid-studio/')
+      && url.username === ''
+      && url.password === ''
+      && url.hash === '';
+  } catch {
+    return false;
+  }
+};
+check([...sitemapUrls].every(isOfficialSiteUrl), 'sitemap contains a malformed or non-project URL');
+const requiredSitemapUrls = [
+  'https://zwhy149.github.io/bead-grid-studio/',
+  'https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN',
+  'https://zwhy149.github.io/bead-grid-studio/?lang=en-US',
+  'https://zwhy149.github.io/bead-grid-studio/privacy.html',
+  'https://zwhy149.github.io/bead-grid-studio/privacy.en.html',
+  'https://zwhy149.github.io/bead-grid-studio/terms.html',
+  'https://zwhy149.github.io/bead-grid-studio/terms.en.html',
+];
+check(requiredSitemapUrls.every((url) => sitemapUrls.has(url)), 'sitemap is missing a required localized URL');
 
 const markdownFiles = [
   ['README.md', readmeZh],

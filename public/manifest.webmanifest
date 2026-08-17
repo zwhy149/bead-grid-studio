@@ -1,12 +1,16 @@
 {
-  "name": "豆格工坊 · 拼豆图纸生成器",
-  "short_name": "豆格工坊",
-  "description": "本机处理图片，生成带逐格色号、辅助线和用量统计的拼豆施工图。",
+  "id": "./",
+  "name": "Bead Grid Studio / 豆格工坊",
+  "short_name": "Bead Grid",
+  "description": "Turn images into editable, printable fuse-bead patterns locally. 图片仅在浏览器本地处理，可生成可编辑、可打印的拼豆图纸。",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#ece9e2",
   "theme_color": "#fbfaf7",
+  "categories": ["graphics", "utilities", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./app-icon.svg",

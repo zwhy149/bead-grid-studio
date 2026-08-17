@@ -1,5 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {
+  DEFAULT_PALETTE_PROVIDER_ID,
+  getPaletteProvider,
+  PALETTE_PROVIDERS,
+} from '../../src/palettes/catalog.js';
 import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from '../../src/palettes/mard221.js';
 
 test('base catalog has the exact nine-series 221-code shape', () => {
@@ -21,4 +26,14 @@ test('transparent, white, and black anchors are explicit', () => {
 test('catalog source and legacy migration data remain pinned', () => {
   assert.equal(MARD_PALETTE_SOURCE, 'maxcleme/beadcolors@94b99999652866f1a1879d6369fe735f811949e5');
   assert.equal(LEGACY_64_HEX.size, 64);
+});
+
+test('brand-neutral provider contract exposes stable anchors and matchable colors', () => {
+  const provider = getPaletteProvider();
+  assert.equal(provider.id, DEFAULT_PALETTE_PROVIDER_ID);
+  assert.equal(PALETTE_PROVIDERS[provider.id], provider);
+  assert.equal(provider.colors, PALETTE);
+  assert.deepEqual(provider.anchors, { transparent: 'H1', white: 'H2', black: 'H7' });
+  assert.equal(provider.colors.filter(provider.autoMatchable).length, 220);
+  assert.equal(getPaletteProvider('not-a-real-provider'), provider);
 });

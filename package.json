@@ -1,6 +1,6 @@
 {
   "name": "bead-grid-studio",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": true,
   "description": "Topology-aware, local-first fuse-bead pattern generator with printable color codes and material counts.",
   "type": "module",
@@ -16,6 +16,9 @@
   "keywords": [
     "bead-pattern",
     "fuse-beads",
+    "pindou",
+    "pindou-pattern",
+    "bead-grid-studio",
     "pixel-art",
     "image-quantization",
     "local-first",
@@ -29,6 +32,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/build-portable.mjs",
     "preview": "vite preview",
+    "capture:docs": "npm run build && node scripts/capture-docs.mjs",
+    "metrics": "node scripts/repo-metrics.mjs",
     "check": "node scripts/check-source.mjs && node scripts/check-palette.mjs",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:e2e": "npm run build && playwright test",

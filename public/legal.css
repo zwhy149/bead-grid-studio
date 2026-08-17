@@ -8,6 +8,13 @@
 
 body { margin: 0; }
 
+.legal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 main {
   width: min(760px, calc(100% - 40px));
   margin: 0 auto;

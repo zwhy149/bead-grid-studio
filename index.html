@@ -5,33 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#fbfaf7">
-  <meta name="description" content="上传图片，一键生成采用 MARD 兼容基础 221 色号、带色号与粗辅助线的拼豆施工图。图片仅在你的浏览器本地处理，不上传服务器。">
+  <meta name="description" content="上传图片，一键生成带逐格色号、粗辅助线与用量统计的拼豆施工图。图片仅在你的浏览器本地处理，不上传服务器。">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://zwhy149.github.io/bead-grid-studio/">
+  <link rel="alternate" hreflang="zh-CN" href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN">
+  <link rel="alternate" hreflang="en" href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US">
+  <link rel="alternate" hreflang="x-default" href="https://zwhy149.github.io/bead-grid-studio/">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="豆格工坊 · MARD 兼容基础 221 色号拼豆图纸生成器">
-  <meta property="og:description" content="图片本地处理，一键生成带逐格色号、四边坐标、粗辅助线与用量统计的拼豆施工图。">
+  <meta property="og:title" content="豆格工坊 · 在线拼豆图纸生成器">
+  <meta property="og:description" content="图片本地处理，自动配色、统计豆子并导出可打印的拼豆施工图。">
   <meta property="og:url" content="https://zwhy149.github.io/bead-grid-studio/">
   <meta property="og:image" content="https://zwhy149.github.io/bead-grid-studio/social-preview.png">
+  <meta property="og:image:alt" content="Bead Grid Studio original image to fuse bead pattern preview">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="675">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="在线拼豆图纸生成器｜图片转拼豆 · 豆格工坊">
+  <meta name="twitter:description" content="上传图片，一键生成带逐格色号、辅助线与用料统计的拼豆施工图；图片仅在浏览器本地处理。">
+  <meta name="twitter:image" content="https://zwhy149.github.io/bead-grid-studio/social-preview.png">
   <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./app-icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <title>豆格工坊 · 在线拼豆图纸生成与编辑器</title>
+  <title>在线拼豆图纸生成器｜图片转拼豆 · 豆格工坊</title>
   <link rel="stylesheet" href="./src/styles.css">
+  <script type="application/ld+json" id="softwareJsonLd">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Bead Grid Studio / 豆格工坊","applicationCategory":"DesignApplication","operatingSystem":"Any modern web browser","url":"https://zwhy149.github.io/bead-grid-studio/","isAccessibleForFree":true,"license":"https://www.apache.org/licenses/LICENSE-2.0"}</script>
 </head>
 <body>
-  <h1 class="visually-hidden">豆格工坊：在线拼豆图纸生成器</h1>
-  <a class="skip-link" href="#canvasViewport">跳到图纸画布</a>
+  <h1 class="visually-hidden" data-i18n="app.heading">豆格工坊：在线拼豆图纸生成器</h1>
+  <a class="skip-link" href="#canvasViewport" data-i18n="app.skipCanvas">跳到图纸画布</a>
 
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand" aria-label="豆格工坊">
+      <div class="brand" aria-label="豆格工坊" data-i18n-aria="brand.aria">
         <span class="brand-mark" aria-hidden="true">
           <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
         </span>
-        <span class="brand-copy"><strong>豆格工坊</strong><span>在线拼豆图纸生成器</span></span>
+        <span class="brand-copy"><strong data-i18n="brand.name">豆格工坊</strong><span data-i18n="brand.tagline">在线拼豆图纸生成器</span></span>
       </div>
 
       <div class="project-meta">
@@ -40,32 +51,37 @@
       </div>
 
       <div class="top-actions">
-        <button class="button secondary top-hide-mobile" id="topUploadBtn" type="button">选择图片</button>
-        <button class="icon-button" id="productHelpBtn" type="button" aria-label="使用说明、隐私与版本" title="使用说明、隐私与版本">?</button>
-        <button class="icon-button" id="undoBtn" type="button" aria-label="撤销" title="撤销 Ctrl+Z" disabled><span aria-hidden="true">↶</span></button>
-        <button class="icon-button" id="redoBtn" type="button" aria-label="重做" title="重做 Ctrl+Y" disabled><span aria-hidden="true">↷</span></button>
-        <span class="top-divider" aria-hidden="true"></span>
-        <div class="zoom-control" aria-label="画布缩放">
-          <button class="icon-button" id="zoomOutBtn" type="button" aria-label="缩小画布">−</button>
-          <span class="zoom-value" id="zoomValue">100%</span>
-          <button class="icon-button" id="zoomInBtn" type="button" aria-label="放大画布">＋</button>
+        <button class="button secondary top-hide-mobile" id="topUploadBtn" type="button" data-i18n="action.chooseImage">选择图片</button>
+        <div class="language-switcher" role="group" aria-label="界面语言" data-i18n-aria="language.label">
+          <button type="button" data-locale="zh-CN" aria-pressed="true" title="中文" data-i18n="language.chinese" data-i18n-title="language.chinese">中文</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-locale="en-US" aria-pressed="false" title="EN" data-i18n="language.english" data-i18n-title="language.english">EN</button>
         </div>
-        <button class="button primary" id="topExportBtn" type="button">导出图纸</button>
+        <button class="icon-button" id="productHelpBtn" type="button" aria-label="使用说明、隐私与版本" title="使用说明、隐私与版本" data-i18n-aria="aria.help" data-i18n-title="aria.help">?</button>
+        <button class="icon-button" id="undoBtn" type="button" aria-label="撤销" title="撤销 Ctrl+Z" data-i18n-aria="aria.undo" data-i18n-title="title.undo" disabled><span aria-hidden="true">↶</span></button>
+        <button class="icon-button" id="redoBtn" type="button" aria-label="重做" title="重做 Ctrl+Y" data-i18n-aria="aria.redo" data-i18n-title="title.redo" disabled><span aria-hidden="true">↷</span></button>
+        <span class="top-divider" aria-hidden="true"></span>
+        <div class="zoom-control" aria-label="画布缩放" data-i18n-aria="aria.zoom">
+          <button class="icon-button" id="zoomOutBtn" type="button" aria-label="缩小画布" data-i18n-aria="aria.zoomOut">−</button>
+          <span class="zoom-value" id="zoomValue">100%</span>
+          <button class="icon-button" id="zoomInBtn" type="button" aria-label="放大画布" data-i18n-aria="aria.zoomIn">＋</button>
+        </div>
+        <button class="button primary" id="topExportBtn" type="button" data-i18n="action.exportPattern">导出图纸</button>
       </div>
     </header>
 
     <main class="workspace">
-      <aside class="side-panel panel-left" id="controlPanel" aria-label="图纸设置">
-        <div class="mobile-sheet-head"><strong>工具与设置</strong><button class="icon-button sheet-close" type="button" aria-label="关闭设置">×</button></div>
+      <aside class="side-panel panel-left" id="controlPanel" aria-label="图纸设置" data-i18n-aria="aria.controls">
+        <div class="mobile-sheet-head"><strong data-i18n="panel.tools">工具与设置</strong><button class="icon-button sheet-close" type="button" aria-label="关闭设置" data-i18n-aria="aria.closeControls">×</button></div>
 
         <section class="panel-section">
-          <div class="section-head"><h2>图片与转换</h2><small>本机处理</small></div>
+          <div class="section-head"><h2 data-i18n="panel.image">图片与转换</h2><small data-i18n="panel.localProcessing">本机处理</small></div>
           <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
           <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-controls="imageInput">
             <div>
               <span class="drop-icon" aria-hidden="true">＋</span>
-              <strong>选择图片 · 智能生成拼豆图</strong>
-              <span>自动判断类型、校准黑白并保持比例；导出前请核对底板与实物色卡。</span>
+              <strong data-i18n="dropzone.title">选择图片 · 智能生成拼豆图</strong>
+              <span data-i18n="dropzone.note">自动判断类型、校准黑白并保持比例；导出前请核对底板与实物色卡。</span>
             </div>
           </div>
           <div class="file-meta" id="fileMeta" hidden>
@@ -73,202 +89,202 @@
             <div><strong id="fileName">—</strong><span id="fileDetails">—</span></div>
           </div>
           <div class="smart-card" id="smartCard" role="status" aria-live="polite" hidden>
-            <span class="smart-kicker">小白一键模式</span>
-            <strong id="smartTitle">正在计算推荐方案</strong>
-            <p id="smartSummary">会自动选择尺寸、处理模式、色板和预览方式。</p>
-            <div class="smart-steps" aria-label="使用步骤"><span>1 上传图片</span><span>2 检查图纸</span><span>3 导出制作</span></div>
+            <span class="smart-kicker" data-i18n="smart.kicker">小白一键模式</span>
+            <strong id="smartTitle" data-i18n="smart.calculating">正在计算推荐方案</strong>
+            <p id="smartSummary" data-i18n="smart.defaultSummary">会自动选择尺寸、处理模式、色板和预览方式。</p>
+            <div class="smart-steps" aria-label="使用步骤" data-i18n-aria="aria.steps"><span data-i18n="smart.step1">1 上传图片</span><span data-i18n="smart.step2">2 检查图纸</span><span data-i18n="smart.step3">3 导出制作</span></div>
             <div class="smart-actions">
-              <button class="button primary" id="smartGenerateBtn" type="button">一键智能生成</button>
-              <button class="button secondary" id="smartExportBtn" type="button" hidden>导出制作图纸</button>
-              <button class="button secondary" id="smartAdvancedBtn" type="button">调整参数</button>
-              <button class="button secondary" id="restoreFullImageBtn" type="button" hidden>恢复完整原图边界</button>
+              <button class="button primary" id="smartGenerateBtn" type="button" data-i18n="smart.generate">一键智能生成</button>
+              <button class="button secondary" id="smartExportBtn" type="button" data-i18n="action.exportBuildSheet" hidden>导出制作图纸</button>
+              <button class="button secondary" id="smartAdvancedBtn" type="button" data-i18n="action.adjust">调整参数</button>
+              <button class="button secondary" id="restoreFullImageBtn" type="button" data-i18n="action.restoreFullImage" hidden>恢复完整原图边界</button>
             </div>
           </div>
           <div class="detail-advice" id="detailAdvice" role="status" aria-live="polite" hidden>
-            <span class="advice-kicker" id="detailAdviceKicker">容量检查</span>
-            <strong id="detailAdviceTitle">这张图需要先缩小范围</strong>
-            <p id="detailAdviceText">整张复杂图片无法在当前格数中保留细节。</p>
+            <span class="advice-kicker" id="detailAdviceKicker" data-i18n="advice.kicker">容量检查</span>
+            <strong id="detailAdviceTitle" data-i18n="advice.title">这张图需要先缩小范围</strong>
+            <p id="detailAdviceText" data-i18n="advice.text">整张复杂图片无法在当前格数中保留细节。</p>
             <div class="advice-metrics">
-              <span><b id="detailMetricScale">—</b>每颗豆承载</span>
-              <span><b id="detailMetricFit">—</b>当前可表达性</span>
+              <span><b id="detailMetricScale">—</b><span data-i18n="advice.perBead">每颗豆承载</span></span>
+              <span><b id="detailMetricFit">—</b><span data-i18n="advice.expressiveness">当前可表达性</span></span>
             </div>
             <div class="advice-actions">
-              <button class="button secondary" id="applyRecommendedBtn" type="button">使用建议尺寸</button>
-              <button class="button primary" id="openCropBtn" type="button">裁剪单个区域</button>
+              <button class="button secondary" id="applyRecommendedBtn" type="button" data-i18n="action.applyRecommended">使用建议尺寸</button>
+              <button class="button primary" id="openCropBtn" type="button" data-i18n="action.cropRegion">裁剪单个区域</button>
             </div>
           </div>
 
           <details class="advanced-settings" id="advancedSettings">
-            <summary>高级设置 <span>一键模式已自动配置</span></summary>
+            <summary><span data-i18n="advanced.title">高级设置</span> <span data-i18n="advanced.autoConfigured">一键模式已自动配置</span></summary>
             <div class="advanced-body">
           <label class="field">
-            <span class="field-label">处理模式</span>
+            <span class="field-label" data-i18n="field.processMode">处理模式</span>
             <select id="processMode">
-              <option value="cartoon">图标清晰 · 轮廓优先</option>
-              <option value="detail">高清照片 · 暗部保真</option>
-              <option value="document">文档结构 · 版式优先</option>
-              <option value="photo">照片自然 · 面积平均</option>
-              <option value="pixel">像素直采 · 不做平滑</option>
+              <option value="cartoon" data-i18n="mode.cartoon">图标清晰 · 轮廓优先</option>
+              <option value="detail" data-i18n="mode.detail">高清照片 · 暗部保真</option>
+              <option value="document" data-i18n="mode.document">文档结构 · 版式优先</option>
+              <option value="photo" data-i18n="mode.photo">照片自然 · 面积平均</option>
+              <option value="pixel" data-i18n="mode.pixel">像素直采 · 不做平滑</option>
             </select>
-            <small class="field-note" id="processModeHint">适合卡通、线稿、Logo：优先保留黑线和小面积高饱和细节。</small>
+            <small class="field-note" id="processModeHint" data-i18n="modeHint.cartoon">适合卡通、线稿、Logo：优先保留黑线和小面积高饱和细节。</small>
           </label>
 
           <div class="two-col field">
             <label>
-              <span class="field-label">适配方式</span>
+              <span class="field-label" data-i18n="field.fitMode">适配方式</span>
               <select id="fitMode">
-                <option value="cover">铺满并裁切</option>
-                <option value="contain">完整显示</option>
+                <option value="cover" data-i18n="fit.cover">铺满并裁切</option>
+                <option value="contain" data-i18n="fit.contain">完整显示</option>
               </select>
             </label>
             <label>
-              <span class="field-label">浅色背景</span>
+              <span class="field-label" data-i18n="field.lightBackground">浅色背景</span>
               <select id="whiteMode">
-                <option value="auto">自动留空</option>
-                <option value="keep">保留白豆</option>
+                <option value="auto" data-i18n="white.auto">自动留空</option>
+                <option value="keep" data-i18n="white.keep">保留白豆</option>
               </select>
             </label>
           </div>
 
           <div class="field">
-            <label class="field-label" for="referenceOpacity">参考底图对照 <output id="opacityValue">0%</output></label>
+            <label class="field-label" for="referenceOpacity"><span data-i18n="field.referenceOpacity">参考底图对照</span> <output id="opacityValue">0%</output></label>
             <input id="referenceOpacity" type="range" min="0" max="100" value="0">
           </div>
 
           <div class="field">
-            <label class="field-label" for="maxColors">单张图最多用色 <output id="maxColorsValue">32 色</output></label>
+            <label class="field-label" for="maxColors"><span data-i18n="field.maxColors">单张图最多用色</span> <output id="maxColorsValue">32</output></label>
             <input id="maxColors" type="range" min="2" max="64" value="32">
-            <small class="field-note">自动匹配会从 MARD 兼容基础 221 色号中选最接近的颜色；这里限制的是本张图实际使用的色数，不是色板总数。</small>
+            <small class="field-note" data-i18n="field.maxColorsNote">自动匹配会从当前色板中选择最接近的颜色；这里限制的是本张图实际使用的色数，不是色板总数。</small>
           </div>
 
           <div class="field">
-            <label class="field-label" for="mergeStrength">相近色合并 <output id="mergeStrengthValue">10</output></label>
+            <label class="field-label" for="mergeStrength"><span data-i18n="field.mergeStrength">相近色合并</span> <output id="mergeStrengthValue">10</output></label>
             <input id="mergeStrength" type="range" min="0" max="30" value="10">
-            <small class="field-note">数值越高，用色越干净；深色轮廓和高饱和强调色会优先保留。</small>
+            <small class="field-note" data-i18n="field.mergeNote">数值越高，用色越干净；深色轮廓和高饱和强调色会优先保留。</small>
           </div>
 
           <label class="check-row" for="protectDark">
             <input id="protectDark" type="checkbox" checked>
-            <span><b>中性黑保护</b><small>避免受压缩、反光影响的黑色被匹配成深蓝、深棕或紫色。</small></span>
+            <span><b data-i18n="field.protectDark">中性黑保护</b><small data-i18n="field.protectDarkNote">避免受压缩、反光影响的黑色被匹配成深蓝、深棕或紫色。</small></span>
           </label>
 
-          <button class="button primary wide" id="convertBtn" type="button" disabled>按当前设置重新生成</button>
+          <button class="button primary wide" id="convertBtn" type="button" data-i18n="action.regenerate" disabled>按当前设置重新生成</button>
             </div>
           </details>
         </section>
 
         <section class="panel-section" id="sizeSection">
-          <div class="section-head"><h2>图纸尺寸</h2><small>图案与底板分开</small></div>
-          <div class="size-mode-tabs" role="group" aria-label="尺寸设置方式">
-            <button class="size-mode-button" type="button" data-size-mode="pattern" aria-pressed="true">按图案清晰度</button>
-            <button class="size-mode-button" type="button" data-size-mode="board" aria-pressed="false">按真实底板</button>
+          <div class="section-head"><h2 data-i18n="size.title">图纸尺寸</h2><small data-i18n="size.subtitle">图案与底板分开</small></div>
+          <div class="size-mode-tabs" role="group" aria-label="尺寸设置方式" data-i18n-aria="aria.sizeMode">
+            <button class="size-mode-button" type="button" data-size-mode="pattern" aria-pressed="true" data-i18n="size.patternMode">按图案清晰度</button>
+            <button class="size-mode-button" type="button" data-size-mode="board" aria-pressed="false" data-i18n="size.boardMode">按真实底板</button>
           </div>
           <div class="two-col">
-            <label><span class="field-label" id="gridColsLabel">图案宽度</span><input id="gridCols" type="number" min="4" max="160" value="60" inputmode="numeric"></label>
-            <label><span class="field-label" id="gridRowsLabel">图案高度</span><input id="gridRows" type="number" min="4" max="160" value="60" inputmode="numeric"></label>
+            <label><span class="field-label" id="gridColsLabel" data-i18n="size.patternWidth">图案宽度</span><input id="gridCols" type="number" min="4" max="160" value="60" inputmode="numeric"></label>
+            <label><span class="field-label" id="gridRowsLabel" data-i18n="size.patternHeight">图案高度</span><input id="gridRows" type="number" min="4" max="160" value="60" inputmode="numeric"></label>
           </div>
           <div id="patternSizeControls">
             <label class="check-row" for="aspectLock" style="margin-top:10px">
               <input id="aspectLock" type="checkbox" checked>
-              <span><b>锁定原图比例（推荐）</b><small id="aspectStatus">上传图片后，快捷尺寸表示“图案最长边多少格”，不会强制拉成正方形。</small></span>
+              <span><b data-i18n="size.lockAspect">锁定原图比例（推荐）</b><small id="aspectStatus" data-i18n="size.aspectInitial">上传图片后，快捷尺寸表示“图案最长边多少格”，不会强制拉成正方形。</small></span>
             </label>
-            <div class="preset-grid" aria-label="图案最长边快捷尺寸">
-              <button class="preset-button" type="button" data-size="16">长边 16</button>
-              <button class="preset-button" type="button" data-size="24">长边 24</button>
-              <button class="preset-button" type="button" data-size="32">长边 32</button>
-              <button class="preset-button" type="button" data-size="40">长边 40</button>
-              <button class="preset-button" type="button" data-size="48">长边 48</button>
-              <button class="preset-button" type="button" data-size="60" aria-pressed="true">长边 60</button>
-              <button class="preset-button" type="button" data-size="80">长边 80</button>
-              <button class="preset-button" type="button" data-size="100">长边 100</button>
-              <button class="preset-button" type="button" data-size="120">长边 120</button>
-              <button class="preset-button" type="button" data-size="160">长边 160</button>
+            <div class="preset-grid" aria-label="图案最长边快捷尺寸" data-i18n-aria="aria.presets">
+              <button class="preset-button" type="button" data-size="16" data-i18n="size.longSide" data-i18n-size="16">长边 16</button>
+              <button class="preset-button" type="button" data-size="24" data-i18n="size.longSide" data-i18n-size="24">长边 24</button>
+              <button class="preset-button" type="button" data-size="32" data-i18n="size.longSide" data-i18n-size="32">长边 32</button>
+              <button class="preset-button" type="button" data-size="40" data-i18n="size.longSide" data-i18n-size="40">长边 40</button>
+              <button class="preset-button" type="button" data-size="48" data-i18n="size.longSide" data-i18n-size="48">长边 48</button>
+              <button class="preset-button" type="button" data-size="60" data-i18n="size.longSide" data-i18n-size="60" aria-pressed="true">长边 60</button>
+              <button class="preset-button" type="button" data-size="80" data-i18n="size.longSide" data-i18n-size="80">长边 80</button>
+              <button class="preset-button" type="button" data-size="100" data-i18n="size.longSide" data-i18n-size="100">长边 100</button>
+              <button class="preset-button" type="button" data-size="120" data-i18n="size.longSide" data-i18n-size="120">长边 120</button>
+              <button class="preset-button" type="button" data-size="160" data-i18n="size.longSide" data-i18n-size="160">长边 160</button>
             </div>
           </div>
           <div class="board-config" id="boardSizeControls" hidden>
-            <label><span class="field-label">实物底板规格</span>
+            <label><span class="field-label" data-i18n="board.profile">实物底板规格</span>
               <select id="boardProfile">
-                <option value="mini52">国内常见 2.6mm · 52×52 格/板</option>
-                <option value="mini26">国内小板 2.6mm · 26×26 格/板</option>
-                <option value="artkal50">Artkal Mini 2.6mm · 50×50 格/板</option>
-                <option value="artkal78">Artkal Mini 2.6mm · 78×78 格/板</option>
-                <option value="midi29">5mm 标准 · 29×29 格/板</option>
-                <option value="midi14">5mm 小板 · 14×14 格/板</option>
+                <option value="mini52" data-i18n="board.mini52">国内常见 2.6mm · 52×52 格/板</option>
+                <option value="mini26" data-i18n="board.mini26">国内小板 2.6mm · 26×26 格/板</option>
+                <option value="artkal50" data-i18n="board.artkal50">Artkal Mini 2.6mm · 50×50 格/板</option>
+                <option value="artkal78" data-i18n="board.artkal78">Artkal Mini 2.6mm · 78×78 格/板</option>
+                <option value="midi29" data-i18n="board.midi29">5mm 标准 · 29×29 格/板</option>
+                <option value="midi14" data-i18n="board.midi14">5mm 小板 · 14×14 格/板</option>
               </select>
             </label>
-            <div class="board-layout-grid" aria-label="底板拼接布局">
-              <button class="board-layout-button" type="button" data-board-layout="1x1" aria-pressed="true">1×1 块</button>
-              <button class="board-layout-button" type="button" data-board-layout="2x1">横向 2 块</button>
-              <button class="board-layout-button" type="button" data-board-layout="1x2">竖向 2 块</button>
-              <button class="board-layout-button" type="button" data-board-layout="2x2">2×2 块</button>
-              <button class="board-layout-button" type="button" data-board-layout="3x2">3×2 块</button>
-              <button class="board-layout-button" type="button" data-board-layout="2x3">2×3 块</button>
+            <div class="board-layout-grid" aria-label="底板拼接布局" data-i18n-aria="aria.boardLayout">
+              <button class="board-layout-button" type="button" data-board-layout="1x1" aria-pressed="true" data-i18n="board.layout.1x1">1×1 块</button>
+              <button class="board-layout-button" type="button" data-board-layout="2x1" data-i18n="board.layout.2x1">横向 2 块</button>
+              <button class="board-layout-button" type="button" data-board-layout="1x2" data-i18n="board.layout.1x2">竖向 2 块</button>
+              <button class="board-layout-button" type="button" data-board-layout="2x2" data-i18n="board.layout.2x2">2×2 块</button>
+              <button class="board-layout-button" type="button" data-board-layout="3x2" data-i18n="board.layout.3x2">3×2 块</button>
+              <button class="board-layout-button" type="button" data-board-layout="2x3" data-i18n="board.layout.2x3">2×3 块</button>
             </div>
-            <div class="board-summary" id="boardStatus"><strong>底板 52×52 · 图案按原比例放入</strong>上传图片后会显示图案实际占用格数、空白行列、板数与成品尺寸。</div>
-            <small class="field-note">50 格与 52 格板的针距可能不同，只能按手头实物板型选择；网站不会把不同板型当作可混拼。</small>
+            <div class="board-summary" id="boardStatus"><strong data-i18n="board.initialTitle">底板 52×52 · 图案按原比例放入</strong><span data-i18n="board.initialText">上传图片后会显示图案实际占用格数、空白行列、板数与成品尺寸。</span></div>
+            <small class="field-note" data-i18n="board.compatibilityNote">50 格与 52 格板的针距可能不同，只能按手头实物板型选择；网站不会把不同板型当作可混拼。</small>
           </div>
-          <button class="button secondary wide" id="applySizeBtn" type="button" style="margin-top:10px">应用尺寸</button>
+          <button class="button secondary wide" id="applySizeBtn" type="button" style="margin-top:10px" data-i18n="action.applySize">应用尺寸</button>
         </section>
 
         <section class="panel-section">
-          <div class="section-head"><h2>绘制与变换</h2><small>支持拖拽连绘</small></div>
-          <div class="tool-grid" role="group" aria-label="绘制工具">
-            <button class="tool-button" type="button" data-tool="brush" aria-pressed="true"><b aria-hidden="true">✎</b>画笔 B</button>
-            <button class="tool-button" type="button" data-tool="eraser" aria-pressed="false"><b aria-hidden="true">◇</b>橡皮 E</button>
-            <button class="tool-button" type="button" data-tool="picker" aria-pressed="false"><b aria-hidden="true">⌾</b>取色 I</button>
+          <div class="section-head"><h2 data-i18n="tools.title">绘制与变换</h2><small data-i18n="tools.subtitle">支持拖拽连绘</small></div>
+          <div class="tool-grid" role="group" aria-label="绘制工具" data-i18n-aria="aria.tools">
+            <button class="tool-button" type="button" data-tool="brush" aria-pressed="true"><b aria-hidden="true">✎</b><span data-i18n="tool.brush">画笔 B</span></button>
+            <button class="tool-button" type="button" data-tool="eraser" aria-pressed="false"><b aria-hidden="true">◇</b><span data-i18n="tool.eraser">橡皮 E</span></button>
+            <button class="tool-button" type="button" data-tool="picker" aria-pressed="false"><b aria-hidden="true">⌾</b><span data-i18n="tool.picker">取色 I</span></button>
           </div>
           <div class="selected-color" aria-live="polite">
             <span class="bead" id="selectedColorSwatch"></span>
             <div><strong id="selectedColorName">—</strong><span id="selectedColorCode">—</span></div>
           </div>
           <div class="button-row">
-            <button class="button compact secondary" id="mirrorHBtn" type="button">水平镜像</button>
-            <button class="button compact secondary" id="mirrorVBtn" type="button">垂直镜像</button>
+            <button class="button compact secondary" id="mirrorHBtn" type="button" data-i18n="tool.mirrorH">水平镜像</button>
+            <button class="button compact secondary" id="mirrorVBtn" type="button" data-i18n="tool.mirrorV">垂直镜像</button>
           </div>
           <div class="button-row">
-            <button class="button compact secondary" id="rotateBtn" type="button">顺时针 90°</button>
-            <button class="button compact danger" id="clearBtn" type="button">清空图纸</button>
+            <button class="button compact secondary" id="rotateBtn" type="button" data-i18n="tool.rotate">顺时针 90°</button>
+            <button class="button compact danger" id="clearBtn" type="button" data-i18n="tool.clear">清空图纸</button>
           </div>
         </section>
 
         <section class="panel-section">
-          <div class="section-head"><h2>工程与输出</h2><small>PNG / JSON / 打印</small></div>
+          <div class="section-head"><h2 data-i18n="output.title">工程与输出</h2><small data-i18n="output.subtitle">PNG / JSON / 打印</small></div>
           <label class="field" for="majorGridStep">
-            <span class="field-label">粗辅助线间隔</span>
+            <span class="field-label" data-i18n="output.majorGrid">粗辅助线间隔</span>
             <select id="majorGridStep">
-              <option value="5">每 5 格</option>
-              <option value="10" selected>每 10 格（推荐）</option>
-              <option value="29">每 29 格（常见 5mm 方板）</option>
+              <option value="5" data-i18n="output.major5">每 5 格</option>
+              <option value="10" data-i18n="output.major10" selected>每 10 格（推荐）</option>
+              <option value="29" data-i18n="output.major29">每 29 格（常见 5mm 方板）</option>
             </select>
-            <small class="field-note">屏幕预览和最终施工图同步显示；粗线用于快速定位与底板拼接。</small>
+            <small class="field-note" data-i18n="output.majorNote">屏幕预览和最终施工图同步显示；粗线用于快速定位与底板拼接。</small>
           </label>
           <input id="projectInput" type="file" accept="application/json,.json" hidden>
           <div class="button-row" style="margin-top:0">
-            <button class="button secondary" id="saveProjectBtn" type="button">保存可编辑图纸（不含原图）</button>
-            <button class="button secondary" id="loadProjectBtn" type="button">读取工程</button>
+            <button class="button secondary" id="saveProjectBtn" type="button" data-i18n="action.saveProject">保存可编辑图纸（不含原图）</button>
+            <button class="button secondary" id="loadProjectBtn" type="button" data-i18n="action.loadProject">读取工程</button>
           </div>
-          <button class="button primary wide" id="exportPngBtn" type="button" style="margin-top:8px">导出色号施工图 PNG</button>
-          <button class="button secondary wide" id="printBtn" type="button" style="margin-top:8px">分页 / 浏览器打印</button>
+          <button class="button primary wide" id="exportPngBtn" type="button" style="margin-top:8px" data-i18n="action.exportPng">导出色号施工图 PNG</button>
+          <button class="button secondary wide" id="printBtn" type="button" style="margin-top:8px" data-i18n="action.print">分页 / 浏览器打印</button>
         </section>
       </aside>
 
-      <section class="stage-panel" aria-label="图纸预览与编辑">
+      <section class="stage-panel" aria-label="图纸预览与编辑" data-i18n-aria="aria.stage">
         <div class="stage-toolbar">
-          <div class="segmented" role="group" aria-label="预览模式">
-            <button class="segment-button" type="button" data-preview="square" aria-pressed="true">色块图纸</button>
-            <button class="segment-button" type="button" data-preview="bead" aria-pressed="false">仿真豆粒</button>
+          <div class="segmented" role="group" aria-label="预览模式" data-i18n-aria="aria.preview">
+            <button class="segment-button" type="button" data-preview="square" aria-pressed="true" data-i18n="preview.square">色块图纸</button>
+            <button class="segment-button" type="button" data-preview="bead" aria-pressed="false" data-i18n="preview.bead">仿真豆粒</button>
           </div>
-          <div class="view-toggles" role="group" aria-label="视图选项">
-            <button class="toggle-button" id="gridToggle" type="button" aria-pressed="true" title="显示或隐藏网格">▦ <span>网格</span></button>
-            <button class="toggle-button" id="rulerToggle" type="button" aria-pressed="true" title="显示或隐藏坐标标尺">⌗ <span>标尺</span></button>
-            <button class="toggle-button" id="codesToggle" type="button" aria-pressed="false" title="显示或隐藏格内色号">A1 <span>色号</span></button>
-            <button class="toggle-button" id="fitCanvasBtn" type="button" title="将整张图纸缩放到当前窗口">⛶ <span>适合</span></button>
+          <div class="view-toggles" role="group" aria-label="视图选项" data-i18n-aria="aria.viewOptions">
+            <button class="toggle-button" id="gridToggle" type="button" aria-pressed="true" title="显示或隐藏网格" data-i18n-title="title.toggleGrid">▦ <span data-i18n="view.grid">网格</span></button>
+            <button class="toggle-button" id="rulerToggle" type="button" aria-pressed="true" title="显示或隐藏坐标标尺" data-i18n-title="title.toggleRuler">⌗ <span data-i18n="view.ruler">标尺</span></button>
+            <button class="toggle-button" id="codesToggle" type="button" aria-pressed="false" title="显示或隐藏格内色号" data-i18n-title="title.toggleCodes">A1 <span data-i18n="view.codes">色号</span></button>
+            <button class="toggle-button" id="fitCanvasBtn" type="button" title="将整张图纸缩放到当前窗口" data-i18n-title="title.fitCanvas">⛶ <span data-i18n="view.fit">适合</span></button>
           </div>
         </div>
 
         <div class="stage-quality-banner" id="stageQualityBanner" role="status" aria-live="polite" hidden>
-          <div><strong id="stageQualityTitle">整图细节超出容量</strong><span id="stageQualityText">正文与细线不会清晰</span></div>
-          <button class="button primary" id="stageCropBtn" type="button">裁剪一个子图</button>
+          <div><strong id="stageQualityTitle" data-i18n="quality.title">整图细节超出容量</strong><span id="stageQualityText" data-i18n="quality.text">正文与细线不会清晰</span></div>
+          <button class="button primary" id="stageCropBtn" type="button" data-i18n="quality.crop">裁剪一个子图</button>
         </div>
 
         <div class="canvas-viewport" id="canvasViewport" tabindex="-1">
@@ -284,58 +300,93 @@
             </div>
           </div>
           <div class="empty-state" id="emptyState">
-            <div class="empty-card">
+            <div class="empty-card onboarding-card">
               <div class="empty-beads" aria-hidden="true">
                 <i style="background:#d95562"></i><i style="background:#f7cf47"></i><i style="background:#3f8e62"></i><i style="background:#438ebb"></i><i style="background:#9878c5"></i>
               </div>
-              <h2>把图片放进豆格里</h2>
-              <p>只需选择图片：系统会自动校准黑白、保护轮廓并保持原图比例；施工图逐格标注色号，制作前请核对底板与实物色卡。</p>
-              <button class="button primary" id="emptyUploadBtn" type="button">选择图片</button>
-              <div class="recovery-actions" id="recoveryActions" hidden>
-                <button class="button secondary compact" id="restoreDraftBtn" type="button">恢复上次未完成图纸</button>
-                <button class="button danger compact" id="clearDraftBtn" type="button">清除恢复记录</button>
+              <h2 id="heroTitle" data-i18n="hero.title">图片 → 拼豆图纸</h2>
+              <p class="hero-text" data-i18n="hero.text">放入图片，自动配色、统计豆子并导出逐格色号施工图。</p>
+              <ol class="hero-flow" aria-label="使用步骤" data-i18n-aria="aria.steps">
+                <li data-i18n="hero.flow1">放入图片</li>
+                <li data-i18n="hero.flow2">自动转拼豆</li>
+                <li data-i18n="hero.flow3">自动配色</li>
+                <li data-i18n="hero.flow4">统计豆子</li>
+                <li data-i18n="hero.flow5">导出施工图</li>
+              </ol>
+              <div class="hero-actions">
+                <button class="button primary" id="trySampleBtn" type="button" data-i18n="action.trySample">试试示例</button>
+                <button class="button secondary" id="emptyUploadBtn" type="button" data-i18n="action.chooseImage">选择图片</button>
+                <a class="button secondary" id="downloadOfflineLink" href="https://github.com/zwhy149/bead-grid-studio/releases/latest" target="_blank" rel="noopener noreferrer" data-i18n="action.downloadOffline">下载离线版</a>
               </div>
-              <div class="privacy-note">原图不上传 · 页面加载后在本机处理</div>
+              <div class="recovery-actions" id="recoveryActions" hidden>
+                <button class="button secondary compact" id="restoreDraftBtn" type="button" data-i18n="draft.restore">恢复上次未完成图纸</button>
+                <button class="button danger compact" id="clearDraftBtn" type="button" data-i18n="draft.clear">清除恢复记录</button>
+              </div>
+              <div class="hero-promises" aria-label="本地与离线特性" data-i18n-aria="aria.localPromises">
+                <span data-i18n="hero.noInstall">无需安装</span>
+                <span data-i18n="hero.noAccount">无需注册</span>
+                <span data-i18n="hero.noUpload">图片不上云</span>
+                <span data-i18n="hero.offline">支持离线</span>
+              </div>
+              <div class="privacy-note" data-i18n="hero.local">图片仅在你的浏览器本地处理</div>
             </div>
           </div>
         </div>
 
+        <section class="pattern-ready-bar" id="patternReadyBar" aria-labelledby="patternReadyTitle" hidden>
+          <div class="ready-copy">
+            <strong id="patternReadyTitle" data-i18n="ready.kicker">图纸生成完成 🎉</strong>
+            <span data-i18n="ready.text">先核对图案、色号和豆子数量，再导出或分享。</span>
+          </div>
+          <div class="ready-primary-actions" role="group" aria-label="图纸完成操作" data-i18n-aria="aria.readyActions">
+            <button class="button primary" id="readyExportBtn" type="button" data-i18n="action.exportPattern">导出图纸</button>
+            <button class="button secondary" id="readySaveBtn" type="button" data-i18n="action.saveProject">保存可编辑图纸（不含原图）</button>
+            <button class="button secondary" id="readyShareBtn" type="button" data-i18n="action.share">分享</button>
+            <button class="button secondary" id="readyShareCardBtn" type="button" data-i18n="action.exportShareCard">导出宣传图</button>
+          </div>
+          <nav class="ready-community-links" aria-label="开源社区操作" data-i18n-aria="aria.communityActions">
+            <a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer" data-i18n="action.star">GitHub Star</a>
+            <a href="https://github.com/zwhy149/bead-grid-studio/issues/new/choose" target="_blank" rel="noopener noreferrer" data-i18n="action.reportIssue">反馈问题</a>
+            <a href="https://github.com/zwhy149/bead-grid-studio/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" data-i18n="action.contribute">参与贡献</a>
+          </nav>
+        </section>
+
         <div class="legend-strip" id="legendStrip">
-          <span class="legend-label">使用图例</span>
-          <span class="legend-chip">转换后显示色号与用量</span>
+          <span class="legend-label" data-i18n="legend.title">使用图例</span>
+          <span class="legend-chip" data-i18n="legend.empty">转换后显示色号与用量</span>
         </div>
-        <p id="canvasHelp" hidden>方向键移动键盘光标，空格使用当前工具绘制，Delete 删除当前格。</p>
+        <p id="canvasHelp" data-i18n="canvas.help" hidden>方向键移动键盘光标，空格使用当前工具绘制，Delete 删除当前格。</p>
       </section>
 
-      <aside class="side-panel panel-right" id="palettePanel" aria-label="色板和用料统计">
-        <div class="mobile-sheet-head"><strong>色板与用料</strong><button class="icon-button sheet-close" type="button" aria-label="关闭色板">×</button></div>
+      <aside class="side-panel panel-right" id="palettePanel" aria-label="色板和用料统计" data-i18n-aria="aria.paletteStats">
+        <div class="mobile-sheet-head"><strong data-i18n="palette.panel">色板与用料</strong><button class="icon-button sheet-close" type="button" aria-label="关闭色板" data-i18n-aria="aria.closePalette">×</button></div>
 
         <section class="panel-section" id="paletteSection">
-          <div class="section-head"><h2>MARD 兼容基础色板</h2><small id="paletteCountLabel">221 色 · 9 系列</small></div>
-          <div class="palette-mode" role="group" aria-label="色板范围">
-            <button class="segment-button" type="button" data-palette-mode="mard221" aria-pressed="true">MARD 基础 221 色</button>
+          <div class="section-head"><h2 data-i18n="palette.title">色板</h2><small id="paletteCountLabel" data-i18n="palette.countAll">221 色 · 9 系列</small></div>
+          <div class="palette-mode" role="group" aria-label="色板范围" data-i18n-aria="aria.paletteRange">
+            <button class="segment-button" type="button" data-palette-mode="mard221" aria-pressed="true" data-i18n="palette.provider">MARD 兼容基础 221 色</button>
           </div>
-          <div class="palette-series" role="group" aria-label="按色系筛选">
-            <button type="button" data-palette-series="all" aria-pressed="true">全部</button>
+          <div class="palette-series" role="group" aria-label="按色系筛选" data-i18n-aria="aria.paletteSeries">
+            <button type="button" data-palette-series="all" aria-pressed="true" data-i18n="palette.all">全部</button>
             <button type="button" data-palette-series="A">A</button><button type="button" data-palette-series="B">B</button>
             <button type="button" data-palette-series="C">C</button><button type="button" data-palette-series="D">D</button>
             <button type="button" data-palette-series="E">E</button><button type="button" data-palette-series="F">F</button>
             <button type="button" data-palette-series="G">G</button><button type="button" data-palette-series="H">H</button>
             <button type="button" data-palette-series="M">M</button>
           </div>
-          <div class="palette-tools"><input id="paletteSearch" type="search" placeholder="搜索色号或名称" aria-label="搜索色板"></div>
+          <div class="palette-tools"><input id="paletteSearch" type="search" placeholder="搜索色号或名称" aria-label="搜索色板" data-i18n-placeholder="palette.search" data-i18n-aria="aria.searchPalette"></div>
           <div class="palette-grid" id="paletteGrid"></div>
-          <p class="palette-note">兼容基础 221 色号仅含 A/B/C/D/E/F/G/H/M。H1 为透明色，只允许手动画入；普通图片自动匹配 220 个实色，并将白色锁定 H2、黑色锁定 H7。HEX 是屏幕参考值，实体仍以同品牌实物色卡与批次为准。</p>
+          <p class="palette-note" data-i18n="palette.note">当前提供 MARD 兼容基础 221 色号（A/B/C/D/E/F/G/H/M）。H1 为透明色，只允许手动画入；普通图片自动匹配 220 个实色，并将白色锁定 H2、黑色锁定 H7。HEX 是屏幕参考值，实体仍以同品牌实物色卡与批次为准。</p>
         </section>
 
         <section class="panel-section" id="statsSection">
-          <div class="section-head"><h2>用料统计</h2><small>按数量排序</small></div>
+          <div class="section-head"><h2 data-i18n="stats.title">用料统计</h2><small data-i18n="stats.sorted">按数量排序</small></div>
           <div class="stats-summary">
-            <div class="summary-item"><strong id="totalBeads">0</strong><span>豆子总数</span></div>
-            <div class="summary-item"><strong id="usedColors">0</strong><span>使用颜色</span></div>
-            <div class="summary-item"><strong id="emptyCells">3,600</strong><span>空格</span></div>
+            <div class="summary-item"><strong id="totalBeads">0</strong><span data-i18n="stats.total">豆子总数</span></div>
+            <div class="summary-item"><strong id="usedColors">0</strong><span data-i18n="stats.colors">使用颜色</span></div>
+            <div class="summary-item"><strong id="emptyCells">3,600</strong><span data-i18n="stats.empty">空格</span></div>
           </div>
-          <div class="stats-list" id="statsList"><div class="empty-list">上传图片或使用画笔后，这里会实时列出每种颜色的用量。</div></div>
+          <div class="stats-list" id="statsList"><div class="empty-list" data-i18n="stats.emptyList">上传图片或使用画笔后，这里会实时列出每种颜色的用量。</div></div>
         </section>
       </aside>
     </main>
@@ -343,73 +394,94 @@
     <footer class="statusbar" aria-live="polite">
       <span class="status-dot" aria-hidden="true"></span>
       <span id="statusSize">60 × 60</span>
-      <span id="statusColors">0 种颜色</span>
-      <span id="statusBeads">0 颗豆</span>
-      <span id="statusZoom">缩放 100%</span>
-      <span class="status-message" id="statusMessage">准备就绪 · 所有处理均在本机完成</span>
-      <span class="release-badge" id="appVersion">v1.0.2</span>
-      <nav class="release-links" aria-label="项目与许可"><a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer">GitHub</a><a href="./privacy.html">隐私</a><a href="./terms.html">条款</a><a href="./LICENSE.txt">开源许可</a><a href="./NOTICE.txt">第三方许可</a></nav>
+      <span id="statusColors">0</span>
+      <span id="statusBeads">0</span>
+      <span id="statusZoom">100%</span>
+      <span class="status-message" id="statusMessage" data-i18n="status.ready">准备就绪 · 所有处理均在本机完成</span>
+      <span class="release-badge" id="appVersion">v1.1.0</span>
+      <nav class="release-links" aria-label="项目与许可" data-i18n-aria="aria.projectLicense"><a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer">GitHub</a><a href="./privacy.html" data-i18n="footer.privacy">隐私</a><a href="./terms.html" data-i18n="footer.terms">条款</a><a href="./LICENSE.txt" data-i18n="footer.license">开源许可</a><a href="./NOTICE.txt" data-i18n="footer.notices">第三方许可</a></nav>
     </footer>
   </div>
 
   <div class="mobile-scrim" id="mobileScrim"></div>
-  <nav class="mobile-dock" aria-label="移动端面板">
-    <button type="button" data-mobile-target="controlPanel" aria-pressed="false"><b aria-hidden="true">☰</b>工具</button>
-    <button type="button" data-mobile-target="sizeSection" aria-pressed="false"><b aria-hidden="true">▦</b>图纸</button>
-    <button type="button" data-mobile-target="paletteSection" aria-pressed="false"><b aria-hidden="true">●</b>色板</button>
-    <button type="button" data-mobile-target="statsSection" aria-pressed="false"><b aria-hidden="true">Σ</b>用量</button>
+  <nav class="mobile-dock" aria-label="移动端面板" data-i18n-aria="aria.mobilePanels">
+    <button type="button" data-mobile-target="controlPanel" aria-pressed="false"><b aria-hidden="true">☰</b><span data-i18n="mobile.tools">工具</span></button>
+    <button type="button" data-mobile-target="sizeSection" aria-pressed="false"><b aria-hidden="true">▦</b><span data-i18n="mobile.pattern">图纸</span></button>
+    <button type="button" data-mobile-target="paletteSection" aria-pressed="false"><b aria-hidden="true">●</b><span data-i18n="mobile.palette">色板</span></button>
+    <button type="button" data-mobile-target="statsSection" aria-pressed="false"><b aria-hidden="true">Σ</b><span data-i18n="mobile.stats">用量</span></button>
   </nav>
 
   <dialog class="crop-dialog" id="cropDialog" aria-labelledby="cropTitle">
     <div class="crop-head">
-      <strong id="cropTitle">裁剪要制作的区域</strong>
-      <button class="icon-button" id="cropCloseBtn" type="button" aria-label="关闭裁剪">×</button>
+      <strong id="cropTitle" data-i18n="crop.title">裁剪要制作的区域</strong>
+      <button class="icon-button" id="cropCloseBtn" type="button" aria-label="关闭裁剪" data-i18n-aria="aria.closeCrop">×</button>
     </div>
     <div class="crop-body">
-      <p class="crop-help" id="cropHelp">在图片上拖出一个矩形，或用下方百分比精确输入。论文、截图和多面板图片请一次只选一个主体；裁得越集中，每颗豆能保留的结构越多。</p>
-      <div class="crop-preview-wrap"><canvas id="cropCanvas" width="720" height="480" aria-label="图片裁剪预览"></canvas></div>
+      <p class="crop-help" id="cropHelp" data-i18n="crop.help">在图片上拖出一个矩形，或用下方百分比精确输入。论文、截图和多面板图片请一次只选一个主体；裁得越集中，每颗豆能保留的结构越多。</p>
+      <div class="crop-preview-wrap"><canvas id="cropCanvas" width="720" height="480" aria-label="图片裁剪预览" data-i18n-aria="aria.cropPreview"></canvas></div>
       <fieldset class="crop-fields" aria-describedby="cropHelp">
-        <legend>精确裁剪（占原图百分比）</legend>
-        <label for="cropXInput">左边距 %<input id="cropXInput" type="number" min="0" max="97.5" step="0.5" inputmode="decimal" value="0"></label>
-        <label for="cropYInput">上边距 %<input id="cropYInput" type="number" min="0" max="97.5" step="0.5" inputmode="decimal" value="0"></label>
-        <label for="cropWInput">区域宽度 %<input id="cropWInput" type="number" min="2.5" max="100" step="0.5" inputmode="decimal" value="100"></label>
-        <label for="cropHInput">区域高度 %<input id="cropHInput" type="number" min="2.5" max="100" step="0.5" inputmode="decimal" value="100"></label>
+        <legend data-i18n="crop.precise">精确裁剪（占原图百分比）</legend>
+        <label for="cropXInput"><span data-i18n="crop.left">左边距 %</span><input id="cropXInput" type="number" min="0" max="97.5" step="0.5" inputmode="decimal" value="0"></label>
+        <label for="cropYInput"><span data-i18n="crop.top">上边距 %</span><input id="cropYInput" type="number" min="0" max="97.5" step="0.5" inputmode="decimal" value="0"></label>
+        <label for="cropWInput"><span data-i18n="crop.width">区域宽度 %</span><input id="cropWInput" type="number" min="2.5" max="100" step="0.5" inputmode="decimal" value="100"></label>
+        <label for="cropHInput"><span data-i18n="crop.height">区域高度 %</span><input id="cropHInput" type="number" min="2.5" max="100" step="0.5" inputmode="decimal" value="100"></label>
       </fieldset>
     </div>
     <div class="crop-foot">
-      <button class="button secondary crop-reset" id="cropResetBtn" type="button">重置为整图</button>
-      <button class="button secondary" id="cropCancelBtn" type="button">取消</button>
-      <button class="button primary" id="cropApplyBtn" type="button">应用并重新转换</button>
+      <button class="button secondary crop-reset" id="cropResetBtn" type="button" data-i18n="action.resetCrop">重置为整图</button>
+      <button class="button secondary" id="cropCancelBtn" type="button" data-i18n="action.cancel">取消</button>
+      <button class="button primary" id="cropApplyBtn" type="button" data-i18n="action.applyCrop">应用并重新转换</button>
     </div>
   </dialog>
 
   <dialog class="crop-dialog product-dialog" id="productDialog" aria-labelledby="productDialogTitle">
     <div class="crop-head">
-      <strong id="productDialogTitle">使用说明、隐私与版本</strong>
-      <button class="icon-button" id="productCloseBtn" type="button" aria-label="关闭产品说明">×</button>
+      <strong id="productDialogTitle" data-i18n="product.title">使用说明、隐私与版本</strong>
+      <button class="icon-button" id="productCloseBtn" type="button" aria-label="关闭产品说明" data-i18n-aria="aria.closeProduct">×</button>
     </div>
     <div class="crop-body">
-      <p class="product-intro"><b>豆格工坊社区版 v1.0.2</b> 是本地处理的开源拼豆图纸工具，不提供站内账号、付款、卡密或云端图片转换。</p>
+      <p class="product-intro" data-i18n="product.intro">豆格工坊社区版是在浏览器本地处理的开源拼豆图纸工具，不提供站内账号、付款、卡密或云端图片转换。</p>
       <div class="product-grid">
-        <section class="product-card"><h3>三步完成</h3><ol><li>上传图片，优先裁剪单个主体。</li><li>核对图案比例、实体底板、色数与颗数。</li><li>导出逐格色号施工图；大型图纸使用分页打印。</li></ol></section>
-        <section class="product-card"><h3>隐私与恢复</h3><p>原图不会上传项目服务器。未完成图纸会保存在本浏览器的本地存储中，且不包含参考原图；你可以随时清除。托管平台仍可能按其隐私政策处理基础访问与安全日志。</p></section>
-        <section class="product-card"><h3>色彩与品牌声明</h3><p>本工具使用 MARD 兼容基础 221 色号数据，是独立工具，与相关品牌不存在隶属或官方授权关系。屏幕 HEX 只作近似匹配；显示器、光源、打印、品牌与批次都会造成实物色差，批量制作前请用所购品牌实物色卡复核。</p></section>
-        <section class="product-card"><h3>底板与性能</h3><p>50 格与 52 格底板可能不兼容，请按真实板型选择。大尺寸图纸会自动限制缩放和导出像素，避免低内存手机崩溃；原图细节无法突破豆格数量的物理上限。</p></section>
+        <section class="product-card"><h3 data-i18n="product.stepsTitle">三步完成</h3><ol><li data-i18n="product.step1">上传图片，优先裁剪单个主体。</li><li data-i18n="product.step2">核对图案比例、实体底板、色数与颗数。</li><li data-i18n="product.step3">导出逐格色号施工图；大型图纸使用分页打印。</li></ol></section>
+        <section class="product-card"><h3 data-i18n="product.privacyTitle">隐私与恢复</h3><p data-i18n="product.privacyText">原图不会上传项目服务器。未完成图纸会保存在本浏览器的本地存储中，且不包含参考原图；你可以随时清除。托管平台仍可能按其隐私政策处理基础访问与安全日志。</p></section>
+        <section class="product-card"><h3 data-i18n="product.colorTitle">色彩与品牌声明</h3><p data-i18n="product.colorText">当前色板使用 MARD 兼容基础 221 色号数据。本项目是独立工具，与相关品牌不存在隶属或官方授权关系。屏幕 HEX 只作近似匹配；批量制作前请用所购品牌实物色卡复核。</p></section>
+        <section class="product-card"><h3 data-i18n="product.performanceTitle">底板与性能</h3><p data-i18n="product.performanceText">50 格与 52 格底板可能不兼容，请按真实板型选择。大尺寸图纸会自动限制缩放和导出像素，避免低内存手机崩溃；原图细节无法突破豆格数量的物理上限。</p></section>
       </div>
-      <div class="product-links"><a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer">开源仓库</a><a href="./privacy.html">隐私说明</a><a href="./terms.html">使用条款</a><a href="./LICENSE.txt">Apache-2.0</a><a href="./NOTICE.txt">第三方许可</a><a href="./version.json">版本信息</a></div>
+      <div class="product-links"><a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer" data-i18n="product.repo">开源仓库</a><a href="./privacy.html" data-i18n="product.privacy">隐私说明</a><a href="./terms.html" data-i18n="product.terms">使用条款</a><a href="./LICENSE.txt">Apache-2.0</a><a href="./NOTICE.txt" data-i18n="footer.notices">第三方许可</a><a href="./version.json" data-i18n="product.version">版本信息</a></div>
     </div>
-    <div class="crop-foot"><button class="button primary" id="productOkBtn" type="button">我知道了</button></div>
+    <div class="crop-foot"><button class="button primary" id="productOkBtn" type="button" data-i18n="action.ok">我知道了</button></div>
+  </dialog>
+
+  <dialog class="share-dialog" id="shareDialog" aria-labelledby="shareDialogTitle">
+    <div class="share-dialog-head">
+      <div><span class="share-dialog-kicker" data-i18n="action.share">分享</span><strong id="shareDialogTitle" data-i18n="share.dialogTitle">导出宣传图</strong></div>
+      <button class="icon-button" id="shareCardCloseBtn" type="button" aria-label="关闭宣传图" data-i18n-aria="aria.closeShare">×</button>
+    </div>
+    <div class="share-dialog-body">
+      <p id="shareDialogHelp" data-i18n="share.dialogHelp">宣传图只用于主动分享，不会改变正式施工图，也不会上传原图。</p>
+      <label class="share-format-field" for="shareFormat"><span data-i18n="share.formatLabel">宣传图比例</span>
+        <select id="shareFormat" aria-describedby="shareDialogHelp">
+          <option value="wide" data-i18n="share.wide">16:9 · X / Reddit / Discord</option>
+          <option value="portrait" data-i18n="share.portrait">3:4 · 小红书 / 手机</option>
+        </select>
+      </label>
+      <div class="share-preview-frame"><canvas id="sharePreviewCanvas" width="1200" height="675" role="img" aria-label="宣传图预览" data-i18n-aria="aria.sharePreview"></canvas></div>
+    </div>
+    <div class="share-dialog-foot">
+      <button class="button secondary" id="shareCardCancelBtn" type="button" data-i18n="action.cancel">取消</button>
+      <button class="button primary" id="shareCardDownloadBtn" type="button" data-i18n="share.download">下载宣传图</button>
+    </div>
   </dialog>
 
   <div class="convert-overlay" id="convertOverlay" role="dialog" aria-modal="true" aria-labelledby="convertTitle" aria-live="polite">
     <div class="progress-card">
-      <div class="progress-top"><span class="spinner" aria-hidden="true"></span><div><strong id="convertTitle">正在生成拼豆图纸</strong><span id="progressText">分析图片与色板…</span></div></div>
-      <button class="button secondary wide" id="cancelConvertBtn" type="button">取消本次转换</button>
+      <div class="progress-top"><span class="spinner" aria-hidden="true"></span><div><strong id="convertTitle" data-i18n="conversion.title">正在生成拼豆图纸</strong><span id="progressText" data-i18n="conversion.analyzing">分析图片与色板…</span></div></div>
+      <button class="button secondary wide" id="cancelConvertBtn" type="button" data-i18n="action.cancelConversion">取消本次转换</button>
     </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <section class="print-sheet" id="printSheet" aria-label="打印图纸"><img id="printImage" alt="待打印的拼豆图纸"><div class="print-pages" id="printPages"></div></section>
+  <section class="print-sheet" id="printSheet" aria-label="打印图纸" data-i18n-aria="aria.printSheet"><img id="printImage" alt="待打印的拼豆图纸" data-i18n-alt="aria.printImage"><div class="print-pages" id="printPages"></div></section>
 
   <script type="module" src="./src/app.js"></script>
 </body>
