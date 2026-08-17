@@ -69,7 +69,10 @@ check(JSON.stringify(zhKeys) === JSON.stringify(enKeys), 'zh-CN and en-US dictio
 const markupI18nKeys = [...html.matchAll(/\bdata-i18n(?:-aria|-title|-placeholder|-alt)?="([^"]+)"/g)].map((match) => match[1]);
 const missingMarkupKeys = [...new Set(markupI18nKeys.filter((key) => !(key in zhCN) || !(key in enUS)))];
 check(missingMarkupKeys.length === 0, `HTML references missing i18n keys: ${missingMarkupKeys.join(', ')}`);
-const runtimeI18nKeys = [...app.matchAll(/\b(?:t|toast|setStatus|setProjectSubtitle|commitHistory)\(\s*['"]([a-z][\w.-]+)['"]/g)].map((match) => match[1]);
+const i18nPrefixes = new Set(zhKeys.map((key) => key.split('.')[0]));
+const runtimeI18nKeys = [...app.matchAll(/['"]([a-z][\w-]*\.[\w.-]+)['"]/g)]
+  .map((match) => match[1])
+  .filter((key) => i18nPrefixes.has(key.split('.')[0]));
 const missingRuntimeKeys = [...new Set(runtimeI18nKeys.filter((key) => !(key in zhCN) || !(key in enUS)))];
 check(missingRuntimeKeys.length === 0, `app references missing i18n keys: ${missingRuntimeKeys.join(', ')}`);
 check(app.includes("from './i18n/index.js'"), 'i18n runtime is not wired into the app');

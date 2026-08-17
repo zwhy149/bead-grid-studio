@@ -24,7 +24,7 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.1.0';
+    const APP_VERSION = '1.1.1';
     const BUILD_DATE = '2026-08-17';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
@@ -2438,7 +2438,7 @@ import {
         if(structuralOnly){
           const documentPreview=els.processMode.value==='document';
           toast(documentPreview?'toast.documentPreview':'toast.documentDetected');
-          setStatus('status.documentPreview',{kind:t(documentPreview?'status.structurePreview':'status.complexPreview'),size:localizedPatternSize(placement),action:t(documentPreview?'status.cropSuggested':'status.modeSuggested')});
+          setStatus('status.documentPreview',{kind:t(documentPreview?'status.structurePreview':'status.complexPreview'),size:localizedPatternSize(placement),advice:t(documentPreview?'status.cropSuggested':'status.modeSuggested')});
         }else if(lineDetailIssues(result.diagnostics).total>0){
           const issues=lineDetailIssues(result.diagnostics),warning=lineDetailWarningCopy(issues,{short:true});
           toast('toast.generatedWarning','info',{warning});
