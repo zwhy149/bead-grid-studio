@@ -1,8 +1,22 @@
-# 新手部署教程
+# Fork 并部署自己的 Bead Grid Studio
 
 **简体中文** · [English](deployment.md)
 
 豆格工坊是纯静态浏览器应用。图片解码与转换发生在访问者自己的设备上；部署目录不包含账号、支付、卡密、图片上传或云端转换接口。
+
+## 4 步得到自己的网页
+
+```text
+Fork
+  ↓
+启用 GitHub Actions
+  ↓
+Settings → Pages → GitHub Actions
+  ↓
+运行 Deploy GitHub Pages
+```
+
+完成后，你可以修改自己的名称、界面、色板、语言或导出格式。建议先按原样部署成功，再把定制内容拆成小提交；这样以后使用 **Sync fork** 同步上游时更容易处理冲突。
 
 ## 先判断你是否真的需要部署
 
@@ -11,7 +25,7 @@
 - 想拥有自己的网址、名称、更新节奏或安全响应头：再部署 Fork。
 - 支付、卡密、授权和订单不能写进这个静态前端，必须使用单独审核的服务端。
 
-## 方案一：Fork 后部署 GitHub Pages
+## 方案一：Fork 后部署 GitHub Pages（推荐新手）
 
 仓库已经包含 `.github/workflows/pages.yml`，会自动安装依赖、执行完整 QA、构建 `dist` 并通过官方 Pages Actions 发布。
 

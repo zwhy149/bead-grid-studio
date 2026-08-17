@@ -5,17 +5,32 @@ import {
   gridFromAspectAnchor,
   orientedSourceDimensions,
 } from './core/geometry.js';
-import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.js';
+import { LEGACY_64_HEX } from './palettes/mard221.js';
+import { DEFAULT_PALETTE_PROVIDER_ID, getPaletteProvider } from './palettes/catalog.js';
+import SAMPLE_IMAGE_URL from '../tests/fixtures/rocket-badge.png?inline';
+import {
+  applyDocumentTranslations,
+  formatNumber,
+  getLocale,
+  initializeI18n,
+  localizedAppUrl,
+  onLocaleChange,
+  setLocale,
+  t,
+} from './i18n/index.js';
 
     'use strict';
 
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.0.2';
-    const BUILD_DATE = '2026-08-16';
+    const APP_VERSION = '1.1.0';
+    const BUILD_DATE = '2026-08-17';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
+    const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
+    const PALETTE = PALETTE_PROVIDER.colors;
+    const MARD_PALETTE_SOURCE = PALETTE_PROVIDER.source;
 
     const els = Object.fromEntries([
       'projectTitle','projectSubtitle','topUploadBtn','emptyUploadBtn','imageInput','dropzone','fileMeta','fileName','fileDetails','productHelpBtn',
@@ -29,7 +44,9 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       'statusSize','statusColors','statusBeads','statusZoom','statusMessage','gridToggle','rulerToggle','codesToggle','fitCanvasBtn','convertOverlay',
       'progressText','cancelConvertBtn','toast','mobileScrim','controlPanel','palettePanel','printSheet','printImage','printPages',
       'cropDialog','cropCanvas','cropXInput','cropYInput','cropWInput','cropHInput','cropCloseBtn','cropResetBtn','cropCancelBtn','cropApplyBtn','stageQualityBanner','stageQualityTitle','stageQualityText','stageCropBtn',
-      'productDialog','productCloseBtn','productOkBtn','recoveryActions','restoreDraftBtn','clearDraftBtn','appVersion'
+      'productDialog','productCloseBtn','productOkBtn','recoveryActions','restoreDraftBtn','clearDraftBtn','appVersion',
+      'trySampleBtn','panelTrySampleBtn','patternReadyBar','readyExportBtn','readySaveBtn','readyShareBtn','readyShareCardBtn',
+      'shareDialog','shareFormat','sharePreviewCanvas','shareCardCloseBtn','shareCardCancelBtn','shareCardDownloadBtn'
     ].map(id => [id, document.getElementById(id)]));
 
     const state = {
@@ -91,7 +108,12 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       dirty: false,
       exporting: false,
       convertFocusReturn: null,
-      productFocusReturn: null
+      productFocusReturn: null,
+      shareFocusReturn: null,
+      statusKey: 'status.ready',
+      statusParams: {},
+      projectSubtitleKey: 'project.localOnly',
+      projectSubtitleParams: {}
     };
 
     const DEVICE_LIMITS = (() => {
@@ -101,21 +123,30 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     })();
 
     const BOARD_PROFILES = Object.freeze({
-      mini52:{id:'mini52',label:'国内常见 2.6mm · 52格板',cells:52,beadMm:2.6,boardCm:14.4,compatibility:'52格同款'},
-      mini26:{id:'mini26',label:'国内小板 2.6mm · 26格板',cells:26,beadMm:2.6,boardCm:7.5,compatibility:'26格同款'},
-      artkal50:{id:'artkal50',label:'Artkal Mini 2.6mm · 50格版',cells:50,beadMm:2.6,boardCm:14.5,compatibility:'Artkal 50格版'},
-      artkal78:{id:'artkal78',label:'Artkal Mini 2.6mm · 78格版',cells:78,beadMm:2.6,boardCm:21,compatibility:'Artkal 78格版'},
-      midi29:{id:'midi29',label:'5mm 标准 · 29格板',cells:29,beadMm:5,boardCm:14.5,compatibility:'29格同款'},
-      midi14:{id:'midi14',label:'5mm 小板 · 14格板',cells:14,beadMm:5,boardCm:8,compatibility:'14格同款'}
+      mini52:{id:'mini52',labelKey:'board.mini52',cells:52,beadMm:2.6,boardCm:14.4},
+      mini26:{id:'mini26',labelKey:'board.mini26',cells:26,beadMm:2.6,boardCm:7.5},
+      artkal50:{id:'artkal50',labelKey:'board.artkal50',cells:50,beadMm:2.6,boardCm:14.5},
+      artkal78:{id:'artkal78',labelKey:'board.artkal78',cells:78,beadMm:2.6,boardCm:21},
+      midi29:{id:'midi29',labelKey:'board.midi29',cells:29,beadMm:5,boardCm:14.5},
+      midi14:{id:'midi14',labelKey:'board.midi14',cells:14,beadMm:5,boardCm:8}
     });
 
-    const MODE_HINTS = {
-      cartoon: '适合卡通、线稿、Logo：优先保留黑线和小面积高饱和细节。',
-      detail: '适合人像、宠物和复杂照片：提升局部对比并保护暗部结构，近看更清楚。',
-      document: '适合论文图、截图和流程图：保留长框线与大色块，主动压制碎文字；不保证正文可读。',
-      photo: '适合照片、渐变和柔和光影：在线性光空间计算每格平均色。',
-      pixel: '适合已像素化的原图：直接读取每格中心像素，不做平滑。'
-    };
+    const MODE_HINTS = Object.freeze({cartoon:'modeHint.cartoon',detail:'modeHint.detail',document:'modeHint.document',photo:'modeHint.photo',pixel:'modeHint.pixel'});
+
+    function modeHint(mode) { return t(MODE_HINTS[mode] || MODE_HINTS.cartoon); }
+    function modeLabel(mode) { return t(`mode.${mode}`); }
+    function boardProfileLabel(profile) { return t(profile?.labelKey || 'board.mini52'); }
+    function localizedColorName(color) {
+      if(color?.code==='H1')return t('palette.transparent');
+      if(color?.code==='H2')return t('palette.white');
+      if(color?.code==='H7')return t('palette.black');
+      return t(`palette.series.${color?.series || 'H'}`);
+    }
+    function localizedPatternSize(pattern=currentPatternPlacement()) {
+      return state.sizeMode==='board'
+        ? t('size.patternAndBoard',{patternCols:pattern.cols,patternRows:pattern.rows,boardCols:state.cols,boardRows:state.rows})
+        : t('size.patternOnly',{cols:state.cols,rows:state.rows});
+    }
 
     function clamp(value, min, max) {
       const number = Number(value);
@@ -363,9 +394,9 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     function applyAutomaticMode() {
       if(state.sourceAnalysis?.likelyDocument){
-        els.processMode.value='document';els.processModeHint.textContent=MODE_HINTS.document;els.fitMode.value='contain';els.whiteMode.value='auto';
+        els.processMode.value='document';els.processModeHint.textContent=modeHint('document');els.fitMode.value='contain';els.whiteMode.value='auto';
       }else if(els.processMode.value==='document'){
-        els.processMode.value='cartoon';els.processModeHint.textContent=MODE_HINTS.cartoon;els.fitMode.value='cover';els.whiteMode.value='auto';
+        els.processMode.value='cartoon';els.processModeHint.textContent=modeHint('cartoon');els.fitMode.value='cover';els.whiteMode.value='auto';
       }
     }
 
@@ -400,7 +431,12 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     function syncBoardStatus() {
       const layout=currentBoardLayout(),pattern=currentPatternPlacement();
       const blank=layout.boardCols*layout.boardRows-pattern.cols*pattern.rows;
-      els.boardStatus.innerHTML=`<strong>底板 ${layout.boardCols}×${layout.boardRows} · 图案 ${pattern.cols}×${pattern.rows}（不拉伸）</strong>${layout.profile.label} × ${layout.boardCount} 块；约 ${layout.widthCm.toFixed(1)}×${layout.heightCm.toFixed(1)}cm。图案居中，左/右空 ${pattern.blankLeft}/${pattern.blankRight} 列，上/下空 ${pattern.blankTop}/${pattern.blankBottom} 行，共 ${blank.toLocaleString('zh-CN')} 个空位。`;
+      const heading=document.createElement('strong');
+      heading.textContent=t('board.statusTitle',{boardCols:layout.boardCols,boardRows:layout.boardRows,patternCols:pattern.cols,patternRows:pattern.rows});
+      els.boardStatus.replaceChildren(heading,document.createTextNode(t('board.statusBody',{
+        profile:boardProfileLabel(layout.profile),count:layout.boardCount,width:layout.widthCm.toFixed(1),height:layout.heightCm.toFixed(1),
+        left:pattern.blankLeft,right:pattern.blankRight,top:pattern.blankTop,bottom:pattern.blankBottom,blank:formatNumber(blank),
+      })));
       document.querySelectorAll('[data-board-layout]').forEach(button=>{
         const [x,y]=button.dataset.boardLayout.split('x').map(Number),valid=layout.profile.cells*x<=160&&layout.profile.cells*y<=160;
         button.disabled=!valid;button.setAttribute('aria-pressed',String(valid&&x===state.boardTilesX&&y===state.boardTilesY));
@@ -410,7 +446,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     function syncSizeModeUI() {
       const boardMode=state.sizeMode==='board';
       els.patternSizeControls.hidden=boardMode;els.boardSizeControls.hidden=!boardMode;
-      els.gridColsLabel.textContent=boardMode?'底板总列数':'图案宽度';els.gridRowsLabel.textContent=boardMode?'底板总行数':'图案高度';
+      els.gridColsLabel.textContent=t(boardMode?'size.boardCols':'size.patternWidth');els.gridRowsLabel.textContent=t(boardMode?'size.boardRows':'size.patternHeight');
       els.gridCols.readOnly=boardMode;els.gridRows.readOnly=boardMode;
       els.fitMode.disabled=boardMode;if(boardMode)els.fitMode.value='contain';
       document.querySelectorAll('[data-size-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.sizeMode===state.sizeMode)));
@@ -425,11 +461,11 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     function syncAspectStatus() {
       state.aspectLock=Boolean(els.aspectLock.checked);
-      if(!state.referenceImage){els.aspectStatus.textContent=state.aspectLock?'上传图片后，快捷尺寸表示“图案最长边多少格”，不会强制拉成正方形。':'未锁定；上传后可独立设置宽高。';return;}
+      if(!state.referenceImage){els.aspectStatus.textContent=t(state.aspectLock?'size.aspectInitial':'size.aspectUnlockedInitial');return;}
       const source=effectiveSourceSize(),locked=gridForLongSide(source.width,source.height,Math.max(state.cols,state.rows));
       els.aspectStatus.textContent=state.aspectLock
-        ? `已按原图 ${(source.width/source.height).toFixed(2)}:1 锁定；快捷尺寸会自动得到 ${locked.cols}×${locked.rows} 一类的比例。`
-        : '已关闭比例锁定；“完整显示”会留白，“铺满并裁切”会裁掉内容。';
+        ? t('size.aspectLocked',{ratio:(source.width/source.height).toFixed(2),cols:locked.cols,rows:locked.rows})
+        : t('size.aspectUnlocked');
     }
 
     function syncLockedSizeInput(axis) {
@@ -443,7 +479,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     function updateDetailAdvice() {
       if(!state.referenceImage||!state.sourceAnalysis){els.detailAdvice.hidden=true;els.stageQualityBanner.hidden=true;return;}
       const source=effectiveSourceSize(),analysis=state.sourceAnalysis;
-      const pattern=currentPatternPlacement(),displaySize=state.sizeMode==='board'?`图案 ${pattern.cols}×${pattern.rows} / 底板 ${state.cols}×${state.rows}`:`${state.cols}×${state.rows}`;
+      const pattern=currentPatternPlacement(),displaySize=localizedPatternSize(pattern);
       const recommendation=recommendDocumentGrid({width:source.width,height:source.height,analysis,maxSide:100});
       const perX=source.width/pattern.cols,perY=source.height/pattern.rows,pixelsPerCell=perX*perY;
       const glyphCells=analysis.medianGlyphHeightPx?analysis.medianGlyphHeightPx/Math.max(perX,perY):null;
@@ -453,30 +489,30 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const aspectWarning=state.sizeMode!=='board'&&quality.aspectWarning,lowDetail=quality.lowDetail,detailIssues=lineDetailIssues(),detailConflict=Boolean(analysis.likelyLineArt&&detailIssues.total);
       els.stageQualityBanner.hidden=!(structuralOnly||aspectWarning||lowDetail||detailConflict);
       if(!(structuralOnly||aspectWarning||lowDetail||detailConflict)){els.detailAdvice.hidden=true;return;}
-      els.stageQualityTitle.textContent=structuralOnly?'文字低于可制作尺寸':aspectWarning?'图案比例不一致':detailConflict?'有细节超出当前格位':'当前只能保留轮廓';
+      els.stageQualityTitle.textContent=t(structuralOnly?'quality.textTooSmall':aspectWarning?'quality.aspectMismatch':detailConflict?'quality.detailConflict':'quality.outlineOnly');
       els.stageQualityText.textContent=structuralOnly
-        ? `${displaySize} 只能保留版面结构，${usingDocumentMode?'建议先缩小范围':'请切换文档模式或先裁剪'}`
+        ? t('quality.structureOnlyShort',{size:displaySize,action:t(usingDocumentMode?'quality.cropSuggestion':'quality.modeOrCropSuggestion')})
         : aspectWarning
-          ? `${state.cols}×${state.rows} 与原图比例不一致；${els.fitMode.value==='contain'?'当前存在明显留白':'当前会裁掉部分内容'}`
+          ? t('quality.aspectShort',{cols:state.cols,rows:state.rows,result:t(els.fitMode.value==='contain'?'quality.hasMargins':'quality.cropsContent')})
           : detailConflict
-            ? `${displaySize}：${lineDetailWarningCopy(detailIssues,{short:true})}，系统未强行多放豆`
-            : `${displaySize} 只能保留主体轮廓和大色块，细节无法由算法凭空恢复`;
+            ? t('quality.detailShort',{size:displaySize,warning:lineDetailWarningCopy(detailIssues,{short:true})})
+            : t('quality.outlineShort',{size:displaySize});
       els.detailAdvice.hidden=false;
       els.detailAdvice.dataset.level='warn';
-      els.detailAdviceKicker.textContent=structuralOnly?'文档容量警告':aspectWarning?'比例与裁切警告':detailConflict?'格位冲突提示':'小尺寸清晰度警告';
-      els.detailAdviceTitle.textContent=structuralOnly?'整图超出 100 格的可读范围':aspectWarning?`${state.cols}×${state.rows} 不是原图比例`:detailConflict?lineDetailWarningCopy(detailIssues,{short:true}):'当前格数不足以表达照片细节';
+      els.detailAdviceKicker.textContent=t(structuralOnly?'quality.documentWarning':aspectWarning?'quality.aspectWarning':detailConflict?'quality.cellConflict':'quality.smallWarning');
+      els.detailAdviceTitle.textContent=structuralOnly?t('quality.documentTitle'):aspectWarning?t('quality.aspectTitle',{cols:state.cols,rows:state.rows}):detailConflict?lineDetailWarningCopy(detailIssues,{short:true}):t('quality.photoDetailTitle');
       const beadCm=currentBeadMm()/10;
       els.detailAdviceText.textContent=structuralOnly
-        ? `当前 ${displaySize} 只能保留版面、长框线和大色块，正文不会成为可读文字。${usingDocumentMode?'':'建议切换下方“文档结构”模式；'}按 ${currentBeadMm()}mm 豆约 ${(state.cols*beadCm).toFixed(1)}×${(state.rows*beadCm).toFixed(1)}cm；裁剪单个子图最有效。`
+        ? t('quality.documentBody',{size:displaySize,modeAdvice:usingDocumentMode?'':t('quality.documentModeAdvice'),beadMm:currentBeadMm(),width:(state.cols*beadCm).toFixed(1),height:(state.rows*beadCm).toFixed(1)})
         : aspectWarning
           ? (els.fitMode.value==='contain'
-            ? `算法没有拉伸原图，但约 ${(fit.letterboxFraction*100).toFixed(1)}% 的图纸是留白，真正承载图片的区域只有约 ${fit.contentCols.toFixed(1)}×${fit.contentRows.toFixed(1)} 格。请优先按原图比例修正。`
-            : `为铺满方形图纸会裁掉约 ${(fit.cropFraction*100).toFixed(1)}% 的原图范围；主体靠近边缘时会直接消失。可改用原图比例，或先手动裁剪主体。`)
+            ? t('quality.letterboxBody',{percent:(fit.letterboxFraction*100).toFixed(1),cols:fit.contentCols.toFixed(1),rows:fit.contentRows.toFixed(1)})
+            : t('quality.cropBody',{percent:(fit.cropFraction*100).toFixed(1)}))
           : detailConflict
-            ? `${lineDetailWarningCopy(detailIssues)}。建议提高到下一档尺寸，或放大后用画笔补画。`
-            : `当前有效长边只有约 ${quality.effectiveLong.toFixed(0)} 格，共约 ${Math.round(quality.effectiveCells).toLocaleString('zh-CN')} 格容量；照片里的文字、螺丝和细棱线会丢失。提高尺寸或只裁剪一个主体。`;
-      els.detailMetricScale.textContent=`${perX>=10?perX.toFixed(0):perX.toFixed(1)}×${perY>=10?perY.toFixed(0):perY.toFixed(1)} 源像素`;
-      els.detailMetricFit.textContent=structuralOnly?(glyphCells?`正文约 ${glyphCells.toFixed(2)} 格高`:'仅能保留大结构'):aspectWarning?(els.fitMode.value==='contain'?`留白 ${(fit.letterboxFraction*100).toFixed(1)}%`:`裁切 ${(fit.cropFraction*100).toFixed(1)}%`):`约 ${Math.round(pixelsPerCell).toLocaleString('zh-CN')} 像素/豆`;
+            ? t('quality.detailBody',{warning:lineDetailWarningCopy(detailIssues)})
+            : t('quality.photoBody',{long:quality.effectiveLong.toFixed(0),cells:formatNumber(Math.round(quality.effectiveCells))});
+      els.detailMetricScale.textContent=t('quality.sourcePixels',{x:perX>=10?perX.toFixed(0):perX.toFixed(1),y:perY>=10?perY.toFixed(0):perY.toFixed(1)});
+      els.detailMetricFit.textContent=structuralOnly?(glyphCells?t('quality.glyphHeight',{height:glyphCells.toFixed(2)}):t('quality.largeStructureOnly')):aspectWarning?(els.fitMode.value==='contain'?t('quality.marginPercent',{percent:(fit.letterboxFraction*100).toFixed(1)}):t('quality.cropPercent',{percent:(fit.cropFraction*100).toFixed(1)})):t('quality.pixelsPerBead',{count:formatNumber(Math.round(pixelsPerCell))});
       const aspectGrid=gridForLongSide(source.width,source.height,Math.max(state.cols,state.rows));
       const hdGrid=recommendAutoHdSettings({width:source.width,height:source.height,analysis,quality:'ultra'});
       const target=structuralOnly?recommendation:aspectWarning?aspectGrid:hdGrid;
@@ -485,10 +521,10 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       els.applyRecommendedBtn.dataset.cols=target.cols;
       els.applyRecommendedBtn.dataset.rows=target.rows;
       const targetBeadCm=currentBeadMm()/10;
-      els.applyRecommendedBtn.textContent=same?`已是 ${target.cols}×${target.rows}`:aspectWarning?`按原比例修正为 ${target.cols}×${target.rows}`:`提高到 ${target.cols}×${target.rows} · 按${currentBeadMm()}mm豆约 ${(target.cols*targetBeadCm).toFixed(1)}×${(target.rows*targetBeadCm).toFixed(1)}cm`;
-      els.openCropBtn.textContent=structuralOnly?'裁剪单个区域':aspectWarning&&els.fitMode.value==='cover'?'裁剪并选择主体':'只制作一个主体';
+      els.applyRecommendedBtn.textContent=same?t('quality.alreadySize',{cols:target.cols,rows:target.rows}):aspectWarning?t('quality.fixAspect',{cols:target.cols,rows:target.rows}):t('quality.increaseSize',{cols:target.cols,rows:target.rows,beadMm:currentBeadMm(),width:(target.cols*targetBeadCm).toFixed(1),height:(target.rows*targetBeadCm).toFixed(1)});
+      els.openCropBtn.textContent=t(structuralOnly?'action.cropRegion':aspectWarning&&els.fitMode.value==='cover'?'quality.cropChoose':'quality.oneSubject');
       els.stageCropBtn.dataset.action=aspectWarning&&!same?'aspect':'crop';
-      els.stageCropBtn.textContent=aspectWarning&&!same?'按原比例修正':structuralOnly?'裁剪单个区域':'裁剪主体';
+      els.stageCropBtn.textContent=t(aspectWarning&&!same?'quality.fixAspectShort':structuralOnly?'action.cropRegion':'quality.cropSubject');
     }
 
     function currentSmartSettings() {
@@ -514,9 +550,9 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       state.keyboardCursor={x:0,y:0};state.hasAutoFit=false;state.smartMode=true;state.smartPhase='ready';state.sizeMode=keepBoardMode?'board':'pattern';state.aspectLock=true;
       els.gridCols.value=state.cols;els.gridRows.value=state.rows;
       els.aspectLock.checked=true;
-      els.processMode.value=settings.processMode;els.processModeHint.textContent=MODE_HINTS[settings.processMode];
+      els.processMode.value=settings.processMode;els.processModeHint.textContent=modeHint(settings.processMode);
       els.fitMode.value=keepBoardMode?'contain':settings.fitMode;els.whiteMode.value=settings.whiteMode;
-      els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=`${state.maxColors} 色`;
+      els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});
       els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;
       els.protectDark.checked=state.protectDark;
       renderPalette();updateViewButtons();syncSizeModeUI();syncAspectStatus();
@@ -531,10 +567,10 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     function lineDetailWarningCopy(issues,{short=false}={}) {
       const parts=[];
-      if(issues.missing)parts.push(`${issues.missing} 个细节小于一格`);
-      if(issues.collisions)parts.push(`${issues.collisions} 处细节无法安全分开`);
+      if(issues.missing)parts.push(t('quality.missingDetails',{count:issues.missing}));
+      if(issues.collisions)parts.push(t('quality.detailCollisions',{count:issues.collisions}));
       if(!parts.length)return '';
-      return short?parts.join('，'):`${parts.join('，')}；系统没有强行多放豆或把独立线条粘在一起`;
+      return short?parts.join(t('punctuation.list')):t('quality.detailIntegrity',{details:parts.join(t('punctuation.list'))});
     }
 
     function updateSmartCard() {
@@ -544,37 +580,37 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const settings=currentSmartSettings(),stats=getStats();
       const actualReady=state.smartPhase==='done'&&state.smartMode&&stats.total>0;
       if(settings.structuralOnly){
-        els.smartTitle.textContent='整页文字无法变成可读拼豆图';
-        els.smartSummary.textContent=`最多 ${settings.cols}×${settings.rows} 只能保留版式和大色块；请先裁剪要制作的单个区域。`;
-        els.smartGenerateBtn.textContent='先裁剪一个区域';els.smartGenerateBtn.dataset.action='crop';
+        els.smartTitle.textContent=t('smart.documentUnreadable');
+        els.smartSummary.textContent=t('smart.documentSummary',{cols:settings.cols,rows:settings.rows});
+        els.smartGenerateBtn.textContent=t('smart.cropFirst');els.smartGenerateBtn.dataset.action='crop';
         els.smartExportBtn.hidden=true;
       }else if(actualReady){
         const smallLineReady=Boolean(state.sourceAnalysis?.likelyLineArt)&&Math.max(state.cols,state.rows)<=60;
         const issues=lineDetailIssues();
-        els.smartTitle.textContent=issues.total?`已生成，但${lineDetailWarningCopy(issues,{short:true})}`:smallLineReady?'已生成小尺寸线稿精修图':'已生成，请核对后导出';
-        const pattern=currentPatternPlacement(),beadCm=currentBeadMm()/10,sizeCopy=state.sizeMode==='board'?`图案 ${pattern.cols}×${pattern.rows} / 底板 ${state.cols}×${state.rows}`:`图案 ${state.cols}×${state.rows}`;
-        const framing=state.autoTrimApplied?`已安全去除外围纯白空白约 ${Math.round(state.autoTrimFraction*100)}%，可随时恢复完整原图。`:'';
+        els.smartTitle.textContent=issues.total?t('smart.generatedWithWarning',{warning:lineDetailWarningCopy(issues,{short:true})}):t(smallLineReady?'smart.generatedSmallLine':'smart.generatedReview');
+        const pattern=currentPatternPlacement(),beadCm=currentBeadMm()/10,sizeCopy=localizedPatternSize(pattern);
+        const framing=state.autoTrimApplied?t('smart.trimmed',{percent:Math.round(state.autoTrimFraction*100)}):'';
         const nextSide=[24,32,40,48,60].find(side=>side>Math.max(pattern.cols,pattern.rows))||Math.min(160,Math.max(pattern.cols,pattern.rows)+16);
-        const detailWarning=issues.total?`${lineDetailWarningCopy(issues)}；建议升到 ${nextSide} 格或用画笔补。`:'';
-        els.smartSummary.textContent=`${sizeCopy} · ${formatNumber(stats.total)} 颗豆 · ${stats.counts.size} 色 · 原图比例未拉伸。${framing}${detailWarning} 按 ${currentBeadMm()}mm 豆约 ${(state.cols*beadCm).toFixed(1)}×${(state.rows*beadCm).toFixed(1)}cm。用料总数严格等于所有非空格；制作前请核对实物色卡。`;
-        els.smartGenerateBtn.textContent='重新智能生成';els.smartGenerateBtn.dataset.action='generate';
+        const detailWarning=issues.total?t('smart.detailWarning',{warning:lineDetailWarningCopy(issues),size:nextSide}):'';
+        els.smartSummary.textContent=t('smart.readySummary',{size:sizeCopy,beads:formatNumber(stats.total),colors:stats.counts.size,framing,detailWarning,beadMm:currentBeadMm(),width:(state.cols*beadCm).toFixed(1),height:(state.rows*beadCm).toFixed(1)});
+        els.smartGenerateBtn.textContent=t('smart.regenerate');els.smartGenerateBtn.dataset.action='generate';
         els.smartExportBtn.hidden=false;
       }else if(!state.smartMode){
         const quality=currentQualityAssessment(),issues=lineDetailIssues();
-        els.smartTitle.textContent=issues.total?lineDetailWarningCopy(issues,{short:true}):quality.severeDetail?'自定义尺寸过小，只能保留大轮廓':quality.aspectWarning?'自定义尺寸与原图比例不一致':'当前使用自定义设置';
+        els.smartTitle.textContent=issues.total?lineDetailWarningCopy(issues,{short:true}):t(quality.severeDetail?'smart.customTooSmall':quality.aspectWarning?'smart.customAspect':'smart.custom');
         els.smartSummary.textContent=issues.total
-          ? `当前 ${state.cols}×${state.rows}：${lineDetailWarningCopy(issues)}。建议提高到下一档尺寸，或放大后用画笔补画。`
+          ? t('smart.customIssues',{cols:state.cols,rows:state.rows,warning:lineDetailWarningCopy(issues)})
           : quality.severeDetail
-          ? `当前 ${state.cols}×${state.rows} 只有约 ${Math.round(quality.effectiveCells)} 个有效格，细节丢失无法靠锐化恢复；建议提高尺寸或裁剪主体。`
+          ? t('smart.customCapacity',{cols:state.cols,rows:state.rows,cells:formatNumber(Math.round(quality.effectiveCells))})
           : quality.aspectWarning
-            ? `当前${els.fitMode.value==='contain'?'会留白':'会裁切'}约 ${(quality.fit.mismatch*100).toFixed(1)}%；建议使用下方“按原比例修正”。`
-            : `当前 ${state.cols}×${state.rows}、最多 ${state.maxColors} 色；可随时恢复智能生成方案。`;
-        els.smartGenerateBtn.textContent='恢复智能生成方案';els.smartGenerateBtn.dataset.action='generate';
+            ? t('smart.customMismatch',{effect:t(els.fitMode.value==='contain'?'quality.marginVerb':'quality.cropVerb'),percent:(quality.fit.mismatch*100).toFixed(1)})
+            : t('smart.customSummary',{cols:state.cols,rows:state.rows,colors:state.maxColors});
+        els.smartGenerateBtn.textContent=t('smart.restore');els.smartGenerateBtn.dataset.action='generate';
         els.smartExportBtn.hidden=stats.total===0||quality.severeDetail||quality.aspectWarning;
       }else{
-        els.smartTitle.textContent='已准备推荐方案';
-        els.smartSummary.textContent=`${settings.cols}×${settings.rows} · 容量 ${formatNumber(settings.capacity)} 格 · 最多 ${settings.maxColors} 色 · ${state.autoTrimApplied?`已去除外围纯白空白约 ${Math.round(state.autoTrimFraction*100)}% · `:''}兼容基础 221 色号 · 黑白校准 · 逐格色号`;
-        els.smartGenerateBtn.textContent='一键智能生成';els.smartGenerateBtn.dataset.action='generate';
+        els.smartTitle.textContent=t('smart.recommendedReady');
+        els.smartSummary.textContent=t('smart.recommendedSummary',{cols:settings.cols,rows:settings.rows,capacity:formatNumber(settings.capacity),colors:settings.maxColors,trimmed:state.autoTrimApplied?t('smart.trimmedShort',{percent:Math.round(state.autoTrimFraction*100)}):''});
+        els.smartGenerateBtn.textContent=t('smart.generate');els.smartGenerateBtn.dataset.action='generate';
         els.smartExportBtn.hidden=true;
       }
     }
@@ -590,7 +626,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       applySmartSettings(settings,{resetGrid:true});
       state.referenceRaster=renderReferenceRaster();
       renderAll();updateDetailAdvice();updateSmartCard();
-      setStatus(`正在生成 ${state.cols}×${state.rows} 像素级图纸…`);
+      setStatus('status.generatingPixel',{cols:state.cols,rows:state.rows});
       await convertImage();
     }
 
@@ -688,14 +724,22 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       return ctx;
     }
 
-    function setStatus(message) {
-      els.statusMessage.textContent = message;
+    function setStatus(key, params = {}) {
+      state.statusKey=key;
+      state.statusParams={...params};
+      els.statusMessage.textContent = t(key,params);
+    }
+
+    function setProjectSubtitle(key,params={}) {
+      state.projectSubtitleKey=key;
+      state.projectSubtitleParams={...params};
+      els.projectSubtitle.textContent=t(key,params);
     }
 
     let toastTimer = 0;
-    function toast(message, type = 'info') {
+    function toast(key, type = 'info', params = {}) {
       window.clearTimeout(toastTimer);
-      els.toast.textContent = message;
+      els.toast.textContent = t(key,params);
       els.toast.dataset.type = type;
       els.toast.setAttribute('role',type==='error'?'alert':'status');
       els.toast.setAttribute('aria-live',type==='error'?'assertive':'polite');
@@ -703,14 +747,12 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       toastTimer = window.setTimeout(() => els.toast.classList.remove('is-visible'), 3000);
     }
 
-    function formatNumber(value) { return new Intl.NumberFormat('zh-CN').format(value); }
-
     function updateSelectedColor() {
       const color = PALETTE[state.selectedColor] || PALETTE[0];
       els.selectedColorSwatch.style.background = color.displayHex;
       els.selectedColorSwatch.style.backgroundImage = color.isTransparent?'linear-gradient(45deg,#d9d9d9 25%,transparent 25%),linear-gradient(-45deg,#d9d9d9 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d9d9d9 75%),linear-gradient(-45deg,transparent 75%,#d9d9d9 75%)':'';
       els.selectedColorSwatch.style.backgroundSize = color.isTransparent?'10px 10px':'';
-      els.selectedColorName.textContent = color.name;
+      els.selectedColorName.textContent = localizedColorName(color);
       els.selectedColorCode.textContent = `${color.code} · ${color.hex.toUpperCase()}`;
       document.querySelectorAll('.palette-color').forEach(btn => {
         const selected=Number(btn.dataset.colorIndex) === state.selectedColor;
@@ -726,7 +768,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       });
       const cursor = tool === 'eraser' ? 'cell' : tool === 'picker' ? 'copy' : 'crosshair';
       els.patternCanvas.style.cursor = cursor;
-      setStatus(tool === 'brush' ? '画笔已启用 · 按住拖动可连续绘制' : tool === 'eraser' ? '橡皮已启用 · 按住拖动可连续擦除' : '取色器已启用 · 点击图纸中的颜色');
+      setStatus(`status.tool.${tool}`);
     }
 
     function renderPalette() {
@@ -734,16 +776,16 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const query=rawQuery.replace(/^([a-hm])0+(\d+)$/,'$1$2');
       const allowed=PALETTE;
       els.paletteGrid.innerHTML = '';
-      const visible=allowed.filter(color => (state.paletteSeries==='all'||color.series===state.paletteSeries)&&(!query || color.code.toLowerCase().includes(query) || color.name.includes(query) || color.hex.toLowerCase().includes(query)));
+      const visible=allowed.filter(color => (state.paletteSeries==='all'||color.series===state.paletteSeries)&&(!query || color.code.toLowerCase().includes(query) || localizedColorName(color).toLowerCase().includes(query) || color.name.includes(query) || color.hex.toLowerCase().includes(query)));
       visible.forEach(color => {
           const button = document.createElement('button');
           button.className = 'palette-color';
           button.type = 'button';
           button.dataset.colorIndex = color.index;
-          button.setAttribute('aria-label', `选择 ${color.code} ${color.name}`);
+          button.setAttribute('aria-label', t('aria.chooseColor',{code:color.code,name:localizedColorName(color)}));
           button.setAttribute('aria-pressed', String(color.index === state.selectedColor));
           button.tabIndex=color.index===state.selectedColor?0:-1;
-          button.title = `${color.code} ${color.name} ${color.hex.toUpperCase()}`;
+          button.title = t('title.color',{code:color.code,name:localizedColorName(color),hex:color.hex.toUpperCase()});
           button.innerHTML = `<span class="color-bead${color.isTransparent?' is-transparent':''}" style="background:${color.displayHex}"></span><b>${color.code}</b>`;
           button.addEventListener('click', () => {
             state.selectedColor = color.index;
@@ -762,7 +804,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
           });
           els.paletteGrid.appendChild(button);
         });
-      els.paletteCountLabel.textContent=state.paletteSeries==='all'?'221 色 · 9 系列':`${state.paletteSeries} 系 · ${visible.length} 色`;
+      els.paletteCountLabel.textContent=state.paletteSeries==='all'?t('palette.countAll'):t('palette.countSeries',{series:state.paletteSeries,count:visible.length});
     }
 
     function makeSnapshot() {
@@ -785,7 +827,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       updateHistoryButtons();
     }
 
-    function commitHistory(label = '已编辑图纸') {
+    function commitHistory(labelKey = 'history.edited', labelParams = {}) {
       const next = makeSnapshot();
       const current = state.history[state.historyIndex];
       if (snapshotsEqual(next, current)) return;
@@ -796,7 +838,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       state.dirty = true;
       updateHistoryButtons();
       scheduleDraftSave();
-      setStatus(`${label} · 可撤销 ${Math.min(state.historyIndex, MAX_HISTORY - 1)} 步`);
+      setStatus('history.undoAvailable',{action:t(labelKey,labelParams),count:Math.min(state.historyIndex, MAX_HISTORY - 1)});
     }
 
     function updateHistoryButtons() {
@@ -821,7 +863,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       state.lastConversionDiagnostics=settings.lastConversionDiagnostics?{...settings.lastConversionDiagnostics}:null;
       state.autoTrimApplied=Boolean(settings.autoTrimApplied);
       state.autoTrimFraction=state.autoTrimApplied?clamp(settings.autoTrimFraction||0,0,1):0;
-      els.processModeHint.textContent=MODE_HINTS[els.processMode.value];els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=`${state.maxColors} 色`;els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;els.protectDark.checked=state.protectDark;els.aspectLock.checked=state.aspectLock;
+      els.processModeHint.textContent=modeHint(els.processMode.value);els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;els.protectDark.checked=state.protectDark;els.aspectLock.checked=state.aspectLock;
       state.keyboardCursor.x = Math.min(state.keyboardCursor.x, state.cols - 1);
       state.keyboardCursor.y = Math.min(state.keyboardCursor.y, state.rows - 1);
       els.gridCols.value = state.cols;
@@ -844,19 +886,21 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         // 先把焦点送入遮罩，避免辅助技术仍停在即将失效的背景控件上。
         els.cancelConvertBtn.focus({preventScroll:true});
         backgrounds.forEach(element=>{element.inert=true;});
+        if(els.patternReadyBar)els.patternReadyBar.hidden=true;
       }else{
         backgrounds.forEach(element=>{element.inert=false;});
         els.convertOverlay.classList.remove('is-visible');
         document.querySelector('.app-shell').removeAttribute('aria-busy');
         if(restoreFocus&&state.convertFocusReturn?.isConnected)state.convertFocusReturn.focus({preventScroll:true});
         state.convertFocusReturn=null;
+        if(els.patternReadyBar)els.patternReadyBar.hidden=getStats().total===0;
       }
     }
 
     function blockMutationDuringConversion() {
       if(!conversionInProgress())return false;
-      toast('图片正在转换，请等待完成或先点“取消处理”。');
-      setStatus('转换处理中 · 已阻止会破坏图纸状态的操作');
+      toast('toast.conversionBusy');
+      setStatus('status.conversionBlocked');
       return true;
     }
 
@@ -867,7 +911,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       restoreSnapshot(state.history[state.historyIndex]);
       updateHistoryButtons();
       state.dirty=true;scheduleDraftSave();
-      setStatus('已撤销上一步操作');
+      setStatus('status.undo');
     }
 
     function redo() {
@@ -877,7 +921,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       restoreSnapshot(state.history[state.historyIndex]);
       updateHistoryButtons();
       state.dirty=true;scheduleDraftSave();
-      setStatus('已重做一步操作');
+      setStatus('status.redo');
     }
 
     function resizeCanvases() {
@@ -891,7 +935,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       setupCanvas(els.topRuler, width, 28);
       setupCanvas(els.leftRuler, 28, height);
       els.boardShell.classList.toggle('rulers-hidden', !state.showRulers);
-      els.patternCanvas.setAttribute('aria-label', `${state.cols}×${state.rows} 拼豆图纸，方向键移动，空格绘制，Delete 擦除`);
+      els.patternCanvas.setAttribute('aria-label', t('aria.patternCanvas',{cols:state.cols,rows:state.rows}));
     }
 
     function drawReference() {
@@ -1088,30 +1132,30 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       els.usedColors.textContent = counts.size;
       els.emptyCells.textContent = formatNumber(empty);
       const pattern=currentPatternPlacement();
-      els.statusSize.textContent = state.sizeMode==='board'?`底板 ${state.cols}×${state.rows} · 图案 ${pattern.cols}×${pattern.rows}`:`${state.cols} × ${state.rows}`;
-      els.statusColors.textContent = `${counts.size} 种颜色`;
-      els.statusBeads.textContent = `${formatNumber(total)} 颗豆`;
-      els.statusZoom.textContent = `缩放 ${Math.round(state.zoom*100)}%`;
+      els.statusSize.textContent = state.sizeMode==='board'?t('status.boardPattern',{boardCols:state.cols,boardRows:state.rows,patternCols:pattern.cols,patternRows:pattern.rows}):`${state.cols} × ${state.rows}`;
+      els.statusColors.textContent = t('unit.colors',{count:counts.size});
+      els.statusBeads.textContent = t('unit.beads',{count:total,formatted:formatNumber(total)});
+      els.statusZoom.textContent = t('status.zoomValue',{percent:Math.round(state.zoom*100)});
       els.zoomValue.textContent = `${Math.round(state.zoom*100)}%`;
 
       const rows = [...counts.entries()].sort((a,b) => b[1] - a[1]);
       els.statsList.innerHTML = '';
       if (!rows.length) {
-        els.statsList.innerHTML = '<div class="empty-list">上传图片或使用画笔后，这里会实时列出每种颜色的用量。</div>';
+        const emptyMessage=document.createElement('div');emptyMessage.className='empty-list';emptyMessage.textContent=t('stats.emptyList');els.statsList.replaceChildren(emptyMessage);
       } else {
         rows.forEach(([index,count]) => {
           const color = PALETTE[index];
           const row = document.createElement('div');
           row.className = 'stat-row';
-          row.innerHTML = `<span class="stat-swatch" style="background:${color.displayHex}"></span><span class="stat-copy"><strong>${color.code} · ${color.name}</strong><span>${color.hex.toUpperCase()}</span></span><span class="stat-count">${formatNumber(count)}</span>`;
+          row.innerHTML = `<span class="stat-swatch" style="background:${color.displayHex}"></span><span class="stat-copy"><strong>${color.code} · ${localizedColorName(color)}</strong><span>${color.hex.toUpperCase()}</span></span><span class="stat-count">${formatNumber(count)}</span>`;
           els.statsList.appendChild(row);
         });
       }
 
       const compactCodeHint=state.showCodes&&cellSize()<14;
-      els.legendStrip.innerHTML = `<span class="legend-label">${compactCodeHint?'色号已开启 · 放大查看':'使用图例'}</span>`;
+      els.legendStrip.innerHTML = `<span class="legend-label">${t(compactCodeHint?'legend.codesZoom':'legend.title')}</span>`;
       if (!rows.length) {
-        els.legendStrip.insertAdjacentHTML('beforeend','<span class="legend-chip">转换后显示色号与用量</span>');
+        const chip=document.createElement('span');chip.className='legend-chip';chip.textContent=t('legend.empty');els.legendStrip.appendChild(chip);
       } else {
         rows.forEach(([index,count]) => {
           const color = PALETTE[index];
@@ -1122,6 +1166,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         });
       }
       els.emptyState.hidden = Boolean(total || state.referenceImage);
+      if(els.patternReadyBar)els.patternReadyBar.hidden=total===0||conversionInProgress();
+      if(els.readyShareCardBtn){els.readyShareCardBtn.disabled=!state.referenceImage;els.readyShareCardBtn.title=!state.referenceImage?t('share.unavailable'):'';}
       if(state.referenceImage)updateSmartCard();
     }
 
@@ -1130,8 +1176,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       els.rulerToggle.setAttribute('aria-pressed', String(state.showRulers));
       els.codesToggle.setAttribute('aria-pressed', String(state.showCodes));
       const codesVisible=state.showCodes&&cellSize()>=14;
-      els.codesToggle.setAttribute('aria-label',state.showCodes?(codesVisible?'关闭格内色号':'色号已开启，放大后查看；导出图始终带色号'):'开启格内色号');
-      els.codesToggle.title=state.showCodes&&!codesVisible?'当前为全图预览；放大后显示格内色号，导出图始终完整标注。':'切换格内色号';
+      els.codesToggle.setAttribute('aria-label',t(state.showCodes?(codesVisible?'aria.codesOff':'aria.codesZoom'):'aria.codesOn'));
+      els.codesToggle.title=t(state.showCodes&&!codesVisible?'title.codesZoom':'title.codesToggle');
       document.querySelectorAll('[data-preview]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.preview === state.previewMode)));
       document.querySelectorAll('[data-palette-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.paletteMode === state.paletteMode)));
       document.querySelectorAll('[data-palette-series]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.paletteSeries===state.paletteSeries)));
@@ -1142,7 +1188,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const zoomLimit=maxSafeZoom();
       els.zoomInBtn.disabled=state.zoom>=zoomLimit-.001;
       els.zoomOutBtn.disabled=state.zoom<=.0625+.001;
-      els.zoomInBtn.title=zoomLimit<2?`为控制内存，本尺寸最高缩放 ${Math.round(zoomLimit*100)}%`:'放大画布';
+      els.zoomInBtn.title=zoomLimit<2?t('title.zoomLimit',{percent:Math.round(zoomLimit*100)}):t('aria.zoomIn');
     }
 
     function pointerCell(event) {
@@ -1162,9 +1208,9 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
           state.selectedColor = value;
           updateSelectedColor();
           setTool('brush');
-          toast(`已选择 ${PALETTE[value].code} ${PALETTE[value].name}`, 'success');
+          toast('toast.colorSelected','success',{code:PALETTE[value].code,name:localizedColorName(PALETTE[value])});
         } else {
-          toast('这个格子是空的，请选择有颜色的格子');
+          toast('toast.emptyPicker');
         }
         return false;
       }
@@ -1202,7 +1248,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       state.isDrawing = false;
       state.lastCell = null;
       try { els.patternCanvas.releasePointerCapture(event.pointerId); } catch (_) {}
-      if (state.strokeChanged) commitHistory('已完成一笔绘制');
+      if (state.strokeChanged) commitHistory('history.stroke');
       state.strokeChanged = false;
       updateStats();
     }
@@ -1339,7 +1385,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       ctx.fillStyle='#fff';ctx.strokeStyle='#a94726';ctx.lineWidth=2;
       for(const [x,y] of [[rx,ry],[rx+rw,ry],[rx,ry+rh],[rx+rw,ry+rh]]){ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.fill();ctx.stroke();}
       const sourceWidth=state.referenceSourceWidth||(state.referenceImage.naturalWidth||state.referenceImage.width),sourceHeight=state.referenceSourceHeight||(state.referenceImage.naturalHeight||state.referenceImage.height);
-      const px=Math.round(sourceWidth*crop.w),py=Math.round(sourceHeight*crop.h),label=`${px} × ${py} 源像素`;
+      const px=Math.round(sourceWidth*crop.w),py=Math.round(sourceHeight*crop.h),label=t('crop.sourcePixels',{width:px,height:py});
       ctx.font='600 13px "Segoe UI",sans-serif';const labelWidth=ctx.measureText(label).width+18;
       const lx=Math.min(canvas.width-labelWidth-6,Math.max(6,rx+8)),ly=Math.min(canvas.height-30,Math.max(6,ry+8));
       ctx.fillStyle='rgba(25,23,20,.82)';ctx.fillRect(lx,ly,labelWidth,24);ctx.fillStyle='#fff';ctx.fillText(label,lx+9,ly+16);
@@ -1387,19 +1433,19 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         els.gridCols.value=state.cols;els.gridRows.value=state.rows;
       }
       markCustomSettings();rebuildReferenceRaster();syncSizeModeUI();syncAspectStatus();updateDetailAdvice();updateSmartCard();
-      els.fileDetails.textContent=`${state.referenceSourceWidth} × ${state.referenceSourceHeight} · ${(state.referenceFileSize/1024/1024).toFixed(2)} MB · 已恢复完整原图`;
+      els.fileDetails.textContent=t('file.restored',{width:state.referenceSourceWidth,height:state.referenceSourceHeight,size:(state.referenceFileSize/1024/1024).toFixed(2)});
       await convertImage();
     }
 
     async function applyCrop() {
       const next=normalizeCrop(state.cropDraft);
-      if(next.w<.025||next.h<.025){toast('裁剪范围太小，请拖出更大的区域。','error');return;}
+      if(next.w<.025||next.h<.025){toast('toast.cropTooSmall','error');return;}
       state.crop=next;state.autoTrimApplied=false;state.autoTrimFraction=0;state.referenceTransforms=[];state.hasAutoFit=false;
       state.sourceAnalysis=analyzeReferenceImage(state.referenceImage,state.referenceSourceWidth,state.referenceSourceHeight,next);
       if(state.smartMode)applySmartSettings(currentSmartSettings(),{resetGrid:true});else applyAutomaticMode();
       closeCropDialog();rebuildReferenceRaster();syncSizeModeUI();updateDetailAdvice();updateSmartCard();
       const iw=state.referenceSourceWidth||(state.referenceImage.naturalWidth||state.referenceImage.width),ih=state.referenceSourceHeight||(state.referenceImage.naturalHeight||state.referenceImage.height);
-      els.fileDetails.textContent=`${iw} × ${ih} · 已裁剪 ${Math.round(iw*next.w)} × ${Math.round(ih*next.h)}`;
+      els.fileDetails.textContent=t('file.cropped',{width:iw,height:ih,cropWidth:Math.round(iw*next.w),cropHeight:Math.round(ih*next.h)});
       await convertImage();
     }
 
@@ -1458,18 +1504,18 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     async function loadImageFile(file) {
       const allowedTypes=new Set(['image/png','image/jpeg','image/jpg','image/webp','image/gif']);
       if (!file || !allowedTypes.has(String(file.type).toLowerCase())) {
-        toast('无法读取该文件，请选择 PNG、JPG、WebP 或静态 GIF 图片。', 'error');
+        toast('toast.invalidImage', 'error');
         return;
       }
       if (file.size > 24 * 1024 * 1024) {
-        toast('图片超过 24MB，请先压缩后再试。', 'error');
+        toast('toast.imageTooLarge', 'error');
         return;
       }
-      if(state.dirty&&state.grid.some(value=>value>=0)&&!window.confirm('当前图纸有未保存修改。继续上传会覆盖当前工作；选择“取消”后可先保存可编辑图纸。\n\n确定放弃修改并继续吗？')){els.imageInput.value='';return;}
+      if(state.dirty&&state.grid.some(value=>value>=0)&&!window.confirm(t('confirm.replaceImage'))){els.imageInput.value='';return;}
       const loadJob=++state.sourceLoadJob;
       invalidateConversion();
       setConversionModal(false,{restoreFocus:false});
-      setStatus('正在读取图片…');
+      setStatus('status.readingImage');
       try {
         const dimensions=await readImageDimensions(file);
         if(loadJob!==state.sourceLoadJob)return;
@@ -1505,9 +1551,9 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         state.referenceRaster = renderReferenceRaster();
         els.fileMeta.hidden = false;
         els.fileName.textContent = file.name;
-        els.fileDetails.textContent = `${sourceWidth} × ${sourceHeight} · ${(file.size/1024/1024).toFixed(2)} MB${state.autoTrimApplied?' · 已自动紧贴主体':''}`;
-        els.projectTitle.textContent = file.name.replace(/\.[^.]+$/, '') || '未命名图纸';
-        els.projectSubtitle.textContent = `${sourceWidth} × ${sourceHeight} · 本机处理`;
+        els.fileDetails.textContent = t('file.details',{width:sourceWidth,height:sourceHeight,size:(file.size/1024/1024).toFixed(2),suffix:state.autoTrimApplied?t('file.trimmed'):''});
+        els.projectTitle.textContent = file.name.replace(/\.[^.]+$/, '') || t('project.untitled');
+        setProjectSubtitle('project.imageLocal',{width:sourceWidth,height:sourceHeight});
         els.convertBtn.disabled = false;
         els.emptyState.hidden = true;
         updateDetailAdvice();updateSmartCard();
@@ -1515,14 +1561,27 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         await convertImage();
       } catch (error) {
         if(loadJob!==state.sourceLoadJob)return;
-        const message = error.message === 'pixels'
-          ? '图片像素尺寸过大，请缩小到约 6000×6000 以内。'
+        const messageKey = error.message === 'pixels'
+          ? 'toast.imagePixelsTooLarge'
           : error.message === 'safe-decode'
-            ? '当前浏览器无法安全缩小这张大图，请更新浏览器或先把图片缩到 2000 像素左右。'
-            : '图片头信息无效或文件已损坏，请改用正常的 PNG、JPG、WebP 或静态 GIF。';
-        toast(message, 'error');
-        setStatus('图片读取失败');
+            ? 'toast.safeDecodeFailed'
+            : 'toast.imageDamaged';
+        toast(messageKey, 'error');
+        setStatus('status.imageReadFailed');
       } finally {els.imageInput.value='';}
+    }
+
+    async function loadSampleImage() {
+      try {
+        setStatus('status.loadingSample');
+        const response=await fetch(SAMPLE_IMAGE_URL);
+        if(!response.ok)throw new Error('sample-fetch');
+        const blob=await response.blob();
+        await loadImageFile(new File([blob],'rocket-badge.png',{type:blob.type||'image/png'}));
+      }catch(error){
+        if(error?.message!=='sample-fetch'&&state.referenceFileName==='rocket-badge.png')return;
+        toast('toast.sampleFailed','error');setStatus('status.sampleFailed');
+      }
     }
 
     function convertPixels(payload) {
@@ -2327,19 +2386,19 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     async function convertImage() {
       if (!state.referenceRaster) {
-        toast('请先选择一张图片。');
+        toast('toast.chooseImageFirst');
         return;
       }
       if(state.sourceAnalysis?.likelyPhoto&&['cartoon','document'].includes(els.processMode.value)){
-        els.processMode.value='detail';els.processModeHint.textContent=MODE_HINTS.detail;
-        toast('检测到高细节照片，已自动改用“高清照片”模式，避免卡通逐像素处理长时间卡住。');
+        els.processMode.value='detail';els.processModeHint.textContent=modeHint('detail');
+        toast('toast.photoModeAuto');
         rebuildReferenceRaster();
       }
       const jobId = invalidateConversion();
       state.convertFocusReturn=document.activeElement instanceof HTMLElement?document.activeElement:null;
       setConversionModal(true);
-      const modeName = els.processMode.options[els.processMode.selectedIndex].text.split('·')[0].trim();
-      els.progressText.textContent = `${modeName}处理中 · 最多 ${state.maxColors} 色…`;
+      const modeName = modeLabel(els.processMode.value);
+      els.progressText.textContent = t('conversion.progress',{mode:modeName,colors:state.maxColors});
       els.convertBtn.disabled = true;
       try {
         const boardContained=state.sizeMode==='board'&&els.fitMode.value==='contain';
@@ -2369,24 +2428,24 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
           state.grid=embedPatternGrid(compactGrid,placement.cols,placement.rows,state.cols,state.rows,placement.offsetX,placement.offsetY);
         }else state.grid=compactGrid;
         if(state.smartMode)state.smartPhase='done';
-        commitHistory('图片已转换为拼豆图纸');
+        commitHistory('history.converted');
         renderAll();
-        const blankNote = els.whiteMode.value === 'auto' ? '，边界背景已留空' : '';
-        const mergeNote = result.diagnostics?.usedBeforeMerge > result.selected.length ? `，已从 ${result.diagnostics.usedBeforeMerge} 种整理为 ${result.selected.length} 种` : '';
+        const blankNote = els.whiteMode.value === 'auto' ? t('conversion.backgroundRemoved') : '';
+        const mergeNote = result.diagnostics?.usedBeforeMerge > result.selected.length ? t('conversion.colorsMerged',{before:result.diagnostics.usedBeforeMerge,after:result.selected.length}) : '';
         const source=effectiveSourceSize(),span=Math.max(source.width/state.cols,source.height/state.rows);
         const glyphCells=state.sourceAnalysis?.medianGlyphHeightPx?state.sourceAnalysis.medianGlyphHeightPx/span:null;
         const structuralOnly=Boolean(state.sourceAnalysis?.likelyDocument)&&(glyphCells===null||glyphCells<4);
         if(structuralOnly){
           const documentPreview=els.processMode.value==='document';
-          toast(documentPreview?'已生成结构预览，但整图超出可读范围；请裁剪单个子图。':'检测到复杂文档整图；请切换“文档结构”模式或裁剪单个子图。');
-          setStatus(`${documentPreview?'结构预览':'复杂整图预览'} · 正文不可读 · ${state.sizeMode==='board'?`图案${placement.cols}×${placement.rows}/底板${state.cols}×${state.rows}`:`${state.cols}×${state.rows}`} · ${documentPreview?'建议裁剪':'建议切换模式'}`);
+          toast(documentPreview?'toast.documentPreview':'toast.documentDetected');
+          setStatus('status.documentPreview',{kind:t(documentPreview?'status.structurePreview':'status.complexPreview'),size:localizedPatternSize(placement),action:t(documentPreview?'status.cropSuggested':'status.modeSuggested')});
         }else if(lineDetailIssues(result.diagnostics).total>0){
           const issues=lineDetailIssues(result.diagnostics),warning=lineDetailWarningCopy(issues,{short:true});
-          toast(`已生成，但${warning}；建议提高尺寸或用画笔补。`);
-          setStatus(`小尺寸精修完成 · ${warning} · 建议提高格数`);
+          toast('toast.generatedWarning','info',{warning});
+          setStatus('status.smallRefine',{warning});
         }else{
-          toast(`转换完成：使用 ${result.selected.length} 种颜色${blankNote}${mergeNote}`, 'success');
-          setStatus(`转换完成 · ${modeName} · ${state.sizeMode==='board'?`图案${placement.cols}×${placement.rows}/底板${state.cols}×${state.rows}`:`${state.cols}×${state.rows}`} · ${result.selected.length} 种颜色`);
+          toast('toast.conversionComplete','success',{colors:result.selected.length,background:blankNote,merged:mergeNote});
+          setStatus('status.conversionComplete',{mode:modeName,size:localizedPatternSize(placement),colors:result.selected.length});
         }
         updateDetailAdvice();
         if(!state.hasAutoFit){
@@ -2397,8 +2456,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         if (error.message !== 'cancelled' && jobId === state.conversionJob) {
           const snapshot=state.history[state.historyIndex];if(snapshot)restoreSnapshot(snapshot);
           const timedOut=error.message==='timeout',unsupported=error.message==='worker-unavailable';
-          toast(timedOut?'处理超过 12 秒，已安全停止。请使用“高清照片”模式、裁剪主体或降低尺寸。':unsupported?'当前浏览器不支持安全的后台转换，请升级 Chrome、Edge 或 Safari 后重试。':'转换没有完成，请降低图纸尺寸或换一张图片再试。', 'error');
-          setStatus(`${timedOut?'转换超时':unsupported?'浏览器不兼容':'图片转换失败'} · 已恢复上一张完整图纸`);
+          toast(timedOut?'toast.conversionTimeout':unsupported?'toast.workerUnsupported':'toast.conversionFailed', 'error');
+          setStatus('status.conversionFailed',{reason:t(timedOut?'status.timeout':unsupported?'status.browserUnsupported':'status.failed')});
         }
       } finally {
         if (jobId === state.conversionJob) {
@@ -2412,18 +2471,18 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     function applyPhysicalBoard(profileId=state.boardProfile,tilesX=state.boardTilesX,tilesY=state.boardTilesY,skipConfirm=false) {
       if(blockMutationDuringConversion())return;
       const source=effectiveSourceSize(),layout=physicalBoardLayout(profileId,tilesX,tilesY,source.width,source.height);
-      if(!layout.withinLimit){toast('这个拼接布局超过 160 格上限，请减少横向或纵向底板数量。','error');syncBoardStatus();return;}
+      if(!layout.withinLimit){toast('toast.boardTooLarge','error');syncBoardStatus();return;}
       const sameSize=state.cols===layout.boardCols&&state.rows===layout.boardRows;
       const sameConfig=state.sizeMode==='board'&&state.boardProfile===layout.profile.id&&state.boardTilesX===layout.tilesX&&state.boardTilesY===layout.tilesY;
       if(sameConfig)return;
       const quality=state.referenceImage?assessPatternQuality({width:source.width,height:source.height,cols:layout.pattern.cols,rows:layout.pattern.rows,fitMode:'contain',analysis:state.sourceAnalysis}):null;
-      const qualityCopy=quality?.severeDetail?'\n\n清晰度警告：这块板只能保留主体轮廓和大色块；照片文字与细节不会可读。':quality?.lowDetail?'\n\n清晰度提示：单板适合一般卡通；复杂照片建议改用 104 格或更大布局。':'';
-      if(!skipConfirm&&state.grid.some(value=>value>=0)&&!window.confirm(`切换为 ${layout.profile.label}、${layout.tilesX}×${layout.tilesY} 块，将生成“图案 ${layout.pattern.cols}×${layout.pattern.rows} / 底板 ${layout.boardCols}×${layout.boardRows}”。这会丢弃当前手工修改，成功后可撤销。${qualityCopy}\n\n是否继续？`)){els.boardProfile.value=state.boardProfile;syncSizeModeUI();return;}
+      const qualityCopy=quality?.severeDetail?t('confirm.boardQualitySevere'):quality?.lowDetail?t('confirm.boardQualityLow'):'';
+      if(!skipConfirm&&state.grid.some(value=>value>=0)&&!window.confirm(t('confirm.boardSwitch',{profile:t(layout.profile.labelKey),tilesX:layout.tilesX,tilesY:layout.tilesY,patternCols:layout.pattern.cols,patternRows:layout.pattern.rows,boardCols:layout.boardCols,boardRows:layout.boardRows,quality:qualityCopy}))){els.boardProfile.value=state.boardProfile;syncSizeModeUI();return;}
       state.sizeMode='board';state.boardProfile=layout.profile.id;state.boardTilesX=layout.tilesX;state.boardTilesY=layout.tilesY;state.aspectLock=true;
       els.boardProfile.value=state.boardProfile;els.fitMode.value='contain';els.gridCols.value=layout.boardCols;els.gridRows.value=layout.boardRows;
       syncSizeModeUI();
       if(sameSize){
-        markCustomSettings();if(state.referenceImage){rebuildReferenceRaster();updateDetailAdvice();convertImage();}else{renderAll();commitHistory('已切换真实底板规格');}
+        markCustomSettings();if(state.referenceImage){rebuildReferenceRaster();updateDetailAdvice();convertImage();}else{renderAll();commitHistory('history.boardChanged');}
       }else applyGridSize(layout.boardCols,layout.boardRows,true);
     }
 
@@ -2432,7 +2491,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       if(mode!=='board'&&mode!=='pattern'||mode===state.sizeMode)return;
       if(mode==='board'){applyPhysicalBoard(state.boardProfile,state.boardTilesX,state.boardTilesY);return;}
       const pattern=currentPatternPlacement();
-      if(state.grid.some(value=>value>=0)&&!window.confirm(`切换为按图案清晰度，将从底板中取出 ${pattern.cols}×${pattern.rows} 图案并重新生成；当前手工修改会被替换，成功后可撤销。是否继续？`))return;
+      if(state.grid.some(value=>value>=0)&&!window.confirm(t('confirm.patternMode',{cols:pattern.cols,rows:pattern.rows})))return;
       state.sizeMode='pattern';state.aspectLock=true;els.aspectLock.checked=true;syncSizeModeUI();
       applyGridSize(pattern.cols,pattern.rows,true);
     }
@@ -2444,8 +2503,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       if (cols === state.cols && rows === state.rows) return;
       const hasContent = state.grid.some(value => value >= 0);
       const proposedQuality=state.referenceImage?assessPatternQuality({width:effectiveSourceSize().width,height:effectiveSourceSize().height,cols:state.sizeMode==='board'?fitPatternInsideBoard(effectiveSourceSize().width,effectiveSourceSize().height,cols,rows).cols:cols,rows:state.sizeMode==='board'?fitPatternInsideBoard(effectiveSourceSize().width,effectiveSourceSize().height,cols,rows).rows:rows,fitMode:'contain',analysis:state.sourceAnalysis}):null;
-      const qualityWarning=proposedQuality?.severeDetail?`\n\n清晰度警告：该尺寸只有约 ${Math.round(proposedQuality.effectiveCells).toLocaleString('zh-CN')} 个有效格，只能保留主体轮廓和大色块，照片文字与细节必然消失。`:'';
-      if (hasContent && !skipConfirm && !window.confirm(`改为 ${cols}×${rows} 会丢弃当前手工修改，并按原图重新生成。生成成功后可撤销回当前完整图纸。${qualityWarning}\n\n是否继续？`)) {
+      const qualityWarning=proposedQuality?.severeDetail?t('confirm.resizeQuality',{cells:formatNumber(Math.round(proposedQuality.effectiveCells))}):'';
+      if (hasContent && !skipConfirm && !window.confirm(t('confirm.resize',{cols,rows,quality:qualityWarning}))) {
         els.gridCols.value = state.cols;
         els.gridRows.value = state.rows;
         return;
@@ -2459,7 +2518,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       state.keyboardCursor = {x:0,y:0};
       markCustomSettings();
       if (state.referenceImage) rebuildReferenceRaster();
-      else commitHistory('已更改图纸尺寸并清空画布');
+      else commitHistory('history.sizeCleared');
       renderAll();
       updateDetailAdvice();
       syncSizeModeUI();syncAspectStatus();
@@ -2490,17 +2549,17 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       if(state.sizeMode==='board'&&type==='rotate')[state.boardTilesX,state.boardTilesY]=[state.boardTilesY,state.boardTilesX];
       if (state.referenceImage){state.referenceTransforms.push(type);rebuildReferenceRaster();}
       markCustomSettings();syncSizeModeUI();syncAspectStatus();
-      commitHistory(type === 'rotate' ? '已顺时针旋转 90°' : type === 'mirrorH' ? '已水平镜像' : '已垂直镜像');
+      commitHistory(type === 'rotate' ? 'history.rotated' : type === 'mirrorH' ? 'history.mirroredH' : 'history.mirroredV');
       renderAll();
     }
 
     function clearGrid() {
       if(blockMutationDuringConversion())return;
       if (!state.grid.some(value => value >= 0)) return;
-      if (!window.confirm('确定清空当前图纸吗？此操作可以撤销。')) return;
+      if (!window.confirm(t('confirm.clear'))) return;
       state.grid.fill(-1);
       markCustomSettings();
-      commitHistory('已清空图纸');
+      commitHistory('history.cleared');
       renderAll();
     }
 
@@ -2510,7 +2569,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const oldWidth = state.cols*cellSize(), oldHeight = state.rows*cellSize();
       const limit=maxSafeZoom();
       state.zoom = clamp(next,.0625,limit);
-      if(next>limit+.001)toast(`当前 ${state.cols}×${state.rows} 图纸为控制内存，最高缩放 ${Math.round(limit*100)}%。`);
+      if(next>limit+.001)toast('toast.zoomLimit','info',{cols:state.cols,rows:state.rows,percent:Math.round(limit*100)});
       renderAll();
       const newWidth = state.cols*cellSize(), newHeight=state.rows*cellSize();
       requestAnimationFrame(() => {
@@ -2527,7 +2586,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const fit=Math.min(2,(els.canvasViewport.clientWidth-horizontalChrome)/(state.cols*BASE_CELL),(els.canvasViewport.clientHeight-verticalChrome)/(state.rows*BASE_CELL));
       const stepped=fit<.25?Math.max(.0625,Math.floor(Math.max(.0625,fit)*16)/16):Math.floor(fit*4)/4;
       setZoom(stepped);
-      if(announce){const overview=cellSize()<4;setStatus(`${overview?'全图预览 · 放大后编辑':'画布已适合窗口'} · 缩放 ${Math.round(state.zoom*100)}%`);toast(overview?`已显示完整图纸；当前为全图预览，放大后再编辑。`:`已缩放到 ${Math.round(state.zoom*100)}%`,'success');}
+      if(announce){const overview=cellSize()<4;setStatus('status.zoom',{message:t(overview?'status.canvasOverview':'status.canvasFit'),percent:Math.round(state.zoom*100)});toast(overview?'toast.canvasOverview':'toast.canvasFit','success',{percent:Math.round(state.zoom*100)});}
     }
 
     function occupiedBounds(grid,cols,rows) {
@@ -2559,10 +2618,10 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const ctx=canvas.getContext('2d');
       ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
       ctx.fillStyle='#1f211f';ctx.font='800 21px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-      ctx.fillText(`${els.projectTitle.textContent||'拼豆图纸'} · ${bounds.cols}列 × ${bounds.rows}行 · ${stats.counts.size}色 · 共${formatNumber(stats.total)}颗`,14,25);
+      ctx.fillText(t('export.header',{title:els.projectTitle.textContent||t('file.patternFallback'),cols:bounds.cols,rows:bounds.rows,colors:stats.counts.size,beads:formatNumber(stats.total)}),14,25);
       ctx.fillStyle='#626661';ctx.font='12px system-ui,"Microsoft YaHei",sans-serif';
-      const placement=currentPatternPlacement(),boardCopy=state.sizeMode==='board'?`${(BOARD_PROFILES[state.boardProfile]||BOARD_PROFILES.mini52).label} × ${state.boardTilesX}×${state.boardTilesY}块 · 图案${placement.cols}×${placement.rows}`:'按原图比例的图案尺寸';
-      ctx.fillText(`MARD 兼容基础 221 色号 · ${boardCopy} · 每 ${state.majorGridStep} 格辅助线 · 逐格色号`,14,52);
+      const placement=currentPatternPlacement(),profile=BOARD_PROFILES[state.boardProfile]||BOARD_PROFILES.mini52,boardCopy=state.sizeMode==='board'?t('export.boardCopy',{profile:boardProfileLabel(profile),tilesX:state.boardTilesX,tilesY:state.boardTilesY,cols:placement.cols,rows:placement.rows}):t('export.patternCopy');
+      ctx.fillText(t('export.subtitle',{board:boardCopy,step:state.majorGridStep}),14,52);
 
       // 最终文件固定使用平面施工表，不继承屏幕上的仿真豆预览；四边坐标始终保留。
       ctx.fillStyle='#d9def3';
@@ -2597,19 +2656,20 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       drawMajorGrid(ctx,ox,oy,bounds.cols,bounds.rows,cell,state.majorGridStep,{color:'#1c1f1d',lineWidth:3});
       drawPhysicalBoardSeams(ctx,ox,oy,bounds.cols,bounds.rows,cell,{color:'#7d2d20',lineWidth:5});
 
-      ctx.fillStyle='#232623';ctx.font='800 15px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText('用料清单',14,legendStart+9);
+      ctx.fillStyle='#232623';ctx.font='800 15px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(t('export.materials'),14,legendStart+9);
       const itemWidth=(width-24)/legendCols;
       entries.forEach(([index,count],i)=>{
         const col=i%legendCols,row=Math.floor(i/legendCols),x=12+col*itemWidth,y=legendStart+27+row*46,color=PALETTE[index],swatch=30;
         ctx.fillStyle=color.displayHex;ctx.fillRect(x,y,swatch,swatch);ctx.strokeStyle='#5f625f';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,swatch-1,swatch-1);
         ctx.fillStyle=colorText(color.displayHex);ctx.font='800 9px ui-monospace,SFMono-Regular,Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(color.code,x+swatch/2,y+swatch/2);
-        ctx.fillStyle='#242724';ctx.font='700 11px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(`${color.code} · ${color.name}`,x+39,y+10);
-        ctx.fillStyle='#686c67';ctx.font='11px system-ui,"Microsoft YaHei",sans-serif';ctx.fillText(`${formatNumber(count)} 颗`,x+39,y+25);
+        ctx.fillStyle='#242724';ctx.font='700 11px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(`${color.code} · ${localizedColorName(color)}`,x+39,y+10);
+        ctx.fillStyle='#686c67';ctx.font='11px system-ui,"Microsoft YaHei",sans-serif';ctx.fillText(t('export.count',{count:formatNumber(count)}),x+39,y+25);
       });
       ctx.fillStyle='#1f211f';ctx.font='800 14px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-      ctx.fillText(`所需豆子总数：${formatNumber(stats.total)} 颗`,14,summaryY+12);
-      ctx.fillText(`图纸尺寸：${state.sizeMode==='board'?`图案 ${placement.cols}×${placement.rows} · 底板 ${bounds.cols}×${bounds.rows} · ${state.boardTilesX*state.boardTilesY}块`:`${bounds.cols} 列 × ${bounds.rows} 行`} · 辅助线每 ${state.majorGridStep} 格`,14,summaryY+38);
-      ctx.fillStyle='#71756f';ctx.font='10px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='right';ctx.fillText(`豆格工坊 v${APP_VERSION} · 本机生成`,width-14,summaryY+38);
+      ctx.fillText(t('export.total',{count:formatNumber(stats.total)}),14,summaryY+12);
+      const sizeSummary=state.sizeMode==='board'?t('export.boardSize',{patternCols:placement.cols,patternRows:placement.rows,boardCols:bounds.cols,boardRows:bounds.rows,boards:state.boardTilesX*state.boardTilesY}):t('export.patternSize',{cols:bounds.cols,rows:bounds.rows});
+      ctx.fillText(t('export.sizeSummary',{size:sizeSummary,step:state.majorGridStep}),14,summaryY+38);
+      ctx.fillStyle='#71756f';ctx.font='10px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='right';ctx.fillText(t('export.generated',{version:APP_VERSION}),width-14,summaryY+38);
       return canvas;
     }
 
@@ -2619,24 +2679,107 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       window.setTimeout(()=>URL.revokeObjectURL(url),1500);
     }
 
-    function safeFileStem(value,fallback='拼豆图纸') {
+    function safeFileStem(value,fallback=t('file.patternFallback')) {
       const cleaned=String(value||'').normalize('NFKC').replace(/[<>:"/\\|?*\u0000-\u001f]/g,'-').replace(/[. ]+$/g,'').replace(/\s+/g,' ').trim();
       return (cleaned||fallback).slice(0,80);
     }
 
     function setExportBusy(busy) {
       state.exporting=busy;
-      [els.exportPngBtn,els.topExportBtn,els.smartExportBtn,els.printBtn].forEach(button=>{if(button)button.disabled=busy;});
+      [els.exportPngBtn,els.topExportBtn,els.smartExportBtn,els.readyExportBtn,els.readySaveBtn,els.readyShareBtn,els.readyShareCardBtn,els.shareCardDownloadBtn,els.printBtn].forEach(button=>{if(button)button.disabled=busy;});
       document.querySelector('.app-shell').setAttribute('aria-busy',String(busy));
+    }
+
+    async function copyAppLink() {
+      const url=localizedAppUrl();
+      try {
+        if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(url);
+        else{
+          const input=document.createElement('textarea');input.value=url;input.setAttribute('readonly','');input.style.position='fixed';input.style.opacity='0';document.body.appendChild(input);input.select();
+          if(!document.execCommand('copy'))throw new Error('copy');input.remove();
+        }
+        toast('share.copied','success');
+        return true;
+      } catch(_){toast('share.failed','error');return false;}
+    }
+
+    async function sharePattern() {
+      const payload={title:t('share.title'),text:t('share.text'),url:localizedAppUrl()};
+      if(typeof navigator.share==='function'){
+        try{await navigator.share(payload);return;}
+        catch(error){if(error?.name==='AbortError')return;}
+      }
+      await copyAppLink();
+    }
+
+    function drawContained(ctx,source,x,y,width,height,{background='#fff'}={}) {
+      ctx.fillStyle=background;ctx.fillRect(x,y,width,height);
+      const sw=source.width,sh=source.height,scale=Math.min(width/sw,height/sh),dw=sw*scale,dh=sh*scale;
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,x+(width-dw)/2,y+(height-dh)/2,dw,dh);
+    }
+
+    function shareSourceCanvas() {
+      if(!state.referenceRaster)return null;
+      return state.referenceRaster;
+    }
+
+    function sharePatternCanvas() {
+      const cell=Math.max(2,Math.floor(720/Math.max(state.cols,state.rows))),canvas=document.createElement('canvas');
+      canvas.width=state.cols*cell;canvas.height=state.rows*cell;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+      for(let y=0;y<state.rows;y++)for(let x=0;x<state.cols;x++){
+        const value=state.grid[y*state.cols+x];ctx.fillStyle=value>=0&&PALETTE[value]?PALETTE[value].displayHex:'#fff';ctx.fillRect(x*cell,y*cell,cell,cell);
+      }
+      if(cell>=4){ctx.strokeStyle='rgba(31,33,31,.16)';ctx.lineWidth=1;for(let x=0;x<=state.cols;x++){ctx.beginPath();ctx.moveTo(x*cell+.5,0);ctx.lineTo(x*cell+.5,canvas.height);ctx.stroke();}for(let y=0;y<=state.rows;y++){ctx.beginPath();ctx.moveTo(0,y*cell+.5);ctx.lineTo(canvas.width,y*cell+.5);ctx.stroke();}}
+      return canvas;
+    }
+
+    function buildShareCardCanvas(format=els.shareFormat?.value||'wide') {
+      const portrait=format==='portrait',width=portrait?1080:1200,height=portrait?1440:675,canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+      const ctx=canvas.getContext('2d'),source=shareSourceCanvas(),pattern=sharePatternCanvas();if(!source)throw new Error('no-reference');
+      const pad=portrait?68:54,headerH=portrait?230:142,gap=portrait?30:26,footerH=portrait?120:86;
+      ctx.fillStyle='#f5f2eb';ctx.fillRect(0,0,width,height);
+      ctx.fillStyle='#b54a28';ctx.fillRect(pad,portrait?62:38,portrait?92:74,8);
+      ctx.fillStyle='#24221f';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`800 ${portrait?54:38}px system-ui,"Segoe UI",sans-serif`;ctx.fillText(t('share.cardTitle'),pad,portrait?145:89);
+      ctx.fillStyle='#6a655e';ctx.font=`600 ${portrait?25:18}px system-ui,"Segoe UI",sans-serif`;ctx.fillText(t('share.cardSubtitle'),pad,portrait?190:120);
+      const contentTop=headerH,contentBottom=height-footerH,contentH=contentBottom-contentTop;
+      if(portrait){
+        const panelH=(contentH-gap)/2;drawContained(ctx,source,pad,contentTop,width-pad*2,panelH,{background:'#fff'});drawContained(ctx,pattern,pad,contentTop+panelH+gap,width-pad*2,panelH,{background:'#fff'});
+        ctx.fillStyle='#24221f';ctx.font='800 22px system-ui,"Segoe UI",sans-serif';ctx.fillText(t('share.original'),pad+16,contentTop+34);ctx.fillText(t('share.pattern'),pad+16,contentTop+panelH+gap+34);
+      }else{
+        const panelW=(width-pad*2-gap)/2;drawContained(ctx,source,pad,contentTop,panelW,contentH,{background:'#fff'});drawContained(ctx,pattern,pad+panelW+gap,contentTop,panelW,contentH,{background:'#fff'});
+        ctx.fillStyle='#24221f';ctx.font='800 18px system-ui,"Segoe UI",sans-serif';ctx.fillText(t('share.original'),pad+14,contentTop+29);ctx.fillText(t('share.pattern'),pad+panelW+gap+14,contentTop+29);
+      }
+      ctx.fillStyle='#4e4a45';ctx.font=`700 ${portrait?22:16}px ui-monospace,SFMono-Regular,Consolas,monospace`;ctx.fillText(t('share.cardFooter'),pad,height-(portrait?50:31));
+      return canvas;
+    }
+
+    function renderShareCardPreview() {
+      if(!els.sharePreviewCanvas||!state.referenceImage)return;
+      const card=buildShareCardCanvas(),preview=els.sharePreviewCanvas;preview.width=card.width;preview.height=card.height;preview.getContext('2d').drawImage(card,0,0);card.width=1;card.height=1;
+    }
+
+    function openShareCardDialog() {
+      if(!state.referenceImage){toast('share.unavailable','error');return;}
+      state.shareFocusReturn=document.activeElement;renderShareCardPreview();els.shareDialog.showModal();els.shareCardCloseBtn.focus({preventScroll:true});
+    }
+
+    function closeShareCardDialog() { if(els.shareDialog?.open)els.shareDialog.close();if(state.shareFocusReturn?.isConnected)state.shareFocusReturn.focus({preventScroll:true});state.shareFocusReturn=null; }
+
+    async function exportShareCard() {
+      if(state.exporting)return;if(!state.referenceImage){toast('share.unavailable','error');return;}setExportBusy(true);
+      try{
+        await new Promise(resolve=>requestAnimationFrame(resolve));const canvas=buildShareCardCanvas(),blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));canvas.width=1;canvas.height=1;if(!blob)throw new Error('encode');
+        downloadBlob(blob,`${safeFileStem(els.projectTitle.textContent,t('project.untitled'))}-share-${els.shareFormat.value}.png`);closeShareCardDialog();
+      }catch(_){toast('share.unavailable','error');}finally{setExportBusy(false);}
     }
 
     async function exportPng() {
       if(state.exporting)return;
       const issues=lineDetailIssues();
-      if(issues.total&&!window.confirm(`当前图纸${lineDetailWarningCopy(issues)}。建议先提高尺寸或用画笔补画；仍要导出吗？`))return;
+      if(issues.total&&!window.confirm(t('confirm.exportIssues',{issues:lineDetailWarningCopy(issues)})))return;
       setExportBusy(true);
       try {
-        setStatus('正在生成高清 PNG…');
+        setStatus('status.exporting');
         await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
         const canvas=buildExportCanvas();
         const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
@@ -2644,17 +2787,17 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         if(!blob)throw new Error('encode');
         const placement=currentPatternPlacement(),sizeName=state.sizeMode==='board'?`pattern-${placement.cols}x${placement.rows}-board-${state.cols}x${state.rows}`:`${state.cols}x${state.rows}`;
         downloadBlob(blob,`${safeFileStem(els.projectTitle.textContent)}-${sizeName}.png`);
-        toast('色号施工图已导出','success');setStatus('施工图 PNG 导出完成');
-      } catch(error){toast(error.message==='export-memory'?'当前设备无法安全生成这么大的单张图，请降低尺寸或改用分页打印。':'导出失败，请降低图纸尺寸后重试。','error');setStatus('PNG 导出失败');}
+        toast('toast.exportDone','success');setStatus('status.exportDone');
+      } catch(error){toast(error.message==='export-memory'?'toast.exportMemory':'toast.exportFailed','error');setStatus('status.exportFailed');}
       finally{setExportBusy(false);}
     }
 
     function buildProjectData(title=els.projectTitle.textContent) {
       return {
-        type:'bead-grid-studio',version:PROJECT_VERSION,appVersion:APP_VERSION,savedAt:new Date().toISOString(),title:String(title||'未命名图纸').slice(0,80),
+        type:'bead-grid-studio',version:PROJECT_VERSION,appVersion:APP_VERSION,savedAt:new Date().toISOString(),title:String(title||t('project.untitled')).slice(0,80),
         grid:{cols:state.cols,rows:state.rows,cells:Array.from(state.grid,value=>value>=0&&PALETTE[value]?PALETTE[value].code:null)},
         settings:{selectedColor:state.selectedColor,selectedColorCode:PALETTE[state.selectedColor]?.code||'H7',previewMode:state.previewMode,showGrid:state.showGrid,showRulers:state.showRulers,showCodes:state.showCodes,zoom:state.zoom,paletteMode:state.paletteMode,maxColors:state.maxColors,mergeStrength:state.mergeStrength,protectDark:state.protectDark,sizeMode:state.sizeMode,aspectLock:state.aspectLock,boardProfile:state.boardProfile,boardTilesX:state.boardTilesX,boardTilesY:state.boardTilesY,majorGridStep:state.majorGridStep,processMode:els.processMode.value,fitMode:els.fitMode.value,whiteMode:els.whiteMode.value},
-        palette:'mard-compatible-base-221-v1',paletteSource:MARD_PALETTE_SOURCE,reference:{embedded:false}
+        palette:'mard-compatible-base-221-v1',paletteProvider:PALETTE_PROVIDER.id,paletteSource:MARD_PALETTE_SOURCE,reference:{embedded:false}
       };
     }
 
@@ -2668,7 +2811,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     function saveDraftNow() {
       window.clearTimeout(draftTimer);
       if(!state.grid.some(value=>value>=0)){try{localStorage.removeItem(DRAFT_KEY);}catch(_){}updateRecoveryUI();return;}
-      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(buildProjectData()));} catch(_) {toast('浏览器本地恢复空间不足；请手动保存可编辑图纸。','error');}
+      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(buildProjectData()));} catch(_) {toast('toast.draftStorage','error');}
       updateRecoveryUI();
     }
 
@@ -2679,21 +2822,21 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     function clearDraft() {
       try {localStorage.removeItem(DRAFT_KEY);} catch(_) {}
-      updateRecoveryUI();toast('本机恢复记录已清除','success');
+      updateRecoveryUI();toast('toast.draftCleared','success');setStatus('status.draftCleared');
     }
 
     async function restoreDraft() {
       try {
         const raw=localStorage.getItem(DRAFT_KEY);if(!raw)throw new Error('missing');
-        const file=new File([raw],'自动恢复.bead.json',{type:'application/json'});
+        const file=new File([raw],t('project.recoveryFile'),{type:'application/json'});
         await loadProjectFile(file,{skipConfirm:true,fromDraft:true});
-      } catch(_) {clearDraft();toast('恢复记录无效或已损坏，已安全清除。','error');}
+      } catch(_) {clearDraft();toast('toast.draftInvalid','error');}
     }
 
     async function saveBlobToDevice(blob,filename) {
       if(typeof window.showSaveFilePicker==='function'){
         try {
-          const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:'豆格工坊可编辑图纸',accept:{'application/json':['.json']}}]});
+          const handle=await window.showSaveFilePicker({suggestedName:filename,types:[{description:t('project.fileDescription'),accept:{'application/json':['.json']}}]});
           const writable=await handle.createWritable();await writable.write(blob);await writable.close();return 'confirmed';
         } catch(error) {if(error?.name==='AbortError')return 'cancelled';}
       }
@@ -2701,23 +2844,23 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     }
 
     async function saveProject() {
-      const chosen=window.prompt('工程名称会写入 JSON；如原文件名含姓名或订单号，请在这里改名。',els.projectTitle.textContent||'拼豆工程');
+      const chosen=window.prompt(t('prompt.projectName'),els.projectTitle.textContent||t('project.defaultName'));
       if(chosen===null)return false;
-      const title=safeFileStem(chosen,'拼豆工程');els.projectTitle.textContent=title;
+      const title=safeFileStem(chosen,t('project.defaultName'));els.projectTitle.textContent=title;
       const blob=new Blob([JSON.stringify(buildProjectData(title),null,2)],{type:'application/json'});
       const result=await saveBlobToDevice(blob,`${title}.bead.json`);
       if(result==='cancelled')return false;
       saveDraftNow();
       if(result==='confirmed'){
-        state.dirty=false;toast('可编辑图纸已写入所选文件；参考原图未包含。','success');setStatus('工程文件已确认保存');
+        state.dirty=false;toast('toast.projectSaved','success');setStatus('status.projectSaved');
       }else{
-        toast('已发起工程下载；请在下载列表确认文件成功保存。参考原图未包含。','success');setStatus('工程下载已发起 · 浏览器无法确认写入结果');
+        toast('toast.projectDownloadStarted','success');setStatus('status.projectDownloadStarted');
       }
       return true;
     }
 
     async function loadProjectFile(file,{skipConfirm=false,fromDraft=false}={}) {
-      if(!skipConfirm&&state.dirty&&state.grid.some(value=>value>=0)&&!window.confirm('当前图纸有未保存修改。继续读取会覆盖当前工作；选择“取消”后可先保存可编辑图纸。\n\n确定放弃修改并继续吗？')){els.projectInput.value='';return false;}
+      if(!skipConfirm&&state.dirty&&state.grid.some(value=>value>=0)&&!window.confirm(t('confirm.loadProject'))){els.projectInput.value='';return false;}
       const loadJob=++state.sourceLoadJob;
       invalidateConversion();
       setConversionModal(false,{restoreFocus:false});
@@ -2746,15 +2889,15 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         state.showGrid=settings.showGrid!==false;state.showRulers=settings.showRulers!==false;state.showCodes=Boolean(settings.showCodes);
         state.zoom=clamp(settings.zoom??1,.0625,2);state.paletteMode='mard221';state.paletteSeries='all';state.maxColors=Math.round(clamp(settings.maxColors??32,2,64));state.mergeStrength=Math.round(clamp(settings.mergeStrength??10,0,30));state.protectDark=settings.protectDark!==false;state.sizeMode=settings.sizeMode==='board'?'board':'pattern';state.aspectLock=settings.aspectLock!==false;state.boardProfile=BOARD_PROFILES[settings.boardProfile]?settings.boardProfile:'mini52';state.boardTilesX=Math.max(1,Math.round(settings.boardTilesX||1));state.boardTilesY=Math.max(1,Math.round(settings.boardTilesY||1));state.majorGridStep=[5,10,29].includes(Number(settings.majorGridStep))?Number(settings.majorGridStep):10;
         els.processMode.value=['cartoon','detail','document','photo','pixel'].includes(settings.processMode)?settings.processMode:'cartoon';
-        els.processModeHint.textContent=MODE_HINTS[els.processMode.value];els.fitMode.value=settings.fitMode==='contain'?'contain':'cover';els.whiteMode.value=settings.whiteMode==='keep'?'keep':'auto';
-        els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=`${state.maxColors} 色`;els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;els.protectDark.checked=state.protectDark;els.aspectLock.checked=state.aspectLock;els.boardProfile.value=state.boardProfile;els.majorGridStep.value=state.majorGridStep;els.gridCols.value=cols;els.gridRows.value=rows;
-        els.projectTitle.textContent=String(project.title||file.name.replace(/\.bead\.json$|\.json$/i,'')).slice(0,80)||'导入图纸';
-        els.projectSubtitle.textContent='已读取 JSON 工程 · 参考底图未包含';
+        els.processModeHint.textContent=modeHint(els.processMode.value);els.fitMode.value=settings.fitMode==='contain'?'contain':'cover';els.whiteMode.value=settings.whiteMode==='keep'?'keep':'auto';
+        els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;els.protectDark.checked=state.protectDark;els.aspectLock.checked=state.aspectLock;els.boardProfile.value=state.boardProfile;els.majorGridStep.value=state.majorGridStep;els.gridCols.value=cols;els.gridRows.value=rows;
+        els.projectTitle.textContent=String(project.title||file.name.replace(/\.bead\.json$|\.json$/i,'')).slice(0,80)||t('project.importedName');
+        setProjectSubtitle('project.loadedSubtitle');
         state.referenceImage?.close?.();state.referenceImage=null;state.referenceRaster=null;state.referenceTransforms=[];state.referenceFileName='';state.referenceSourceWidth=0;state.referenceSourceHeight=0;state.sourceAnalysis=null;state.lastConversionDiagnostics=null;state.crop={x:0,y:0,w:1,h:1};state.cropPreview=null;state.cropPreviewBase=null;state.smartMode=false;state.smartPhase='custom';els.fileMeta.hidden=true;els.smartCard.hidden=true;els.detailAdvice.hidden=true;els.stageQualityBanner.hidden=true;els.convertBtn.disabled=true;
         resetHistory();renderPalette();updateSelectedColor();syncSizeModeUI();syncAspectStatus();renderAll();state.dirty=Boolean(fromDraft);
-        if(fromDraft)toast('已恢复上次未完成图纸；参考原图未包含，请继续编辑或保存。','success');else toast(legacy?'旧 64 色工程已按颜色重新映射为兼容基础 221 色号。':'工程读取成功','success');
-        setStatus(fromDraft?`已恢复 ${cols}×${rows} 未完成图纸`:`已读取 ${cols}×${rows} 工程${legacy?' · 已迁移至基础 221 色号':''}`);updateRecoveryUI();
-      }catch(error){if(loadJob!==state.sourceLoadJob)return;toast(error.message==='size'?'工程文件过大或为空。':'工程文件格式无效或版本不受支持。','error');setStatus('工程读取失败');}
+        if(fromDraft)toast('toast.projectRestored','success');else toast(legacy?'toast.projectMigrated':'toast.projectLoaded','success');
+        setStatus(fromDraft?'status.projectRestored':'status.projectLoaded',fromDraft?{cols,rows}:{cols,rows,migration:legacy?t('status.projectMigration'):''});updateRecoveryUI();
+      }catch(error){if(loadJob!==state.sourceLoadJob)return;toast(error.message==='size'?'toast.projectTooLarge':'toast.projectInvalid','error');setStatus('status.projectLoadFailed');}
       finally{els.projectInput.value='';}
     }
 
@@ -2769,8 +2912,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       const ctx=canvas.getContext('2d'),ox=Math.floor((width-boardW)/2),oy=titleH+ruler;
       ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
       ctx.fillStyle='#1f211f';ctx.font='800 20px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';
-      ctx.fillText(`${els.projectTitle.textContent||'拼豆图纸'} · 第 ${pageNumber}/${pageCount} 页`,16,23);
-      ctx.fillStyle='#626661';ctx.font='12px system-ui,"Microsoft YaHei",sans-serif';ctx.fillText(`全图 ${state.cols}×${state.rows} · 本页列 ${startX+1}–${startX+cols} / 行 ${startY+1}–${startY+rows} · 色号按兼容基础 221 色`,16,48);
+      ctx.fillText(t('print.pageTitle',{title:els.projectTitle.textContent||t('file.patternFallback'),page:pageNumber,pages:pageCount}),16,23);
+      ctx.fillStyle='#626661';ctx.font='12px system-ui,"Microsoft YaHei",sans-serif';ctx.fillText(t('print.pageSubtitle',{cols:state.cols,rows:state.rows,startCol:startX+1,endCol:startX+cols,startRow:startY+1,endRow:startY+rows}),16,48);
       ctx.fillStyle='#d9def3';ctx.fillRect(ox,oy-ruler,boardW,ruler);ctx.fillRect(ox,oy+boardH,boardW,ruler);ctx.fillRect(ox-ruler,oy,ruler,boardH);ctx.fillRect(ox+boardW,oy,ruler,boardH);
       ctx.fillStyle='#27304d';ctx.font='800 9px ui-monospace,SFMono-Regular,Consolas,monospace';ctx.textAlign='center';
       for(let x=0;x<cols;x++){const label=String(startX+x+1),cx=ox+x*cell+cell/2;ctx.fillText(label,cx,oy-ruler/2);ctx.fillText(label,cx,oy+boardH+ruler/2);}
@@ -2792,8 +2935,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       }
       ctx.restore();
       const legendY=oy+boardH+ruler+24,itemW=(width-32)/legendCols;
-      ctx.fillStyle='#232623';ctx.font='800 13px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText('本页用料',16,legendY-9);
-      entries.forEach(([index,count],i)=>{const col=i%legendCols,row=Math.floor(i/legendCols),x=16+col*itemW,y=legendY+row*34,color=PALETTE[index];ctx.fillStyle=color.displayHex;ctx.fillRect(x,y,26,26);ctx.strokeStyle='#606360';ctx.strokeRect(x+.5,y+.5,25,25);ctx.fillStyle=colorText(color.displayHex);ctx.font='800 8px ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(color.code,x+13,y+13);ctx.fillStyle='#292b29';ctx.font='700 10px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(`${color.code} · ${formatNumber(count)}颗`,x+34,y+13);});
+      ctx.fillStyle='#232623';ctx.font='800 13px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(t('print.materials'),16,legendY-9);
+      entries.forEach(([index,count],i)=>{const col=i%legendCols,row=Math.floor(i/legendCols),x=16+col*itemW,y=legendY+row*34,color=PALETTE[index];ctx.fillStyle=color.displayHex;ctx.fillRect(x,y,26,26);ctx.strokeStyle='#606360';ctx.strokeRect(x+.5,y+.5,25,25);ctx.fillStyle=colorText(color.displayHex);ctx.font='800 8px ui-monospace,monospace';ctx.textAlign='center';ctx.fillText(color.code,x+13,y+13);ctx.fillStyle='#292b29';ctx.font='700 10px system-ui,"Microsoft YaHei",sans-serif';ctx.textAlign='left';ctx.fillText(t('print.count',{code:color.code,count:formatNumber(count)}),x+34,y+13);});
       return canvas;
     }
 
@@ -2801,7 +2944,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       if(state.exporting)return;
       const large=Math.max(state.cols,state.rows)>60,tileSpan=state.sizeMode==='board'?Math.min(52,(BOARD_PROFILES[state.boardProfile]||BOARD_PROFILES.mini52).cells):50;
       const pagesX=large?Math.ceil(state.cols/tileSpan):1,pagesY=large?Math.ceil(state.rows/tileSpan):1,pageCount=pagesX*pagesY;
-      if(large&&!window.confirm(`当前 ${state.cols}×${state.rows} 图纸将按最多 ${tileSpan}×${tileSpan} 格分页，共 ${pageCount} 页。每页保留全局坐标、逐格色号、辅助线与本页用料；是否继续？`))return;
+      if(large&&!window.confirm(t('confirm.printPages',{cols:state.cols,rows:state.rows,span:tileSpan,pages:pageCount})))return;
       setExportBusy(true);
       try {
         els.printPages.replaceChildren();
@@ -2814,8 +2957,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
             await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
           }
         }
-        setStatus(`已生成 ${pageCount} 页打印预览 · 打印时请勿启用“适合单页”二次缩放`);window.print();
-      }catch(error){toast('打印预览生成失败，请降低尺寸或改用 PNG 导出。','error');setStatus('打印预览生成失败');}
+        setStatus('status.printReady',{count:pageCount});window.print();
+      }catch(error){toast('toast.printFailed','error');setStatus('status.printFailed');}
       finally{setExportBusy(false);window.setTimeout(()=>{els.printPages.replaceChildren();els.printImage.removeAttribute('src');},0);}
     }
 
@@ -3271,9 +3414,28 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
 
     window.runBeadStudioSelfTests=runSelfTests;
 
+    function refreshLocalizedUi() {
+      applyDocumentTranslations();
+      els.processModeHint.textContent=modeHint(els.processMode.value);
+      els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});
+      setProjectSubtitle(state.projectSubtitleKey,state.projectSubtitleParams);
+      setStatus(state.statusKey,state.statusParams);
+      syncSizeModeUI();syncAspectStatus();renderPalette();updateSelectedColor();updateStats();updateSmartCard();updateDetailAdvice();updateViewButtons();
+      if(els.shareDialog?.open)renderShareCardPreview();
+    }
+
     function bindEvents() {
       const openImage=()=>els.imageInput.click();
-      [els.topUploadBtn,els.emptyUploadBtn].forEach(button=>button.addEventListener('click',openImage));
+      [els.topUploadBtn,els.emptyUploadBtn].filter(Boolean).forEach(button=>button.addEventListener('click',openImage));
+      [els.trySampleBtn,els.panelTrySampleBtn].filter(Boolean).forEach(button=>button.addEventListener('click',loadSampleImage));
+      document.querySelectorAll('[data-locale]').forEach(button=>{
+        button.addEventListener('click',()=>setLocale(button.dataset.locale));
+        button.addEventListener('keydown',event=>{
+          if(!['ArrowLeft','ArrowRight'].includes(event.key))return;event.preventDefault();
+          const buttons=[...document.querySelectorAll('[data-locale]')],current=buttons.indexOf(button),direction=event.key==='ArrowRight'?1:-1,next=buttons[(current+direction+buttons.length)%buttons.length];next.focus();setLocale(next.dataset.locale);
+        });
+      });
+      onLocaleChange(refreshLocalizedUi);
       els.dropzone.addEventListener('click',openImage);
       els.dropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openImage();}});
       els.imageInput.addEventListener('change',()=>loadImageFile(els.imageInput.files[0]));
@@ -3281,7 +3443,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       [els.productCloseBtn,els.productOkBtn].forEach(button=>button.addEventListener('click',closeProductDialog));
       els.productDialog.addEventListener('cancel',event=>{event.preventDefault();closeProductDialog();});
       els.restoreDraftBtn.addEventListener('click',restoreDraft);
-      els.clearDraftBtn.addEventListener('click',()=>{if(window.confirm('只会清除本浏览器中的自动恢复记录，不会删除已经下载的文件。确定清除吗？'))clearDraft();});
+      els.clearDraftBtn.addEventListener('click',()=>{if(window.confirm(t('confirm.clearDraft')))clearDraft();});
       ['dragenter','dragover'].forEach(type=>els.dropzone.addEventListener(type,event=>{event.preventDefault();els.dropzone.classList.add('is-dragging');}));
       ['dragleave','drop'].forEach(type=>els.dropzone.addEventListener(type,event=>{event.preventDefault();els.dropzone.classList.remove('is-dragging');}));
       els.dropzone.addEventListener('drop',event=>loadImageFile(event.dataTransfer.files[0]));
@@ -3291,16 +3453,16 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       els.smartGenerateBtn.addEventListener('click',()=>els.smartGenerateBtn.dataset.action==='crop'?openCropDialog():generateSmartHd());
       els.smartExportBtn.addEventListener('click',exportPng);
       els.smartAdvancedBtn.addEventListener('click',()=>{els.advancedSettings.open=true;els.processMode.focus({preventScroll:true});els.advancedSettings.scrollIntoView({behavior:'smooth',block:'nearest'});});
-      els.processMode.addEventListener('change',()=>{markCustomSettings();els.processModeHint.textContent=MODE_HINTS[els.processMode.value];if(state.referenceImage){rebuildReferenceRaster();updateDetailAdvice();convertImage();}});
-      els.maxColors.addEventListener('input',()=>{state.maxColors=Number(els.maxColors.value);els.maxColorsValue.textContent=`${state.maxColors} 色`;});
+      els.processMode.addEventListener('change',()=>{markCustomSettings();els.processModeHint.textContent=modeHint(els.processMode.value);if(state.referenceImage){rebuildReferenceRaster();updateDetailAdvice();convertImage();}});
+      els.maxColors.addEventListener('input',()=>{state.maxColors=Number(els.maxColors.value);els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});});
       els.maxColors.addEventListener('change',()=>{markCustomSettings();if(state.referenceImage)convertImage();});
       els.mergeStrength.addEventListener('input',()=>{state.mergeStrength=Number(els.mergeStrength.value);els.mergeStrengthValue.textContent=state.mergeStrength;});
       els.mergeStrength.addEventListener('change',()=>{markCustomSettings();if(state.referenceImage)convertImage();});
       els.fitMode.addEventListener('change',()=>{
-        if(state.sizeMode==='board'&&els.fitMode.value!=='contain'){els.fitMode.value='contain';toast('真实底板模式固定“完整保留”：图案按原比例居中放入底板，不允许静默裁切或拉伸。');return;}
+        if(state.sizeMode==='board'&&els.fitMode.value!=='contain'){els.fitMode.value='contain';toast('toast.boardContainOnly');return;}
         if(state.referenceImage&&els.fitMode.value==='cover'){
           const source=effectiveSourceSize(),fit=fitGeometryMetrics(source.width,source.height,state.cols,state.rows,'cover');
-          if(fit.cropFraction>.05&&!window.confirm(`铺满当前画布会裁掉约 ${(fit.cropFraction*100).toFixed(1)}% 的原图范围。继续前请确认主体不在边缘；是否仍要裁切铺满？`)){els.fitMode.value='contain';return;}
+          if(fit.cropFraction>.05&&!window.confirm(t('confirm.coverCrop',{percent:(fit.cropFraction*100).toFixed(1)}))){els.fitMode.value='contain';return;}
         }
         markCustomSettings();if(state.referenceImage){rebuildReferenceRaster();updateDetailAdvice();updateSmartCard();convertImage();}
       });
@@ -3319,6 +3481,14 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       els.cropResetBtn.addEventListener('click',()=>{state.cropDraft={x:0,y:0,w:1,h:1};drawCropPreview();});
       els.cropApplyBtn.addEventListener('click',applyCrop);
       els.cropDialog.addEventListener('cancel',event=>{event.preventDefault();closeCropDialog();});
+      els.readyExportBtn?.addEventListener('click',exportPng);
+      els.readySaveBtn?.addEventListener('click',()=>saveProject());
+      els.readyShareBtn?.addEventListener('click',sharePattern);
+      els.readyShareCardBtn?.addEventListener('click',openShareCardDialog);
+      [els.shareCardCloseBtn,els.shareCardCancelBtn].filter(Boolean).forEach(button=>button.addEventListener('click',closeShareCardDialog));
+      els.shareFormat?.addEventListener('change',renderShareCardPreview);
+      els.shareCardDownloadBtn?.addEventListener('click',exportShareCard);
+      els.shareDialog?.addEventListener('cancel',event=>{event.preventDefault();closeShareCardDialog();});
       [els.cropXInput,els.cropYInput,els.cropWInput,els.cropHInput].forEach(input=>input.addEventListener('input',()=>{
         const next=cropFromInputs();if(!next)return;state.cropDraft=next;drawCropPreview();
       }));
@@ -3333,7 +3503,7 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       });
       const endCropDrag=event=>{if(!state.cropDrag)return;state.cropDrag=null;try{els.cropCanvas.releasePointerCapture(event.pointerId);}catch(_){}};
       els.cropCanvas.addEventListener('pointerup',endCropDrag);els.cropCanvas.addEventListener('pointercancel',endCropDrag);
-      els.cancelConvertBtn.addEventListener('click',()=>{invalidateConversion();const snapshot=state.history[state.historyIndex];if(snapshot)restoreSnapshot(snapshot);setConversionModal(false);els.convertBtn.disabled=!state.referenceImage;setStatus('已取消转换，已恢复上一张完整图纸');toast('本次转换已取消，原图纸未丢失');});
+      els.cancelConvertBtn.addEventListener('click',()=>{invalidateConversion();const snapshot=state.history[state.historyIndex];if(snapshot)restoreSnapshot(snapshot);setConversionModal(false);els.convertBtn.disabled=!state.referenceImage;setStatus('status.conversionCanceled');toast('toast.conversionCanceled');});
 
       document.querySelectorAll('[data-size]').forEach(button=>button.addEventListener('click',()=>{
         state.sizeMode='pattern';syncSizeModeUI();const size=Number(button.dataset.size);let next={cols:size,rows:size};
@@ -3365,14 +3535,14 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
       document.querySelectorAll('[data-preview]').forEach(button=>button.addEventListener('click',()=>{state.previewMode=button.dataset.preview;renderAll();}));
       els.gridToggle.addEventListener('click',()=>{state.showGrid=!state.showGrid;renderAll();});
       els.rulerToggle.addEventListener('click',()=>{state.showRulers=!state.showRulers;renderAll();});
-      els.codesToggle.addEventListener('click',()=>{state.showCodes=!state.showCodes;if(state.showCodes&&cellSize()<14)toast('当前为整图缩放；放大到 100% 可逐格查看色号，导出的施工图始终完整标注。');renderAll();});
-      els.majorGridStep.addEventListener('change',()=>{state.majorGridStep=[5,10,29].includes(Number(els.majorGridStep.value))?Number(els.majorGridStep.value):10;renderAll();setStatus(`粗辅助线已设为每 ${state.majorGridStep} 格`);});
+      els.codesToggle.addEventListener('click',()=>{state.showCodes=!state.showCodes;if(state.showCodes&&cellSize()<14)toast('toast.codesNeedZoom');renderAll();});
+      els.majorGridStep.addEventListener('change',()=>{state.majorGridStep=[5,10,29].includes(Number(els.majorGridStep.value))?Number(els.majorGridStep.value):10;renderAll();setStatus('status.majorGrid',{count:state.majorGridStep});});
       document.querySelectorAll('[data-palette-mode]').forEach(button=>button.addEventListener('click',()=>{state.paletteMode='mard221';renderPalette();updateViewButtons();}));
       document.querySelectorAll('[data-palette-series]').forEach(button=>button.addEventListener('click',()=>{state.paletteSeries=button.dataset.paletteSeries;renderPalette();updateViewButtons();}));
       els.paletteSearch.addEventListener('input',renderPalette);
 
       els.patternCanvas.addEventListener('pointerdown',event=>{
-        if(event.button!==0||blockMutationDuringConversion())return;if(cellSize()<4){toast('当前为全图预览；请先放大到可编辑比例。');return;}const cell=pointerCell(event);if(!cell)return;els.patternCanvas.focus();
+        if(event.button!==0||blockMutationDuringConversion())return;if(cellSize()<4){toast('toast.previewEditZoom');return;}const cell=pointerCell(event);if(!cell)return;els.patternCanvas.focus();
         state.isDrawing=true;state.strokeChanged=false;state.lastCell=cell;els.patternCanvas.setPointerCapture(event.pointerId);applyToolAt(cell.x,cell.y);
         if(state.tool==='picker')endStroke(event);
       });
@@ -3388,8 +3558,8 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
         if(key==='ArrowRight')state.keyboardCursor.x=Math.min(state.cols-1,x+1);
         if(key==='ArrowUp')state.keyboardCursor.y=Math.max(0,y-1);
         if(key==='ArrowDown')state.keyboardCursor.y=Math.min(state.rows-1,y+1);
-        if(key===' '){state.strokeChanged=false;applyToolAt(x,y);if(state.strokeChanged)commitHistory('已使用键盘绘制');}
-        if(key==='Delete'||key==='Backspace'){state.strokeChanged=false;applyToolAt(x,y,'eraser');if(state.strokeChanged)commitHistory('已使用键盘擦除');}
+        if(key===' '){state.strokeChanged=false;applyToolAt(x,y);if(state.strokeChanged)commitHistory('history.keyboardDraw');}
+        if(key==='Delete'||key==='Backspace'){state.strokeChanged=false;applyToolAt(x,y,'eraser');if(state.strokeChanged)commitHistory('history.keyboardErase');}
         drawPattern();
       });
 
@@ -3424,7 +3594,10 @@ import { LEGACY_64_HEX, MARD_PALETTE_SOURCE, PALETTE } from './palettes/mard221.
     }
 
     function init() {
+      initializeI18n();
       els.appVersion.textContent=`v${APP_VERSION}`;
+      els.projectTitle.textContent=t('project.untitled');
+      setProjectSubtitle('project.localOnly');
       renderPalette();
       updateSelectedColor();
       resetHistory();

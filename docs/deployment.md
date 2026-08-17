@@ -1,8 +1,22 @@
-# Deployment guide
+# Fork and deploy your own Bead Grid Studio
 
 [简体中文](deployment.zh-CN.md) · **English**
 
 Bead Grid Studio is a static browser application. Image decoding and conversion stay on the user's device; the hosted files do not provide account, payment, license-key, image-upload, or conversion APIs.
+
+## Your own site in four steps
+
+```text
+Fork
+  ↓
+Enable GitHub Actions
+  ↓
+Settings → Pages → GitHub Actions
+  ↓
+Run Deploy GitHub Pages
+```
+
+After it works, you can change the name, interface, palette, language, or export formats. Deploy the unchanged Fork first, then keep customizations in small commits so GitHub's **Sync fork** action remains easier to review.
 
 ## Before choosing a host
 
@@ -10,7 +24,7 @@ Bead Grid Studio is a static browser application. Image decoding and conversion 
 - Deploy a fork when you want your own URL, branding, update schedule, or security headers.
 - Never put payment secrets, card-key validation, authorization decisions, or order data in this static client. Those require a separately reviewed server-side service.
 
-## Option A: GitHub Pages from a fork
+## Option A: GitHub Pages from a fork (recommended for beginners)
 
 This repository already contains `.github/workflows/pages.yml`. It installs dependencies, runs the complete QA suite, uploads `dist`, and deploys it with the official Pages actions.
 

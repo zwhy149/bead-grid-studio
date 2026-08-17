@@ -2,6 +2,22 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-08-17
+
+### Added
+
+- Added complete Simplified Chinese and English application localization with browser detection, query override, and persisted manual choice.
+- Added a first-run Image → Pattern flow, an offline bundled sample, portable-download guidance, and local-processing promises.
+- Added post-generation export, save, share/copy-link, community links, and 1200×675 / 1080×1440 Before/After share cards.
+- Added a brand-neutral palette-provider contract while retaining the pinned MARD-compatible base 221 catalog as the only shipped provider.
+- Added bilingual legal pages, screenshots, social cards, repository metrics tooling, sitemap metadata, and onboarding/deployment documentation.
+- Added locale, onboarding, sharing, social-card, and 360/390/768/1440 responsive regression tests.
+
+### Changed
+
+- Localized construction-sheet PNG and paged-print text without changing grid conversion, project format, or palette values.
+- Reworked the completion area and mobile top bar to keep core actions readable without horizontal overflow.
+
 ## [1.0.2] - 2026-08-16
 
 ### Changed
