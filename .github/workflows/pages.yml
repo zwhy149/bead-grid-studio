@@ -24,10 +24,31 @@ jobs:
           cache: npm
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
-      - name: Install dependencies and browsers
+      - name: Install dependencies
+        run: npm ci
+      - name: Install browsers
+        # Match CI: two bounded attempts need room for termination and backoff.
+        timeout-minutes: 20
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
         run: |
-          npm ci
-          npx playwright install --with-deps chromium firefox webkit
+          set -euo pipefail
+          for attempt in 1 2; do
+            echo "Installing Playwright browsers (attempt ${attempt}/2)"
+            if timeout --signal=TERM --kill-after=30s 480s \
+              npx playwright install --with-deps chromium firefox webkit; then
+              exit 0
+            else
+              status=$?
+            fi
+
+            if [ "$attempt" -eq 1 ]; then
+              echo "Playwright install timed out or failed; retrying with a clean browser cache."
+              rm -rf "$HOME/.cache/ms-playwright"
+              sleep 15
+            fi
+          done
+          exit "$status"
       - name: Verify production build
         run: npm run qa
       - name: Upload Pages artifact

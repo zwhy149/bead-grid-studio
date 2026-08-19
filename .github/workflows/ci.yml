@@ -16,7 +16,9 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Browser downloads occasionally stall on the hosted runner. Leave room for
+    # one bounded retry and the full cross-browser suite.
+    timeout-minutes: 30
     steps:
       - name: Check out source
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -28,7 +30,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install browsers
-        run: npx playwright install --with-deps chromium firefox webkit
+        # Two 8-minute attempts plus termination and backoff need a small buffer.
+        timeout-minutes: 20
+        env:
+          PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
+        run: |
+          set -euo pipefail
+          for attempt in 1 2; do
+            echo "Installing Playwright browsers (attempt ${attempt}/2)"
+            if timeout --signal=TERM --kill-after=30s 480s \
+              npx playwright install --with-deps chromium firefox webkit; then
+              exit 0
+            else
+              status=$?
+            fi
+
+            if [ "$attempt" -eq 1 ]; then
+              echo "Playwright install timed out or failed; retrying with a clean browser cache."
+              rm -rf "$HOME/.cache/ms-playwright"
+              sleep 15
+            fi
+          done
+          exit "$status"
       - name: Run quality gates
         run: npm run qa
       - name: Upload browser report on failure
