@@ -5,12 +5,14 @@ import zhCN from '../src/i18n/zh-CN.js';
 import { DEFAULT_PALETTE_PROVIDER_ID, getPaletteProvider } from '../src/palettes/catalog.js';
 import { PALETTE } from '../src/palettes/mard221.js';
 
-const [html, app, geometry, manifest, worker, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn, privacyEn, termsEn, robots, sitemap] = await Promise.all([
+const [html, app, geometry, manifest, worker, ciWorkflow, pagesWorkflow, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn, privacyEn, termsEn, robots, sitemap] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('src/app.js', 'utf8'),
   readFile('src/core/geometry.js', 'utf8'),
   readFile('public/manifest.webmanifest', 'utf8'),
   readFile('public/sw.js', 'utf8'),
+  readFile('.github/workflows/ci.yml', 'utf8'),
+  readFile('.github/workflows/pages.yml', 'utf8'),
   readFile('LICENSE', 'utf8'),
   readFile('public/LICENSE.txt', 'utf8'),
   readFile('NOTICE', 'utf8'),
@@ -94,6 +96,16 @@ check(worker.includes("key.startsWith(CACHE_PREFIX)"), 'service worker cache cle
 check(worker.includes('caches.match(request, { ignoreSearch: true })'), 'offline navigation must prefer a cached requested page');
 check(worker.includes("'./LICENSE.txt'"), 'service worker must cache the Apache-2.0 license');
 check(worker.includes("'./privacy.en.html'") && worker.includes("'./terms.en.html'"), 'service worker must cache English legal pages');
+const hasBoundedPlaywrightInstall = (workflow) => [
+  'PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000',
+  'for attempt in 1 2',
+  'timeout --signal=TERM --kill-after=30s 480s',
+  'npx playwright install --with-deps chromium firefox webkit',
+  'rm -rf "$HOME/.cache/ms-playwright"',
+].every((fragment) => workflow.includes(fragment));
+check(ciWorkflow.includes('timeout-minutes: 30'), 'CI job needs enough time for one bounded browser-install retry and the test suite');
+check(hasBoundedPlaywrightInstall(ciWorkflow), 'CI must use a bounded, retrying Playwright browser installation');
+check(hasBoundedPlaywrightInstall(pagesWorkflow), 'Pages verification must use the same bounded Playwright browser installation');
 check(normalizeText(publicLicense) === normalizeText(license), 'public/LICENSE.txt must match the repository LICENSE');
 check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
 check(notice.includes('pinned data commit 94b99999652866f1a1879d6369fe735f811949e5'), 'pinned palette attribution is missing');
