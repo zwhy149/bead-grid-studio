@@ -100,7 +100,7 @@ const hasBoundedPlaywrightInstall = (workflow) => [
   'PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000',
   'for attempt in 1 2',
   'timeout --signal=TERM --kill-after=30s 480s',
-  'npx playwright install --with-deps chromium',
+  'npx playwright install chromium',
   'rm -rf "$HOME/.cache/ms-playwright"',
   'uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684',
   'uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684',
@@ -112,8 +112,10 @@ const hasBoundedPlaywrightInstall = (workflow) => [
 check(ciWorkflow.includes('timeout-minutes: 30'), 'CI job needs enough time for one bounded browser-install retry and the test suite');
 check((ciWorkflow.match(/timeout-minutes: 20/g) || []).length >= 1, 'CI browser-install step needs a retry safety buffer');
 check(hasBoundedPlaywrightInstall(ciWorkflow), 'CI must use a bounded, retrying Playwright browser installation');
+check(!ciWorkflow.includes('playwright install-deps'), 'CI must not invoke apt-backed Playwright dependency installation');
 check((pagesWorkflow.match(/timeout-minutes: 20/g) || []).length >= 1, 'Pages browser-install step needs a retry safety buffer');
 check(hasBoundedPlaywrightInstall(pagesWorkflow), 'Pages verification must use the same bounded Playwright browser installation');
+check(!pagesWorkflow.includes('playwright install-deps'), 'Pages must not invoke apt-backed Playwright dependency installation');
 check(normalizeText(publicLicense) === normalizeText(license), 'public/LICENSE.txt must match the repository LICENSE');
 check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
 check(notice.includes('pinned data commit 94b99999652866f1a1879d6369fe735f811949e5'), 'pinned palette attribution is missing');

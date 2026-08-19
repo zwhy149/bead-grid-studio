@@ -32,19 +32,21 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
-      - name: Install Chromium and system dependencies
+      - name: Install Chromium browser
         # Match CI: smoke-test both responsive Chromium projects, cache the
-        # runtime, keep the cold download bounded and retryable, and validate
-        # the uncached system dependencies on every hosted runner.
+        # runtime, and keep the cold download bounded and retryable. Ubuntu
+        # hosted images include the shared browser libraries; do not invoke apt
+        # here because it can block independently of Playwright. The smoke suite
+        # verifies the resulting browser can actually launch.
         timeout-minutes: 20
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
         run: |
           set -euo pipefail
           for attempt in 1 2; do
-            echo "Installing Playwright Chromium and system dependencies (attempt ${attempt}/2)"
+            echo "Installing Playwright Chromium (attempt ${attempt}/2)"
             if timeout --signal=TERM --kill-after=30s 480s \
-              npx playwright install --with-deps chromium; then
+              npx playwright install chromium; then
               exit 0
             else
               status=$?
