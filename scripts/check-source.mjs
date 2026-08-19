@@ -100,11 +100,14 @@ const hasBoundedPlaywrightInstall = (workflow) => [
   'PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000',
   'for attempt in 1 2',
   'timeout --signal=TERM --kill-after=30s 480s',
-  'npx playwright install --with-deps chromium',
+  'npx playwright install-deps chromium',
+  'npx playwright install chromium',
   'rm -rf "$HOME/.cache/ms-playwright"',
-  'uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684',
+  'uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684',
+  'uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684',
   'path: ~/.cache/ms-playwright',
   "if: steps.playwright-cache.outputs.cache-hit != 'true'",
+  'cache-primary-key',
   'run: npm run qa:ci',
 ].every((fragment) => workflow.includes(fragment));
 check(ciWorkflow.includes('timeout-minutes: 30'), 'CI job needs enough time for one bounded browser-install retry and the test suite');

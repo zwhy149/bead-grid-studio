@@ -28,11 +28,15 @@ jobs:
         run: npm ci
       - name: Restore Playwright Chromium cache
         id: playwright-cache
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
-      - name: Install browsers
+      - name: Install Chromium system dependencies
+        # These OS packages are not included in the browser cache. Install them
+        # on every runner so a cache hit cannot skip a required dependency.
+        run: npx playwright install-deps chromium
+      - name: Install Chromium browser
         # Match CI: smoke-test both responsive Chromium projects, cache the
         # runtime, and keep the cold download bounded and retryable.
         if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -44,7 +48,7 @@ jobs:
           for attempt in 1 2; do
             echo "Installing Playwright Chromium (attempt ${attempt}/2)"
             if timeout --signal=TERM --kill-after=30s 480s \
-              npx playwright install --with-deps chromium; then
+              npx playwright install chromium; then
               exit 0
             else
               status=$?
@@ -57,6 +61,12 @@ jobs:
             fi
           done
           exit "$status"
+      - name: Save Playwright Chromium cache
+        if: steps.playwright-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.playwright-cache.outputs.cache-primary-key }}
       - name: Verify production build
         run: npm run qa:ci
       - name: Upload Pages artifact
