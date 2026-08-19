@@ -22,6 +22,23 @@ Thank you for helping make Bead Grid Studio more reliable and easier to use. Doc
 
 以下任务通常不适合作为第一次贡献：更换前端框架、重写转换流水线、一次加入整套未经验证的品牌色板，或同时修改算法、界面和项目格式。
 
+### 快速开始
+
+本地开发最短流程是：
+
+```bash
+npm ci
+npm run dev
+```
+
+完成修改后、提交 Pull Request 前，必须运行：
+
+```bash
+npm run qa
+```
+
+首次运行完整浏览器测试时，按下方 Fork 流程安装 Playwright 浏览器。
+
 ### Fork、运行与提交 PR
 
 1. 在 GitHub 页面点击 **Fork**。
@@ -74,6 +91,23 @@ Good first contributions usually include:
 - a mobile layout fix with screenshots and clear acceptance criteria.
 
 Framework migrations, conversion-pipeline rewrites, complete unverified brand palettes, and combined algorithm/UI/project-format changes are not suitable first contributions.
+
+### Quick start
+
+The shortest local development flow is:
+
+```bash
+npm ci
+npm run dev
+```
+
+Before opening a Pull Request, you must run:
+
+```bash
+npm run qa
+```
+
+Install Playwright browsers through the Fork flow below before running the full browser suite for the first time.
 
 ### Fork, run, and open a PR
 

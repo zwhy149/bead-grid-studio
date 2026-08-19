@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN"><strong>🚀 在线体验</strong></a> ·
-  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ 下载离线版</strong></a> ·
+  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ 离线版 / GitHub Release</strong></a> ·
   <a href="#30-秒快速开始"><strong>30 秒上手</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ GitHub Star</strong></a>
 </p>
@@ -22,7 +22,9 @@
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
 </p>
 
-## 真实效果：原图 → 拼豆图纸
+## 示例 / Examples
+
+### Simple Graphic / 简洁图形：原图 → 拼豆图纸
 
 两侧都使用仓库自有的火箭素材。右侧是应用真实运行后生成的界面截图，不是 AI 绘制的产品假图。
 
@@ -145,12 +147,24 @@ npm run qa
 
 `npm run qa` 会执行源码、许可和色板门禁，纯函数测试，Chromium/Firefox/WebKit E2E，以及应用内转换回归。
 
-## 参与开源
+## 当前重点
 
-- 💡 使用想法和作品展示：前往 [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions)。
-- 🐛 可复现缺陷：提交 [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose)。
-- 💻 代码与文档改进：阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 后提交 Pull Request。
-- 🌱 第一次参与：查看 [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)。
+- 抽离可独立测试的转换核心，并让 Worker 与测试适配器复用同一验证。
+- 扩充透明图、线稿、照片、文档和极端比例的转换回归 fixture。
+- 发布 16/24/32/48/60 格输出的可复现基准结果。
+- 明确、版本化转换诊断的输出契约。
+
+完整计划见 [ROADMAP.md](ROADMAP.md)。
+
+## 帮助项目成长
+
+- ⭐ **Star** — 如果这个工具帮你节省了时间。
+- 🐛 **反馈 Bug** — 如果转换结果出现异常，请提交 [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose)。
+- 💡 **提出建议** — 如果你希望增加实用功能，欢迎前往 [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions)。
+- 🔀 **Fork** — 定制自己的色板、语言、界面或流程。
+- 💻 **参与贡献** — 阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，选择一个 Issue 并提交 Pull Request。
+
+第一次参与可先查看 [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)。
 
 维护者可以运行 `npm run metrics` 查看 GitHub 官方公开 API 返回的 Stars、Forks、Open Issues 和真实 Release asset 下载量。该脚本不在网页中运行，也不会追踪应用访问者。
 

@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US"><strong>🚀 Live Demo</strong></a> ·
-  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Download Offline</strong></a> ·
+  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Offline / GitHub Release</strong></a> ·
   <a href="#30-second-quick-start"><strong>30-second Quick Start</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ Star on GitHub</strong></a>
 </p>
@@ -24,7 +24,9 @@
 
 Bead Grid Studio is a **local-first fuse-bead pattern generator**. It has no account, image-upload API, analytics SDK, or cloud conversion service.
 
-## Real result: original → fuse-bead pattern
+## Examples
+
+### Simple Graphic: original → fuse-bead pattern
 
 Both sides use the repository's original rocket fixture. The right side is a screenshot of the real running app, not an AI-generated product mockup.
 
@@ -147,12 +149,24 @@ npm run qa
 
 `npm run qa` checks source, license, and palette invariants, pure-function tests, Chromium/Firefox/WebKit E2E, and the application's built-in conversion regressions.
 
-## Contribute
+## Current Focus
 
-- 💡 Ideas and show-and-tell: use [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions).
-- 🐛 Reproducible defects: open an [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose).
-- 💻 Code and documentation: read [CONTRIBUTING.md](CONTRIBUTING.md), then open a Pull Request.
-- 🌱 First contribution: browse [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+- Extract a DOM-free conversion core and give Worker and test adapters the same validation.
+- Expand conversion regression fixtures for transparent art, line art, photos, documents, and extreme aspect ratios.
+- Publish reproducible 16/24/32/48/60-cell output benchmarks.
+- Define a versioned diagnostics contract.
+
+See [ROADMAP.md](ROADMAP.md) for the full roadmap.
+
+## Help the project grow
+
+- ⭐ **Star** — if Bead Grid Studio saves you time.
+- 🐛 **Report a bug** — if a conversion behaves unexpectedly; open an [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose).
+- 💡 **Suggest an idea** — if something would improve your workflow; use [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions).
+- 🔀 **Fork** — customize palettes, languages, UI, or workflows.
+- 💻 **Contribute** — read [CONTRIBUTING.md](CONTRIBUTING.md), pick an Issue, and send a Pull Request.
+
+For a first contribution, browse [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 Maintainers can run `npm run metrics` to read Stars, Forks, Open Issues, and real Release asset download counts from GitHub's public API. The script is not included in the web app and never tracks app visitors.
 
