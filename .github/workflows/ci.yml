@@ -35,43 +35,21 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
-      - name: Install Chromium system dependencies
-        # These OS packages are not included in the browser cache. Install them
-        # on every runner so a cache hit cannot skip a required dependency.
-        # Apt can occasionally block on a hosted-runner package lock, so keep
-        # this prerequisite bounded and retry it rather than consuming the job.
-        timeout-minutes: 6
-        run: |
-          set -euo pipefail
-          for attempt in 1 2; do
-            echo "Installing Chromium system dependencies (attempt ${attempt}/2)"
-            if timeout --signal=TERM --kill-after=30s 150s \
-              npx playwright install-deps chromium; then
-              exit 0
-            else
-              status=$?
-            fi
-
-            if [ "$attempt" -eq 1 ]; then
-              echo "System dependency install timed out or failed; retrying once."
-              sleep 15
-            fi
-          done
-          exit "$status"
-      - name: Install Chromium browser
+      - name: Install Chromium and system dependencies
         # The two Chromium projects cover desktop and mobile. Keeping the
         # required CI path to one browser avoids an unreliable multi-hundred-MB
-        # cold download of Firefox and WebKit on every hosted runner.
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        # cold download of Firefox and WebKit on every hosted runner. The
+        # command also checks system dependencies on cache hits, without
+        # re-downloading Chromium when the restored revision is complete.
         timeout-minutes: 20
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
         run: |
           set -euo pipefail
           for attempt in 1 2; do
-            echo "Installing Playwright Chromium (attempt ${attempt}/2)"
+            echo "Installing Playwright Chromium and system dependencies (attempt ${attempt}/2)"
             if timeout --signal=TERM --kill-after=30s 480s \
-              npx playwright install chromium; then
+              npx playwright install --with-deps chromium; then
               exit 0
             else
               status=$?
