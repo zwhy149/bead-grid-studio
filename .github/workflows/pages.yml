@@ -32,14 +32,12 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
-      - name: Install Chromium system dependencies
-        # These OS packages are not included in the browser cache. Install them
-        # on every runner so a cache hit cannot skip a required dependency.
-        run: npx playwright install-deps chromium
       - name: Install Chromium browser
         # Match CI: smoke-test both responsive Chromium projects, cache the
-        # runtime, and keep the cold download bounded and retryable.
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        # runtime, and keep the cold download bounded and retryable. Ubuntu
+        # hosted images include the shared browser libraries; do not invoke apt
+        # here because it can block independently of Playwright. The smoke suite
+        # verifies the resulting browser can actually launch.
         timeout-minutes: 20
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
