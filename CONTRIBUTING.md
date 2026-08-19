@@ -22,6 +22,31 @@ Thank you for helping make Bead Grid Studio more reliable and easier to use. Doc
 
 以下任务通常不适合作为第一次贡献：更换前端框架、重写转换流水线、一次加入整套未经验证的品牌色板，或同时修改算法、界面和项目格式。
 
+### 快速开始
+
+本地开发最短流程是：
+
+```bash
+npm ci
+npm run dev
+```
+
+完成修改后、提交 Pull Request 前，必须运行：
+
+```bash
+npm run qa
+```
+
+首次运行完整浏览器测试前，安装 Playwright 浏览器：
+
+```bash
+# Windows / macOS
+npx playwright install chromium firefox webkit
+
+# Ubuntu / Debian（同时安装系统依赖）
+npx playwright install --with-deps chromium firefox webkit
+```
+
 ### Fork、运行与提交 PR
 
 1. 在 GitHub 页面点击 **Fork**。
@@ -31,7 +56,6 @@ Thank you for helping make Bead Grid Studio more reliable and easier to use. Doc
    git clone https://github.com/YOUR-NAME/bead-grid-studio.git
    cd bead-grid-studio
    npm ci
-   npx playwright install --with-deps chromium firefox webkit
    npm run dev
    ```
 
@@ -75,6 +99,31 @@ Good first contributions usually include:
 
 Framework migrations, conversion-pipeline rewrites, complete unverified brand palettes, and combined algorithm/UI/project-format changes are not suitable first contributions.
 
+### Quick start
+
+The shortest local development flow is:
+
+```bash
+npm ci
+npm run dev
+```
+
+Before opening a Pull Request, you must run:
+
+```bash
+npm run qa
+```
+
+Before the first full browser run, install Playwright browsers:
+
+```bash
+# Windows / macOS
+npx playwright install chromium firefox webkit
+
+# Ubuntu / Debian (also installs system dependencies)
+npx playwright install --with-deps chromium firefox webkit
+```
+
 ### Fork, run, and open a PR
 
 1. Select **Fork** on GitHub.
@@ -84,7 +133,6 @@ Framework migrations, conversion-pipeline rewrites, complete unverified brand pa
    git clone https://github.com/YOUR-NAME/bead-grid-studio.git
    cd bead-grid-studio
    npm ci
-   npx playwright install --with-deps chromium firefox webkit
    npm run dev
    ```
 
