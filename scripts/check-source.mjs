@@ -104,7 +104,9 @@ const hasBoundedPlaywrightInstall = (workflow) => [
   'rm -rf "$HOME/.cache/ms-playwright"',
 ].every((fragment) => workflow.includes(fragment));
 check(ciWorkflow.includes('timeout-minutes: 30'), 'CI job needs enough time for one bounded browser-install retry and the test suite');
+check((ciWorkflow.match(/timeout-minutes: 20/g) || []).length >= 1, 'CI browser-install step needs a retry safety buffer');
 check(hasBoundedPlaywrightInstall(ciWorkflow), 'CI must use a bounded, retrying Playwright browser installation');
+check((pagesWorkflow.match(/timeout-minutes: 20/g) || []).length >= 1, 'Pages browser-install step needs a retry safety buffer');
 check(hasBoundedPlaywrightInstall(pagesWorkflow), 'Pages verification must use the same bounded Playwright browser installation');
 check(normalizeText(publicLicense) === normalizeText(license), 'public/LICENSE.txt must match the repository LICENSE');
 check(publicNotice === notice, 'public/NOTICE.txt must exactly match the repository NOTICE');
