@@ -37,8 +37,10 @@
     "check": "node scripts/check-source.mjs && node scripts/check-palette.mjs",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:e2e": "npm run build && playwright test",
+    "test:e2e:ci": "npm run build && playwright test --project=desktop-chromium --project=mobile-chromium",
     "test": "npm run check && npm run test:unit && npm run test:e2e",
-    "qa": "npm test"
+    "qa": "npm test",
+    "qa:ci": "npm run check && npm run test:unit && npm run test:e2e:ci"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",

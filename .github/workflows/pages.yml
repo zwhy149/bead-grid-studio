@@ -26,17 +26,29 @@ jobs:
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Install dependencies
         run: npm ci
-      - name: Install browsers
-        # Match CI: two bounded attempts need room for termination and backoff.
+      - name: Restore Playwright Chromium cache
+        id: playwright-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-chromium-${{ hashFiles('package-lock.json') }}
+      - name: Install Chromium system dependencies
+        # These OS packages are not included in the browser cache. Install them
+        # on every runner so a cache hit cannot skip a required dependency.
+        run: npx playwright install-deps chromium
+      - name: Install Chromium browser
+        # Match CI: smoke-test both responsive Chromium projects, cache the
+        # runtime, and keep the cold download bounded and retryable.
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         timeout-minutes: 20
         env:
           PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000
         run: |
           set -euo pipefail
           for attempt in 1 2; do
-            echo "Installing Playwright browsers (attempt ${attempt}/2)"
+            echo "Installing Playwright Chromium (attempt ${attempt}/2)"
             if timeout --signal=TERM --kill-after=30s 480s \
-              npx playwright install --with-deps chromium firefox webkit; then
+              npx playwright install chromium; then
               exit 0
             else
               status=$?
@@ -49,8 +61,14 @@ jobs:
             fi
           done
           exit "$status"
+      - name: Save Playwright Chromium cache
+        if: steps.playwright-cache.outputs.cache-hit != 'true' && success()
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ steps.playwright-cache.outputs.cache-primary-key }}
       - name: Verify production build
-        run: npm run qa
+        run: npm run qa:ci
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:

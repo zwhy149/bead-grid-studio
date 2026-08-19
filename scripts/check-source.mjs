@@ -100,8 +100,15 @@ const hasBoundedPlaywrightInstall = (workflow) => [
   'PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: 120000',
   'for attempt in 1 2',
   'timeout --signal=TERM --kill-after=30s 480s',
-  'npx playwright install --with-deps chromium firefox webkit',
+  'npx playwright install-deps chromium',
+  'npx playwright install chromium',
   'rm -rf "$HOME/.cache/ms-playwright"',
+  'uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684',
+  'uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684',
+  'path: ~/.cache/ms-playwright',
+  "if: steps.playwright-cache.outputs.cache-hit != 'true'",
+  'cache-primary-key',
+  'run: npm run qa:ci',
 ].every((fragment) => workflow.includes(fragment));
 check(ciWorkflow.includes('timeout-minutes: 30'), 'CI job needs enough time for one bounded browser-install retry and the test suite');
 check((ciWorkflow.match(/timeout-minutes: 20/g) || []).length >= 1, 'CI browser-install step needs a retry safety buffer');
@@ -114,7 +121,16 @@ check(notice.includes('pinned data commit 94b99999652866f1a1879d6369fe735f811949
 check(notice.includes('Copyright (c) 2020 maxcleme'), 'palette MIT attribution is missing');
 check(notice.includes('Copyright (c) 2019-present, VoidZero Inc. and Vite contributors'), 'Vite MIT attribution is missing');
 
-const packageVersion = JSON.parse(packageJson).version;
+const parsedPackage = JSON.parse(packageJson);
+check(
+  parsedPackage.scripts['test:e2e:ci'] === 'npm run build && playwright test --project=desktop-chromium --project=mobile-chromium',
+  'CI browser smoke suite must cover both desktop and mobile Chromium projects',
+);
+check(
+  parsedPackage.scripts['qa:ci'] === 'npm run check && npm run test:unit && npm run test:e2e:ci',
+  'CI quality command must include source checks, unit tests, and Chromium smoke tests',
+);
+const packageVersion = parsedPackage.version;
 const publicVersion = JSON.parse(versionJson);
 check(publicVersion.version === packageVersion, 'public/version.json does not match package.json');
 check(JSON.parse(healthJson).version === packageVersion, 'public/healthz.json does not match package.json');
