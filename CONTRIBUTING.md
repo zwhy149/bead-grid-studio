@@ -37,7 +37,15 @@ npm run dev
 npm run qa
 ```
 
-首次运行完整浏览器测试时，按下方 Fork 流程安装 Playwright 浏览器。
+首次运行完整浏览器测试前，安装 Playwright 浏览器：
+
+```bash
+# Windows / macOS
+npx playwright install chromium firefox webkit
+
+# Ubuntu / Debian（同时安装系统依赖）
+npx playwright install --with-deps chromium firefox webkit
+```
 
 ### Fork、运行与提交 PR
 
@@ -48,7 +56,6 @@ npm run qa
    git clone https://github.com/YOUR-NAME/bead-grid-studio.git
    cd bead-grid-studio
    npm ci
-   npx playwright install --with-deps chromium firefox webkit
    npm run dev
    ```
 
@@ -107,7 +114,15 @@ Before opening a Pull Request, you must run:
 npm run qa
 ```
 
-Install Playwright browsers through the Fork flow below before running the full browser suite for the first time.
+Before the first full browser run, install Playwright browsers:
+
+```bash
+# Windows / macOS
+npx playwright install chromium firefox webkit
+
+# Ubuntu / Debian (also installs system dependencies)
+npx playwright install --with-deps chromium firefox webkit
+```
 
 ### Fork, run, and open a PR
 
@@ -118,7 +133,6 @@ Install Playwright browsers through the Fork flow below before running the full 
    git clone https://github.com/YOUR-NAME/bead-grid-studio.git
    cd bead-grid-studio
    npm ci
-   npx playwright install --with-deps chromium firefox webkit
    npm run dev
    ```
 
