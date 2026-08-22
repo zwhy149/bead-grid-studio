@@ -1,4 +1,4 @@
-# Bead Grid Studio v1.1.2
+# Bead Grid Studio v1.1.3
 
 ## What's new
 
@@ -8,13 +8,17 @@
 
 The conversion algorithm, project format, and palette values are unchanged.
 
+## Why v1.1.3 and not v1.1.2
+
+The v1.1.2 tag name is permanently reserved by GitHub: the first v1.1.2 release was created as an immutable release and then deleted to correct commit authorship, and GitHub never allows reusing a tag name from a deleted immutable release. The features below ship unchanged as v1.1.3.
+
 ## Who should update
 
 Everyone who orders beads from the generated counts. Patterns generated with v1.1.0 or v1.1.1 load and export identically.
 
 ## Download
 
-For offline use, download `bead-grid-studio-v1.1.2.html` from **Assets**. The ZIP is for redistribution with documentation. GitHub's automatically generated Source Code archives are not the offline app.
+For offline use, download `bead-grid-studio-v1.1.3.html` from **Assets**. The ZIP is for redistribution with documentation. GitHub's automatically generated Source Code archives are not the offline app.
 
 ## Checksums
 
