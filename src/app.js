@@ -24,8 +24,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.1.1';
-    const BUILD_DATE = '2026-08-17';
+    const APP_VERSION = '1.1.2';
+    const BUILD_DATE = '2026-08-22';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
@@ -40,7 +40,7 @@ import {
       'applySizeBtn','undoBtn','redoBtn','zoomOutBtn','zoomInBtn','zoomValue','topExportBtn','mirrorHBtn','mirrorVBtn','rotateBtn',
       'clearBtn','saveProjectBtn','loadProjectBtn','projectInput','exportPngBtn','printBtn','majorGridStep','referenceCanvas','patternCanvas',
       'topRuler','leftRuler','boardShell','canvasStack','canvasViewport','emptyState','legendStrip','paletteGrid','paletteSearch',
-      'paletteCountLabel','totalBeads','usedColors','emptyCells','statsList','selectedColorSwatch','selectedColorName','selectedColorCode',
+      'paletteCountLabel','totalBeads','usedColors','emptyCells','statsList','copyStatsBtn','selectedColorSwatch','selectedColorName','selectedColorCode',
       'statusSize','statusColors','statusBeads','statusZoom','statusMessage','gridToggle','rulerToggle','codesToggle','fitCanvasBtn','convertOverlay',
       'progressText','cancelConvertBtn','toast','mobileScrim','controlPanel','palettePanel','printSheet','printImage','printPages',
       'cropDialog','cropCanvas','cropXInput','cropYInput','cropWInput','cropHInput','cropCloseBtn','cropResetBtn','cropCancelBtn','cropApplyBtn','stageQualityBanner','stageQualityTitle','stageQualityText','stageCropBtn',
@@ -1126,6 +1126,55 @@ import {
       return { counts, total, empty: state.grid.length - total };
     }
 
+    function formatShare(count, total) {
+      if (!total) return { width: '0%', label: '0%' };
+      const exact = Math.min(100, count / total * 100);
+      return {
+        width: `${exact.toFixed(2)}%`,
+        label: exact >= 9.95 ? `${Math.round(exact)}%` : `${exact.toFixed(1)}%`
+      };
+    }
+
+    function buildMaterialListText() {
+      const {counts,total} = getStats();
+      const rows = [...counts.entries()].sort((a,b) => b[1] - a[1] || a[0] - b[0]);
+      if (!total) return '';
+      const lines = [
+        t('stats.listTitle'),
+        t('stats.listMeta',{cols:state.cols,rows:state.rows,total:formatNumber(total),colors:counts.size}),
+        ...rows.map(([index,count]) => {
+          const color = PALETTE[index];
+          return t('stats.listLine',{code:color.code,name:localizedColorName(color),count:formatNumber(count),percent:formatShare(count,total).label});
+        }),
+        t('stats.listTip')
+      ];
+      return lines.join('\n');
+    }
+
+    async function copyStatsList() {
+      const text = buildMaterialListText();
+      if (!text) { toast('stats.emptyList'); return; }
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        }
+      } catch (_) { /* 非安全上下文或权限被拒时回退到临时文本框。 */ }
+      if (!copied) {
+        const scratch = document.createElement('textarea');
+        scratch.value = text;
+        scratch.setAttribute('readonly','');
+        scratch.style.position='fixed';
+        scratch.style.opacity='0';
+        document.body.appendChild(scratch);
+        scratch.select();
+        try { copied = document.execCommand('copy'); } catch (_) { copied = false; }
+        scratch.remove();
+      }
+      toast(copied ? 'toast.statsCopied' : 'toast.statsCopyFailed', copied ? 'info' : 'error');
+    }
+
     function updateStats() {
       const {counts,total,empty} = getStats();
       els.totalBeads.textContent = formatNumber(total);
@@ -1140,14 +1189,18 @@ import {
 
       const rows = [...counts.entries()].sort((a,b) => b[1] - a[1]);
       els.statsList.innerHTML = '';
+      if (els.copyStatsBtn) els.copyStatsBtn.hidden = rows.length === 0;
       if (!rows.length) {
         const emptyMessage=document.createElement('div');emptyMessage.className='empty-list';emptyMessage.textContent=t('stats.emptyList');els.statsList.replaceChildren(emptyMessage);
       } else {
         rows.forEach(([index,count]) => {
           const color = PALETTE[index];
+          const share = formatShare(count,total);
           const row = document.createElement('div');
           row.className = 'stat-row';
-          row.innerHTML = `<span class="stat-swatch" style="background:${color.displayHex}"></span><span class="stat-copy"><strong>${color.code} · ${localizedColorName(color)}</strong><span>${color.hex.toUpperCase()}</span></span><span class="stat-count">${formatNumber(count)}</span>`;
+          row.style.setProperty('--share', share.width);
+          row.title = t('aria.statShare',{percent:share.label});
+          row.innerHTML = `<span class="stat-bar" aria-hidden="true"></span><span class="stat-swatch" style="background:${color.displayHex}"></span><span class="stat-copy"><strong>${color.code} · ${localizedColorName(color)}</strong><span>${color.hex.toUpperCase()}</span></span><span class="stat-count">${formatNumber(count)}<em class="stat-percent">${share.label}</em></span>`;
           els.statsList.appendChild(row);
         });
       }
@@ -3406,6 +3459,8 @@ import {
       test('工程JSON不再写入原始参考文件名',privacyProject.reference?.embedded===false&&!Object.prototype.hasOwnProperty.call(privacyProject.reference,'fileName'));
       const printFixture=buildPrintTileCanvas(0,0,Math.min(10,state.cols),Math.min(10,state.rows),1,1);
       test('分页打印单页保持在安全像素预算内',printFixture.width*printFixture.height<DEVICE_LIMITS.exportPixels);
+      test('用料占比宽度精确、标签整数化',formatShare(38,380).width==='10.00%'&&formatShare(38,380).label==='10%'&&formatShare(380,380).label==='100%');
+      test('不足一成的占比保留一位小数',formatShare(3,380).label==='0.8%'&&formatShare(1,380).label==='0.3%');
 
       const failed=tests.filter(item=>!item.pass);
       if(failed.length)console.error(`[豆格工坊自检失败] ${JSON.stringify(failed)}`);else console.info(`[豆格工坊自检通过] ${tests.length} 项`);
@@ -3564,6 +3619,7 @@ import {
       });
 
       els.saveProjectBtn.addEventListener('click',()=>saveProject());els.loadProjectBtn.addEventListener('click',()=>els.projectInput.click());
+      if(els.copyStatsBtn)els.copyStatsBtn.addEventListener('click',()=>{copyStatsList();});
       els.projectInput.addEventListener('change',()=>loadProjectFile(els.projectInput.files[0]));
       [els.exportPngBtn,els.topExportBtn].forEach(button=>button.addEventListener('click',exportPng));
       els.printBtn.addEventListener('click',printPreview);

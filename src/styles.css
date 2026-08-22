@@ -1093,20 +1093,49 @@
     .stats-list { display: grid; gap: 5px; }
 
     .stat-row {
+      position: relative;
       display: grid;
       grid-template-columns: 24px minmax(0, 1fr) auto;
       align-items: center;
       gap: 8px;
       padding: 7px 8px;
       border-radius: 8px;
+      overflow: hidden;
     }
 
     .stat-row:nth-child(odd) { background: #f4f1eb; }
+    .stat-bar {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--share, 0%);
+      background: rgba(169, 71, 38, 0.09);
+      border-right: 1px solid rgba(169, 71, 38, 0.22);
+      pointer-events: none;
+    }
+    .stat-row > .stat-swatch, .stat-row > .stat-copy, .stat-row > .stat-count { position: relative; }
     .stat-copy { min-width: 0; }
     .stat-copy strong, .stat-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .stat-copy strong { font-size: 10px; }
     .stat-copy span { margin-top: 2px; color: var(--muted); font-size: 9px; }
-    .stat-count { color: var(--ink); font-size: 11px; font-weight: 760; font-variant-numeric: tabular-nums; }
+    .stat-count { color: var(--ink); font-size: 11px; font-weight: 760; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .stat-percent { margin-left: 5px; color: var(--faint); font-size: 9px; font-style: normal; font-weight: 640; font-variant-numeric: tabular-nums; }
+
+    .head-action {
+      flex: none;
+      align-self: center;
+      margin-left: auto;
+      padding: 4px 9px;
+      color: var(--ink);
+      background: var(--panel-strong);
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 720;
+      line-height: 1.4;
+      cursor: pointer;
+    }
+    .head-action:hover { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }
+    .head-action:active { transform: translateY(1px); }
 
     .empty-list {
       padding: 22px 12px;
