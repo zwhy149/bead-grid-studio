@@ -19,7 +19,7 @@ test('built-in conversion regression suite passes', async ({ page }) => {
   const messages = [];
   page.on('console', (message) => messages.push(message.text()));
   await page.goto('/?lang=zh-CN&selftest=1');
-  await expect.poll(() => messages.find((message) => message.includes('豆格工坊自检通过'))).toMatch(/80 项/);
+  await expect.poll(() => messages.find((message) => message.includes('豆格工坊自检通过'))).toMatch(/82 项/);
   expect(messages.filter((message) => message.includes('自检失败'))).toEqual([]);
 });
 
@@ -45,7 +45,7 @@ test('portable single-file release runs without a server', async ({ page }) => {
   file.search = 'lang=zh-CN&selftest=1';
   await page.goto(file.href);
   await expect(page).toHaveTitle(/豆格工坊/);
-  await expect.poll(() => messages.find((message) => message.includes('豆格工坊自检通过'))).toMatch(/80 项/);
+  await expect.poll(() => messages.find((message) => message.includes('豆格工坊自检通过'))).toMatch(/82 项/);
   expect(errors).toEqual([]);
 });
 

@@ -2,6 +2,14 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] - 2026-08-22
+
+### Added
+
+- Added a copyable bead shopping list in Material Counts: one tap copies every color code, localized name, quantity, and share as plain text for ordering, with a clipboard fallback for non-secure contexts.
+- Added per-color share bars and percentage labels to each material row so dominant colors are readable at a glance.
+- Added bilingual (zh-CN / en-US) strings for the list, share labels, and copy feedback, plus two browser self-test regressions for share rounding.
+
 ## [1.1.1] - 2026-08-17
 
 ### Fixed
