@@ -24,8 +24,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.1.3';
-    const BUILD_DATE = '2026-08-22';
+    const APP_VERSION = '1.2.0';
+    const BUILD_DATE = '2026-08-26';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
@@ -45,7 +45,8 @@ import {
       'progressText','cancelConvertBtn','toast','mobileScrim','controlPanel','palettePanel','printSheet','printImage','printPages',
       'cropDialog','cropCanvas','cropXInput','cropYInput','cropWInput','cropHInput','cropCloseBtn','cropResetBtn','cropCancelBtn','cropApplyBtn','stageQualityBanner','stageQualityTitle','stageQualityText','stageCropBtn',
       'productDialog','productCloseBtn','productOkBtn','recoveryActions','restoreDraftBtn','clearDraftBtn','appVersion',
-      'trySampleBtn','panelTrySampleBtn','patternReadyBar','readyExportBtn','readySaveBtn','readyShareBtn','readyShareCardBtn',
+      'trySampleBtn','panelTrySampleBtn','patternReadyBar','readyMakeBtn','readyExportBtn','readySaveBtn','readyShareBtn','readyShareCardBtn',
+      'makingAssistant','makingProgressText','makingProgressBar','makingColorSwatch','makingColorCode','makingColorCount','makingPrevBtn','makingCompleteBtn','makingNextBtn','makingShowAllBtn','makingResetBtn','makingCloseBtn','exportCsvBtn',
       'shareDialog','shareFormat','sharePreviewCanvas','shareCardCloseBtn','shareCardCancelBtn','shareCardDownloadBtn'
     ].map(id => [id, document.getElementById(id)]));
 
@@ -107,6 +108,10 @@ import {
       boardTilesY: 1,
       dirty: false,
       exporting: false,
+      makingMode: false,
+      makingFocusColor: null,
+      makingShowAll: false,
+      completedColorCodes: new Set(),
       convertFocusReturn: null,
       productFocusReturn: null,
       shareFocusReturn: null,
@@ -811,6 +816,7 @@ import {
       return {
         cols:state.cols,rows:state.rows,cells:Array.from(state.grid),
         crop:{...normalizeCrop(state.crop)},referenceTransforms:[...(state.referenceTransforms||[])],
+        making:{completedColorCodes:[...state.completedColorCodes],focusColorCode:PALETTE[state.makingFocusColor]?.code||null},
         settings:{processMode:els.processMode.value,fitMode:els.fitMode.value,whiteMode:els.whiteMode.value,maxColors:state.maxColors,mergeStrength:state.mergeStrength,protectDark:state.protectDark,sizeMode:state.sizeMode,aspectLock:state.aspectLock,boardProfile:state.boardProfile,boardTilesX:state.boardTilesX,boardTilesY:state.boardTilesY,smartMode:state.smartMode,smartPhase:state.smartPhase,autoTrimApplied:state.autoTrimApplied,autoTrimFraction:state.autoTrimFraction,lastConversionDiagnostics:state.lastConversionDiagnostics?{...state.lastConversionDiagnostics}:null}
       };
     }
@@ -818,7 +824,7 @@ import {
     function snapshotsEqual(a, b) {
       if (!a || !b || a.cols !== b.cols || a.rows !== b.rows || a.cells.length !== b.cells.length) return false;
       for (let i = 0; i < a.cells.length; i++) if (a.cells[i] !== b.cells[i]) return false;
-      return JSON.stringify(a.crop)===JSON.stringify(b.crop)&&JSON.stringify(a.referenceTransforms)===JSON.stringify(b.referenceTransforms)&&JSON.stringify(a.settings)===JSON.stringify(b.settings);
+      return JSON.stringify(a.crop)===JSON.stringify(b.crop)&&JSON.stringify(a.referenceTransforms)===JSON.stringify(b.referenceTransforms)&&JSON.stringify(a.making)===JSON.stringify(b.making)&&JSON.stringify(a.settings)===JSON.stringify(b.settings);
     }
 
     function resetHistory() {
@@ -852,6 +858,9 @@ import {
       state.grid = Int16Array.from(snapshot.cells);
       state.crop=normalizeCrop(snapshot.crop||state.crop);
       state.referenceTransforms=[...(snapshot.referenceTransforms||[])];
+      const making=snapshot.making||{},colorByCode=new Map(PALETTE.map(color=>[color.code,color.index]));
+      state.completedColorCodes=new Set((making.completedColorCodes||[]).filter(code=>colorByCode.has(code)));
+      state.makingFocusColor=colorByCode.get(making.focusColorCode)??null;state.makingMode=false;state.makingShowAll=false;
       const settings=snapshot.settings||{};
       if(settings.processMode&&MODE_HINTS[settings.processMode])els.processMode.value=settings.processMode;
       if(settings.fitMode)els.fitMode.value=settings.fitMode==='contain'?'contain':'cover';
@@ -1031,6 +1040,18 @@ import {
           ctx.textBaseline = 'middle';
           ctx.fillText(color.code, px + size/2, py + size/2);
         }
+        if (state.makingMode) {
+          const completed=state.completedColorCodes.has(color.code),focused=state.makingFocusColor;
+          if(completed){
+            ctx.fillStyle='rgba(246,243,237,.72)';ctx.fillRect(px,py,size,size);
+            if(size>=12){ctx.fillStyle='#38644d';ctx.font=`900 ${Math.max(8,Math.floor(size*.48))}px system-ui,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✓',px+size/2,py+size/2);}
+          }else if(focused!==null&&value!==focused){
+            ctx.fillStyle='rgba(246,243,237,.82)';ctx.fillRect(px,py,size,size);
+          }
+          if(focused===value&&!completed){
+            ctx.strokeStyle='#b54827';ctx.lineWidth=Math.max(2,size*.14);ctx.strokeRect(px+1,py+1,Math.max(0,size-2),Math.max(0,size-2));
+          }
+        }
       }
       if (state.showGrid) {
         ctx.strokeStyle = 'rgba(55,51,45,.24)';
@@ -1137,7 +1158,7 @@ import {
 
     function buildMaterialListText() {
       const {counts,total} = getStats();
-      const rows = [...counts.entries()].sort((a,b) => b[1] - a[1] || a[0] - b[0]);
+      const rows = sortedMaterialRows(counts);
       if (!total) return '';
       const lines = [
         t('stats.listTitle'),
@@ -1175,6 +1196,106 @@ import {
       toast(copied ? 'toast.statsCopied' : 'toast.statsCopyFailed', copied ? 'info' : 'error');
     }
 
+    function sortedMaterialRows(counts=getStats().counts) {
+      return [...counts.entries()].sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+    }
+
+    function makingRows(counts=getStats().counts) {
+      return sortedMaterialRows(counts);
+    }
+
+    function ensureMakingFocus(rows=makingRows()) {
+      if(!rows.length){state.makingFocusColor=null;return null;}
+      const used=new Set(rows.map(([index])=>index));
+      if(state.makingFocusColor!==null&&used.has(state.makingFocusColor))return state.makingFocusColor;
+      const next=rows.find(([index])=>!state.completedColorCodes.has(PALETTE[index].code))||rows[0];
+      state.makingFocusColor=next[0];return state.makingFocusColor;
+    }
+
+    function markMakingProgressDirty() {
+      const current=state.history[state.historyIndex];
+      if(current)current.making={completedColorCodes:[...state.completedColorCodes],focusColorCode:PALETTE[state.makingFocusColor]?.code||null};
+      state.dirty=true;scheduleDraftSave();
+    }
+
+    function syncMakingAssistant({counts,total,rows=makingRows(counts)}=getStats()) {
+      if(!els.makingAssistant)return;
+      const active=state.makingMode&&total>0;
+      els.makingAssistant.hidden=!active;
+      if(!active)return;
+      const usedCodes=new Set(rows.map(([index])=>PALETTE[index].code));
+      let doneBeads=0,doneColors=0;
+      rows.forEach(([index,count])=>{if(state.completedColorCodes.has(PALETTE[index].code)){doneBeads+=count;doneColors++;}});
+      const percent=total?Math.round(doneBeads/total*100):0;
+      els.makingProgressText.textContent=t('making.progress',{done:formatNumber(doneBeads),total:formatNumber(total),colorsDone:doneColors,totalColors:usedCodes.size,percent});
+      els.makingProgressBar.style.setProperty('--making-progress',`${percent}%`);
+      els.makingProgressBar.setAttribute('aria-valuenow',String(percent));
+      els.makingProgressBar.setAttribute('aria-valuetext',t('making.progressAria',{percent,colorsDone:doneColors,totalColors:usedCodes.size}));
+      const allDone=doneColors===usedCodes.size&&usedCodes.size>0;
+      if(allDone)state.makingFocusColor=null;else if(!state.makingShowAll)ensureMakingFocus(rows);
+      const focused=state.makingFocusColor===null?null:rows.find(([index])=>index===state.makingFocusColor);
+      if(focused){
+        const [index,count]=focused,color=PALETTE[index],completed=state.completedColorCodes.has(color.code);
+        els.makingColorSwatch.style.background=color.displayHex;
+        els.makingColorCode.textContent=`${color.code} · ${localizedColorName(color)}`;
+        els.makingColorCount.textContent=t('making.focusedCount',{count:formatNumber(count)});
+        els.makingCompleteBtn.textContent=t(completed?'action.markColorUndone':'action.markColorDone');
+        els.makingCompleteBtn.setAttribute('aria-pressed',String(completed));
+        els.makingCompleteBtn.disabled=false;
+      }else{
+        els.makingColorSwatch.style.background='transparent';
+        els.makingColorCode.textContent=t(allDone?'making.allDone':state.makingShowAll?'making.allColors':'making.chooseColor');
+        els.makingColorCount.textContent=allDone?t('making.allDoneDetail'):state.makingShowAll?t('making.allColorsDetail'):'';
+        els.makingCompleteBtn.textContent=t('action.markColorDone');
+        els.makingCompleteBtn.setAttribute('aria-pressed','false');
+        els.makingCompleteBtn.disabled=true;
+      }
+      els.makingPrevBtn.disabled=rows.length<2;
+      els.makingNextBtn.disabled=rows.length<2;
+      els.makingShowAllBtn.disabled=state.makingShowAll||allDone;
+    }
+
+    function startMaking() {
+      const {counts,total}=getStats();
+      if(!total){toast('toast.noMaterials','error');return;}
+      state.makingMode=true;state.makingShowAll=false;ensureMakingFocus(makingRows(counts));renderAll();setStatus('status.makingStarted');toast('toast.makingStarted','success');
+    }
+
+    function stopMaking() {
+      state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;renderAll();setStatus('status.makingStopped');
+    }
+
+    function setMakingFocus(index) {
+      const {counts,total}=getStats();
+      if(!total||!counts.has(index))return;
+      state.makingMode=true;state.makingShowAll=false;state.makingFocusColor=index;drawPattern();updateStats();
+    }
+
+    function cycleMakingColor(direction) {
+      const rows=makingRows();if(!rows.length)return;state.makingShowAll=false;
+      const current=rows.findIndex(([index])=>index===state.makingFocusColor),start=current<0?0:current;
+      const next=(start+(direction<0?-1:1)+rows.length)%rows.length;
+      setMakingFocus(rows[next][0]);
+    }
+
+    function toggleFocusedColorComplete() {
+      if(state.makingFocusColor===null)return;
+      const color=PALETTE[state.makingFocusColor];if(!color)return;
+      const completed=state.completedColorCodes.has(color.code);
+      if(completed)state.completedColorCodes.delete(color.code);else state.completedColorCodes.add(color.code);
+      if(!completed){
+        const rows=makingRows(),next=rows.find(([index])=>!state.completedColorCodes.has(PALETTE[index].code));
+        state.makingFocusColor=next?.[0]??null;
+      }
+      markMakingProgressDirty();renderAll();toast(completed?'toast.colorUndone':'toast.colorDone','success',{code:color.code});
+    }
+
+    function resetMakingProgress() {
+      if(!state.completedColorCodes.size)return;
+      if(!window.confirm(t('confirm.resetMaking')))return;
+      state.completedColorCodes.clear();state.makingFocusColor=null;state.makingShowAll=false;ensureMakingFocus();markMakingProgressDirty();renderAll();toast('toast.makingReset','success');
+    }
+
     function updateStats() {
       const {counts,total,empty} = getStats();
       els.totalBeads.textContent = formatNumber(total);
@@ -1187,7 +1308,7 @@ import {
       els.statusZoom.textContent = t('status.zoomValue',{percent:Math.round(state.zoom*100)});
       els.zoomValue.textContent = `${Math.round(state.zoom*100)}%`;
 
-      const rows = [...counts.entries()].sort((a,b) => b[1] - a[1]);
+      const rows = sortedMaterialRows(counts);
       els.statsList.innerHTML = '';
       if (els.copyStatsBtn) els.copyStatsBtn.hidden = rows.length === 0;
       if (!rows.length) {
@@ -1195,12 +1316,16 @@ import {
       } else {
         rows.forEach(([index,count]) => {
           const color = PALETTE[index];
-          const share = formatShare(count,total);
-          const row = document.createElement('div');
-          row.className = 'stat-row';
-          row.style.setProperty('--share', share.width);
-          row.title = t('aria.statShare',{percent:share.label});
-          row.innerHTML = `<span class="stat-bar" aria-hidden="true"></span><span class="stat-swatch" style="background:${color.displayHex}"></span><span class="stat-copy"><strong>${color.code} · ${localizedColorName(color)}</strong><span>${color.hex.toUpperCase()}</span></span><span class="stat-count">${formatNumber(count)}<em class="stat-percent">${share.label}</em></span>`;
+          const share=formatShare(count,total),row=document.createElement('div'),completed=state.completedColorCodes.has(color.code),focused=state.makingMode&&state.makingFocusColor===index;
+          row.className = `stat-row${focused?' is-focused':''}${completed?' is-complete':''}`;
+          row.style.setProperty('--share',share.width);row.title=t('aria.statShare',{percent:share.label});
+          const bar=document.createElement('span');bar.className='stat-bar';bar.setAttribute('aria-hidden','true');
+          const focus=document.createElement('button');focus.type='button';focus.className='stat-focus';focus.setAttribute('aria-label',t('aria.focusColor',{code:color.code,count:formatNumber(count)}));
+          const swatch=document.createElement('span');swatch.className='stat-swatch';swatch.style.background=color.displayHex;
+          const copy=document.createElement('span');copy.className='stat-copy';const strong=document.createElement('strong');strong.textContent=`${color.code} · ${localizedColorName(color)}`;const hex=document.createElement('span');hex.textContent=color.hex.toUpperCase();copy.append(strong,hex);
+          const amount=document.createElement('span');amount.className='stat-count';amount.append(document.createTextNode(formatNumber(count)));const percent=document.createElement('em');percent.className='stat-percent';percent.textContent=share.label;amount.append(percent);focus.append(swatch,copy,amount);focus.addEventListener('click',()=>setMakingFocus(index));
+          const done=document.createElement('button');done.type='button';done.className='stat-done';done.textContent=completed?'✓':'○';done.setAttribute('aria-label',t(completed?'aria.markColorUndone':'aria.markColorDone',{code:color.code}));done.setAttribute('aria-pressed',String(completed));done.addEventListener('click',()=>{state.makingMode=true;state.makingShowAll=false;state.makingFocusColor=index;toggleFocusedColorComplete();});
+          row.append(bar,focus,done);
           els.statsList.appendChild(row);
         });
       }
@@ -1219,7 +1344,8 @@ import {
         });
       }
       els.emptyState.hidden = Boolean(total || state.referenceImage);
-      if(els.patternReadyBar)els.patternReadyBar.hidden=total===0||conversionInProgress();
+      if(els.patternReadyBar)els.patternReadyBar.hidden=total===0||conversionInProgress()||state.makingMode;
+      syncMakingAssistant({counts,total,rows});
       if(els.readyShareCardBtn){els.readyShareCardBtn.disabled=!state.referenceImage;els.readyShareCardBtn.title=!state.referenceImage?t('share.unavailable'):'';}
       if(state.referenceImage)updateSmartCard();
     }
@@ -1582,6 +1708,7 @@ import {
         if(sourceWidth*sourceHeight>60000000){image.close?.();throw new Error('pixels');}
         state.referenceImage?.close?.();
         state.referenceImage = image;
+        state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;state.completedColorCodes.clear();
         state.referenceFileName = file.name;
         state.referenceFileSize = file.size;
         state.referenceSourceWidth = sourceWidth;
@@ -2480,6 +2607,7 @@ import {
         if(boardContained){
           state.grid=embedPatternGrid(compactGrid,placement.cols,placement.rows,state.cols,state.rows,placement.offsetX,placement.offsetY);
         }else state.grid=compactGrid;
+        state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;state.completedColorCodes.clear();
         if(state.smartMode)state.smartPhase='done';
         commitHistory('history.converted');
         renderAll();
@@ -2567,6 +2695,7 @@ import {
       els.gridCols.value=cols;
       els.gridRows.value=rows;
       state.grid = new Int16Array(cols*rows).fill(-1);
+      state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;state.completedColorCodes.clear();
       state.hasAutoFit=false;
       state.keyboardCursor = {x:0,y:0};
       markCustomSettings();
@@ -2611,6 +2740,7 @@ import {
       if (!state.grid.some(value => value >= 0)) return;
       if (!window.confirm(t('confirm.clear'))) return;
       state.grid.fill(-1);
+      state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;state.completedColorCodes.clear();
       markCustomSettings();
       commitHistory('history.cleared');
       renderAll();
@@ -2739,7 +2869,7 @@ import {
 
     function setExportBusy(busy) {
       state.exporting=busy;
-      [els.exportPngBtn,els.topExportBtn,els.smartExportBtn,els.readyExportBtn,els.readySaveBtn,els.readyShareBtn,els.readyShareCardBtn,els.shareCardDownloadBtn,els.printBtn].forEach(button=>{if(button)button.disabled=busy;});
+      [els.exportPngBtn,els.topExportBtn,els.smartExportBtn,els.readyExportBtn,els.readySaveBtn,els.readyShareBtn,els.readyShareCardBtn,els.shareCardDownloadBtn,els.exportCsvBtn,els.printBtn].forEach(button=>{if(button)button.disabled=busy;});
       document.querySelector('.app-shell').setAttribute('aria-busy',String(busy));
     }
 
@@ -2845,12 +2975,33 @@ import {
       finally{setExportBusy(false);}
     }
 
+    function csvValue(value) {
+      const text=String(value??'');
+      return /[",\r\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text;
+    }
+
+    function exportMaterialsCsv() {
+      if(state.exporting)return;
+      const {counts,total}=getStats(),rows=sortedMaterialRows(counts);
+      if(!total){toast('toast.noMaterials','error');return;}
+      const lines=[['csv.code','csv.name','csv.hex','csv.count','csv.completed'].map(key=>csvValue(t(key))).join(',')];
+      rows.forEach(([index,count])=>{
+        const color=PALETTE[index];
+        lines.push([color.code,localizedColorName(color),color.hex.toUpperCase(),count,t(state.completedColorCodes.has(color.code)?'csv.yes':'csv.no')].map(csvValue).join(','));
+      });
+      const blob=new Blob([`\uFEFF${lines.join('\r\n')}\r\n`],{type:'text/csv;charset=utf-8'});
+      downloadBlob(blob,`${safeFileStem(els.projectTitle.textContent,t('project.untitled'))}-materials.csv`);
+      toast('toast.csvExported','success',{colors:rows.length,beads:formatNumber(total)});setStatus('status.csvExported',{colors:rows.length,beads:formatNumber(total)});
+    }
+
     function buildProjectData(title=els.projectTitle.textContent) {
       return {
         type:'bead-grid-studio',version:PROJECT_VERSION,appVersion:APP_VERSION,savedAt:new Date().toISOString(),title:String(title||t('project.untitled')).slice(0,80),
         grid:{cols:state.cols,rows:state.rows,cells:Array.from(state.grid,value=>value>=0&&PALETTE[value]?PALETTE[value].code:null)},
         settings:{selectedColor:state.selectedColor,selectedColorCode:PALETTE[state.selectedColor]?.code||'H7',previewMode:state.previewMode,showGrid:state.showGrid,showRulers:state.showRulers,showCodes:state.showCodes,zoom:state.zoom,paletteMode:state.paletteMode,maxColors:state.maxColors,mergeStrength:state.mergeStrength,protectDark:state.protectDark,sizeMode:state.sizeMode,aspectLock:state.aspectLock,boardProfile:state.boardProfile,boardTilesX:state.boardTilesX,boardTilesY:state.boardTilesY,majorGridStep:state.majorGridStep,processMode:els.processMode.value,fitMode:els.fitMode.value,whiteMode:els.whiteMode.value},
-        palette:'mard-compatible-base-221-v1',paletteProvider:PALETTE_PROVIDER.id,paletteSource:MARD_PALETTE_SOURCE,reference:{embedded:false}
+        palette:'mard-compatible-base-221-v1',paletteProvider:PALETTE_PROVIDER.id,paletteSource:MARD_PALETTE_SOURCE,
+        making:{completedColorCodes:[...state.completedColorCodes].filter(code=>PALETTE.some(color=>color.code===code)),focusColorCode:PALETTE[state.makingFocusColor]?.code||null},
+        reference:{embedded:false}
       };
     }
 
@@ -2941,6 +3092,9 @@ import {
         state.previewMode=['square','bead'].includes(settings.previewMode)?settings.previewMode:'square';
         state.showGrid=settings.showGrid!==false;state.showRulers=settings.showRulers!==false;state.showCodes=Boolean(settings.showCodes);
         state.zoom=clamp(settings.zoom??1,.0625,2);state.paletteMode='mard221';state.paletteSeries='all';state.maxColors=Math.round(clamp(settings.maxColors??32,2,64));state.mergeStrength=Math.round(clamp(settings.mergeStrength??10,0,30));state.protectDark=settings.protectDark!==false;state.sizeMode=settings.sizeMode==='board'?'board':'pattern';state.aspectLock=settings.aspectLock!==false;state.boardProfile=BOARD_PROFILES[settings.boardProfile]?settings.boardProfile:'mini52';state.boardTilesX=Math.max(1,Math.round(settings.boardTilesX||1));state.boardTilesY=Math.max(1,Math.round(settings.boardTilesY||1));state.majorGridStep=[5,10,29].includes(Number(settings.majorGridStep))?Number(settings.majorGridStep):10;
+        const making=project.making||{},completedCodes=Array.isArray(making.completedColorCodes)?making.completedColorCodes:[];
+        state.completedColorCodes=new Set(completedCodes.filter(code=>typeof code==='string'&&colorByCode.has(code)));
+        state.makingFocusColor=typeof making.focusColorCode==='string'?(colorByCode.get(making.focusColorCode)??null):null;state.makingMode=false;state.makingShowAll=false;
         els.processMode.value=['cartoon','detail','document','photo','pixel'].includes(settings.processMode)?settings.processMode:'cartoon';
         els.processModeHint.textContent=modeHint(els.processMode.value);els.fitMode.value=settings.fitMode==='contain'?'contain':'cover';els.whiteMode.value=settings.whiteMode==='keep'?'keep':'auto';
         els.maxColors.value=state.maxColors;els.maxColorsValue.textContent=t('unit.colorsValue',{count:state.maxColors});els.mergeStrength.value=state.mergeStrength;els.mergeStrengthValue.textContent=state.mergeStrength;els.protectDark.checked=state.protectDark;els.aspectLock.checked=state.aspectLock;els.boardProfile.value=state.boardProfile;els.majorGridStep.value=state.majorGridStep;els.gridCols.value=cols;els.gridRows.value=rows;
@@ -3537,6 +3691,7 @@ import {
       els.cropApplyBtn.addEventListener('click',applyCrop);
       els.cropDialog.addEventListener('cancel',event=>{event.preventDefault();closeCropDialog();});
       els.readyExportBtn?.addEventListener('click',exportPng);
+      els.readyMakeBtn?.addEventListener('click',startMaking);
       els.readySaveBtn?.addEventListener('click',()=>saveProject());
       els.readyShareBtn?.addEventListener('click',sharePattern);
       els.readyShareCardBtn?.addEventListener('click',openShareCardDialog);
@@ -3544,6 +3699,12 @@ import {
       els.shareFormat?.addEventListener('change',renderShareCardPreview);
       els.shareCardDownloadBtn?.addEventListener('click',exportShareCard);
       els.shareDialog?.addEventListener('cancel',event=>{event.preventDefault();closeShareCardDialog();});
+      els.makingPrevBtn?.addEventListener('click',()=>cycleMakingColor(-1));
+      els.makingCompleteBtn?.addEventListener('click',toggleFocusedColorComplete);
+      els.makingNextBtn?.addEventListener('click',()=>cycleMakingColor(1));
+      els.makingShowAllBtn?.addEventListener('click',()=>{state.makingShowAll=true;state.makingFocusColor=null;drawPattern();updateStats();});
+      els.makingResetBtn?.addEventListener('click',resetMakingProgress);
+      els.makingCloseBtn?.addEventListener('click',stopMaking);
       [els.cropXInput,els.cropYInput,els.cropWInput,els.cropHInput].forEach(input=>input.addEventListener('input',()=>{
         const next=cropFromInputs();if(!next)return;state.cropDraft=next;drawCropPreview();
       }));
@@ -3622,6 +3783,7 @@ import {
       if(els.copyStatsBtn)els.copyStatsBtn.addEventListener('click',()=>{copyStatsList();});
       els.projectInput.addEventListener('change',()=>loadProjectFile(els.projectInput.files[0]));
       [els.exportPngBtn,els.topExportBtn].forEach(button=>button.addEventListener('click',exportPng));
+      els.exportCsvBtn?.addEventListener('click',exportMaterialsCsv);
       els.printBtn.addEventListener('click',printPreview);
 
       window.addEventListener('keydown',event=>{

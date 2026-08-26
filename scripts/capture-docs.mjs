@@ -133,8 +133,11 @@ try {
     });
     const page = await context.newPage();
     await loadRocket(page, definition.locale);
-    await page.screenshot({ path: join(assets, definition.file) });
     if (!definition.mobile) await captureShareCard(page, definition.locale);
+    await page.locator('#readyMakeBtn').click();
+    await page.locator('#makingAssistant').waitFor({ state: 'visible' });
+    await page.evaluate(() => document.querySelector('#toast')?.classList.remove('is-visible'));
+    await page.screenshot({ path: join(assets, definition.file) });
     await context.close();
     console.log(`Captured ${definition.file}`);
   }
