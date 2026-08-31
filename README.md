@@ -171,6 +171,8 @@ npm run qa
 
 维护者可以运行 `npm run metrics` 查看 GitHub 官方公开 API 返回的 Stars、Forks、Open Issues 和真实 Release asset 下载量。该脚本不在网页中运行，也不会追踪应用访问者。
 
+需要核验项目活跃度、社区处理记录、发布安全和公开数据边界时，请查看[项目健康度与公开影响证据](docs/project-health.zh-CN.md)。
+
 ## 主要能力与工程边界
 
 - 黑白线稿的小尺寸拓扑精修和分离部件保护。

@@ -173,6 +173,8 @@ For a first contribution, browse [`good first issue`](https://github.com/zwhy149
 
 Maintainers can run `npm run metrics` to read Stars, Forks, Open Issues, and real Release asset download counts from GitHub's public API. The script is not included in the web app and never tracks app visitors.
 
+For reproducible project-activity signals, community review records, release safeguards, and explicit evidence boundaries, see [Project health and public impact evidence](docs/project-health.md).
+
 ## Main capabilities and engineering boundaries
 
 - Topology-aware refinement for small black-and-white line art.

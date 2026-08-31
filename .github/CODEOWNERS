@@ -1,1 +1,8 @@
+# Default review routing. This does not replace branch protection or CI.
 * @zwhy149
+
+# Changes with release, security, or palette-provenance impact need maintainer review.
+/.github/workflows/ @zwhy149
+/src/palettes/ @zwhy149
+/SECURITY.md @zwhy149
+/NOTICE @zwhy149
