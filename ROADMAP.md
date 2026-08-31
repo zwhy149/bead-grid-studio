@@ -12,8 +12,9 @@ The roadmap is evidence-driven. An item moves into a release only when it has ac
 
 ## 1.2 — Making workflow
 
-- [ ] Focus mode with current-color isolation and completed-region tracking.
-- [ ] Progress saved locally without source-image upload.
+- [x] Focus mode with current-color isolation and completed-color tracking.
+- [x] Progress saved locally and in editable projects without source-image upload.
+- [x] UTF-8 CSV material export with per-color completion state.
 - [ ] Keyboard and screen-reader workflow for marking sections complete.
 - [ ] Paginated SVG/PDF export by physical board.
 

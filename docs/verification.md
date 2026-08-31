@@ -1,13 +1,13 @@
 # Verification report
 
-Release target: 1.1.1
-Date: 2026-08-17
+Release target: 1.2.0
+Date: 2026-08-26
 
 ## Repeatable repository gates
 
 - Source checks: unique DOM ids, relative deploy paths, palette shape, service-worker scope/cache constraints.
 - Unit tests: locale priority and normalization, long-side sizing, portrait/EXIF orientation, extreme ratios, real-board placement, contain/cover costs, palette-provider shape, counts, and anchors.
-- Browser tests: Chinese/English switching, bundled sample generation, Web Share and Copy Link paths, exact social-card dimensions, 360/390/768/1440 responsive bounds, desktop/mobile layouts, runtime errors, mobile tool-sheet focus behavior, 80 built-in conversion regressions, a real upload → Worker → resize → PNG download path, scoped PWA cache cleanup, offline legal pages, and direct `file://` execution of the portable HTML.
+- Browser tests: Chinese/English switching, bundled sample generation, Web Share and Copy Link paths, exact social-card dimensions, material-share rounding, copyable shopping lists, making-progress persistence and CSV export, 1280/390 making-layout bounds, 360/390/768/1440 onboarding bounds, desktop/mobile layouts, runtime errors, mobile tool-sheet focus behavior, 82 built-in conversion/UI regressions, a real upload → Worker → resize → PNG download path, scoped PWA cache cleanup, offline legal pages, and direct `file://` execution of the portable HTML.
 - Build: Vite PWA assets plus a single-file HTML with inlined JavaScript/CSS and SHA-256 output.
 
 Run all gates with:
