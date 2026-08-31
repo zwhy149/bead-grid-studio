@@ -2,6 +2,21 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-08-26
+
+### Added
+
+- Added a bilingual Making Assistant that isolates the active color, dims other colors, and marks completed colors directly on the working canvas.
+- Added color-by-color completion tracking with bead/color progress, previous/next navigation, and direct focus controls in the material list.
+- Persisted completed color codes and the active color in editable projects and local recovery drafts without storing the source image.
+- Added UTF-8 CSV material export with code, localized name, screen-reference HEX, quantity, and completion state.
+- Added a browser regression covering progress, project recovery, CSV output, and 1280/390-pixel responsive geometry.
+
+### Changed
+
+- Reworked post-generation actions so “Start Making” is a first-class next step alongside export, save, and share.
+- Turned material rows into accessible focus and completion controls while preserving live quantities and deterministic sorting.
+
 ## [1.1.3] - 2026-08-22
 
 ### Added

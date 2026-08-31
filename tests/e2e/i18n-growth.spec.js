@@ -124,3 +124,74 @@ test('share-card exports have exact social dimensions', async ({ page }, testInf
     if (await page.locator('#shareDialog').isVisible()) await page.locator('#shareCardCloseBtn').click();
   }
 });
+
+test('making assistant tracks one color, survives recovery, and exports materials CSV', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'making-state and download workflow runs once in Chromium');
+  await page.goto('/?lang=en-US');
+  await page.locator('#trySampleBtn').click();
+  await waitForPattern(page);
+
+  await expect(page.locator('.stat-percent').first()).toBeVisible();
+  await page.evaluate(() => Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.__copiedMaterialList=text;}}}));
+  await page.locator('#copyStatsBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__copiedMaterialList || '')).toMatch(/Fuse bead shopping list[\s\S]+beads/);
+
+  await page.locator('#readyMakeBtn').click();
+  await expect(page.locator('#makingAssistant')).toBeVisible();
+  await expect(page.locator('#makingProgressBar')).toHaveAttribute('aria-valuenow', '0');
+  await page.locator('#makingCompleteBtn').click();
+  await expect.poll(async () => Number(await page.locator('#makingProgressBar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+  await expect(page.locator('.stat-row.is-complete')).toHaveCount(1);
+
+  for (const [width, height] of [[1280, 720], [390, 844]]) {
+    await page.setViewportSize({ width, height });
+    const geometry = await page.evaluate(() => {
+      const box=node=>{const rect=node.getBoundingClientRect();return {left:rect.left,right:rect.right,width:rect.width,height:rect.height};};
+      const assistant=box(document.querySelector('#makingAssistant'));
+      const stage=box(document.querySelector('.stage-panel'));
+      const palette=box(document.querySelector('#palettePanel'));
+      const controls=[...document.querySelectorAll('#makingAssistant button')].map(box);
+      return {viewport:innerWidth,document:document.documentElement.scrollWidth,assistant,stage,palette,controls,paletteVisible:palette.width>100};
+    });
+    expect(geometry.document, `${width}px making document width`).toBeLessThanOrEqual(geometry.viewport);
+    expect(geometry.assistant.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.assistant.right).toBeLessThanOrEqual(geometry.viewport+.5);
+    if(width>=960&&geometry.paletteVisible)expect(geometry.stage.right).toBeLessThanOrEqual(geometry.palette.left+.5);
+    for(const control of geometry.controls){
+      expect(control.left).toBeGreaterThanOrEqual(geometry.assistant.left-.5);
+      expect(control.right).toBeLessThanOrEqual(geometry.assistant.right+.5);
+      expect(control.height).toBeGreaterThanOrEqual(width<960?44:30);
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 720 });
+
+  await expect.poll(() => page.evaluate(() => {
+    const project = JSON.parse(localStorage.getItem('bead-grid-studio:draft:v2') || 'null');
+    return project?.making?.completedColorCodes?.length || 0;
+  })).toBe(1);
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.locator('#exportCsvBtn').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/-materials\.csv$/);
+  const csv = await readFile(await download.path(), 'utf8');
+  expect(csv.replace(/^\uFEFF/, '')).toMatch(/^Code,Color name,Screen-reference HEX,Count,Completed\r?\n/);
+  expect(csv).toMatch(/,Yes\r?\n/);
+
+  await page.reload();
+  await expect(page.locator('#restoreDraftBtn')).toBeVisible();
+  await page.locator('#restoreDraftBtn').click();
+  await waitForPattern(page);
+  await page.locator('#readyMakeBtn').click();
+  await expect.poll(async () => Number(await page.locator('#makingProgressBar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+  await expect(page.locator('.stat-row.is-complete')).toHaveCount(1);
+
+  page.once('dialog', dialog=>dialog.accept());
+  await page.locator('[data-size="24"]').click();
+  await expect(page.locator('#makingAssistant')).toBeHidden();
+  await expect(page.locator('#totalBeads')).toHaveText('0');
+  await page.locator('#undoBtn').click();
+  await expect.poll(async () => Number((await page.locator('#totalBeads').textContent())?.replace(/\D/g,'')||0)).toBeGreaterThan(0);
+  await page.locator('#readyMakeBtn').click();
+  await expect.poll(async () => Number(await page.locator('#makingProgressBar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+});

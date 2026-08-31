@@ -42,7 +42,9 @@ Both sides use the repository's original rocket fixture. The right side is a scr
 - **Automatic color matching** with black/white anchors and protection for important accent colors.
 - **Editable grid** with brush, eraser, picker, mirror, rotate, undo, and redo.
 - **Making-ready details** with per-cell color codes, four-side coordinates, board guides, seams, and material counts.
+- **Color-by-color Making Assistant** that isolates one code, advances after completion, and keeps progress locally.
 - **Printable and resumable output** as a construction-sheet PNG and editable JSON project.
+- **Portable material lists** as UTF-8 CSV with codes, color names, quantities, and completion state.
 - **Local-only processing** with no sign-up and no source-image upload.
 
 ## 30-second Quick Start
@@ -51,7 +53,8 @@ Both sides use the repository's original rocket fixture. The right side is a scr
 2. Select **Try a Sample**. You do not need an image to see a real rocket pattern in seconds.
 3. Choose a long-side cell count or physical board; keep the recommendation if unsure.
 4. Adjust colors or touch up a few cells when needed.
-5. Select **Export Pattern** to save a sheet with codes, coordinates, guides, and bead counts.
+5. Select **Start Making** to place one color at a time, or use **Export Pattern** for a coded build sheet.
+6. Export the material CSV and save the JSON project when you need purchasing or progress records.
 
 You can instead select **Choose Image** and use PNG, JPEG, WebP, or GIF. The image is decoded and converted only in the current browser.
 
@@ -177,6 +180,7 @@ Maintainers can run `npm run metrics` to read Stars, Forks, Open Issues, and rea
 - Common 2.6 mm and 5 mm physical-board layouts without non-uniform pattern scaling.
 - MARD-compatible base 221-code catalog with pinned provenance; opaque conversion uses 220 solid colors and reserves transparent `H1` for manual editing.
 - Construction-sheet PNG with per-cell color codes, coordinates, board guides, seams, and material counts.
+- Color focus, per-color progress, draft/project recovery, and UTF-8 material CSV export.
 - Responsive Web/PWA, portable single-file HTML, and deterministic regression coverage.
 
 ### Why a small grid cannot be “identical”
