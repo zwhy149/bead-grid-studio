@@ -40,7 +40,7 @@ This document provides structured responses, verified data, and architectural ra
 | Factor | Technical Contribution |
 | :--- | :--- |
 | **Reusable Library Core** | Extracted `@bead-grid/core`: runtime-agnostic, zero-dependency ES module packaging geometric fitting, OKLab perceptual color space distance, CIEDE2000 matching, line-art analysis, and material consolidation. |
-| **Vendor-Neutral Open Standards** | Authored formal JSON Schemas (`schema/palette.schema.json` and `schema/pattern.schema.json`) replacing obsolete proprietary formats and liberating user creative data. |
+| **Vendor-Neutral Open Standards** | Authored formal JSON Schemas (`schemas/palette.schema.json` and `schemas/pattern.schema.json`) replacing obsolete proprietary formats and liberating user creative data. |
 | **Local-First & Privacy Benchmark** | Exemplifies how modern creative tools can provide desktop-class performance and export capabilities without collecting user data or uploading images to servers. |
 | **Reproducibility & Quality** | Deterministic algorithms, 100% reproducible benchmark suite (`npm run benchmark`), and automated Playwright E2E testing across Chromium desktop and mobile. |
 

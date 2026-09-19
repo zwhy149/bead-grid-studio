@@ -10,7 +10,7 @@ Repository: `https://github.com/zwhy149/bead-grid-studio`
 
 1. **Decoupled Core Library (`@bead-grid/core`)**: Zero-dependency, DOM-free ES Module with complete TypeScript typings (`packages/core/index.d.ts`). Fully tested and shared across the Web App, CLI, Node scripts, and test suites.
 2. **Headless CLI (`bin/bead-grid.mjs`)**: Ready for terminal-based batch conversions with 24-bit ANSI color art previews and JSON export.
-3. **Open Standards (`schemas/`)**: JSON Schema Draft-07 specifications for Pattern Exchange Format v1 (`schemas/pattern.schema.json`) and Craft Palettes (`schemas/palette.schema.json`).
+3. **Open Standards (`schemas/`)**: JSON Schema 2020-12 specifications for Pattern Exchange Format v1 (`schemas/pattern.schema.json`) and Craft Palettes (`schemas/palette.schema.json`).
 4. **Reproducible Benchmarks (`benchmarks/` / `docs/benchmark.md`)**: Fully automated benchmarking across 16, 24, 32, 48, and 60 grid dimensions with latency, heap delta, and output SHA-256 hashes.
 5. **Deterministic Testing Net (`tests/unit/golden.test.js`)**: 18 tests asserting bitwise-identical SHA-256 output across 3 consecutive runs on 8 diverse golden image fixtures.
 6. **Developer Documentation & Examples**: Clean 5-minute quick starts in `README.md`, runnable projects in `examples/`, and comprehensive system architecture diagrams in `ARCHITECTURE.md`.
@@ -32,7 +32,7 @@ Repository: `https://github.com/zwhy149/bead-grid-studio`
 4. **Added 5-Minute Developer Quick Start**:
    - Provided minimal, copy-pasteable code examples demonstrating how to call `generateBeadPattern` without browser DOM globals.
 5. **Added Schema Validation Command (`npm run schema:validate`)**:
-   - Created `scripts/validate-schemas.mjs` to systematically validate all JSON schemas and example palette files against JSON Schema Draft-07 rules.
+   - Created `scripts/validate-schemas.mjs` to systematically validate all JSON schemas and example palette files against JSON Schema 2020-12 rules.
 6. **Partitioned Project Health Documentation**:
    - In `docs/project-health.md` and `docs/project-health.zh-CN.md`, strictly separated `## Verified Public Metrics` from `## Metrics We Do Not Claim` (MAU/DAU), explicitly documenting our local-first privacy boundary.
 7. **Aligned Roadmap & Impact Documentation**:
@@ -67,7 +67,7 @@ Repository: `https://github.com/zwhy149/bead-grid-studio`
 
 - **Single Canonical Implementation**: Verified that `src/app.js`, `bin/bead-grid.mjs`, `examples/`, `benchmarks/`, and unit tests all consume `@bead-grid/core`.
 - **Cross-Domain Craft Application**: Quantization applies identically to fuse beads, cross-stitch thread counting, mosaic tiles, and pixel art sprites.
-- **Open Data Standards**: JSON Schema Draft-07 for craft patterns and palettes breaks proprietary desktop format lock-in.
+- **Open Data Standards**: JSON Schema 2020-12 for craft patterns and palettes breaks proprietary desktop format lock-in.
 
 ---
 

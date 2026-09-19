@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { decodePng } from '../tests/helpers/png.js';
+import { decodePng } from '../src/adapters/png.js';
 import {
   generateBeadPattern,
   quantizePixels,

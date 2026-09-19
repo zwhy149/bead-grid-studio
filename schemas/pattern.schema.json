@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://zwhy149.github.io/bead-grid-studio/schema/pattern.schema.json",
+  "$id": "https://zwhy149.github.io/bead-grid-studio/schemas/pattern.schema.json",
   "title": "BeadGridStudioPattern",
   "description": "JSON Schema for Bead Grid Studio open pattern exchange format (v1).",
   "type": "object",

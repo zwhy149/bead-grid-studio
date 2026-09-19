@@ -111,7 +111,7 @@ export function analyzePattern(cells, palette = getPaletteProvider().colors) {
 }
 
 /**
- * Creates a structured pattern exchange model conforming to schema/pattern.schema.json.
+ * Creates a structured pattern exchange model conforming to schemas/pattern.schema.json.
  */
 export function createPattern({
   width,
@@ -257,7 +257,7 @@ export function parsePattern(input, options = {}) {
 }
 
 /**
- * Validates whether an object conforms to schema/pattern.schema.json.
+ * Validates whether an object conforms to schemas/pattern.schema.json.
  * @param {any} input
  * @returns {{ valid: boolean, errors: string[] }}
  */

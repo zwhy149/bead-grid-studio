@@ -31,7 +31,7 @@ The project extracts and maintains `@bead-grid/core` in `packages/core/`:
 
 # Open Pattern Format
 
-- **Specification**: Formal JSON Schema Draft-07 in `schemas/pattern.schema.json`.
+- **Specification**: Formal JSON Schema 2020-12 in `schemas/pattern.schema.json`.
 - **Currently Implemented Capabilities**:
   - Standardizes the Pattern Exchange Format v1: metadata, grid dimensions, 2D cell color code matrix, and bill of materials (BOM).
   - Provides built-in programmatic validation (`validatePattern()`), serialization, and automatic migration from legacy v0 formats.
@@ -42,7 +42,7 @@ The project extracts and maintains `@bead-grid/core` in `packages/core/`:
 
 # Open Palette Format
 
-- **Specification**: Formal JSON Schema Draft-07 in `schemas/palette.schema.json`.
+- **Specification**: Formal JSON Schema 2020-12 in `schemas/palette.schema.json`.
 - **Currently Implemented Capabilities**:
   - Standardizes brand-agnostic color definitions: color code, name, hex, optional OKLab coordinates, and anchor definitions (transparent, white, black).
   - Includes sample palettes in `examples/palettes/` (`mini-starter-12.json`, `monochrome-8.json`).

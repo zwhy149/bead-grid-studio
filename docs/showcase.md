@@ -14,7 +14,7 @@ You can share your work directly on GitHub to be featured in our official galler
    - **Photo**: A high-resolution photo of your finished physical bead piece or screenshot.
    - **Board Dimensions**: e.g., 29x29 mini pegboard, 52x52 large board.
    - **Colors Used**: e.g., MARD-221 (8 colors: H7, H2, A14, etc.) or custom palette.
-   - **Pattern File**: Attach or paste the exported pattern JSON file conforming to `schema/pattern.schema.json`.
+   - **Pattern File**: Attach or paste the exported pattern JSON file conforming to `schemas/pattern.schema.json`.
    - **Author Attribution**: Your social handle, portfolio, or nickname.
 
 ---

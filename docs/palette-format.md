@@ -2,7 +2,7 @@
 
 The Bead Grid Studio Palette Format is an open, JSON-based specification for defining constrained bead and craft color catalogs. It enables manufacturers, craft communities, and third-party developers to define, share, and validate custom palettes that work seamlessly with the quantization engine.
 
-The canonical JSON Schema is published at [`schema/palette.schema.json`](../schema/palette.schema.json).
+The canonical JSON Schema is published at [`schemas/palette.schema.json`](../schemas/palette.schema.json).
 
 ---
 
@@ -12,7 +12,7 @@ A palette file must be a JSON object containing the following properties:
 
 ```json
 {
-  "$schema": "https://zwhy149.github.io/bead-grid-studio/schema/palette.schema.json",
+  "$schema": "https://zwhy149.github.io/bead-grid-studio/schemas/palette.schema.json",
   "schemaVersion": 1,
   "id": "my-brand-palette-120",
   "name": "My Brand 120-Color Standard",

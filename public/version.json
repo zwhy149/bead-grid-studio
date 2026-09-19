@@ -1,7 +1,7 @@
 {
   "product": "Bead Grid Studio Community",
-  "version": "1.2.0",
-  "buildDate": "2026-08-26",
+  "version": "1.3.0",
+  "buildDate": "2026-09-19",
   "projectFormat": 2,
   "palette": "MARD-compatible base 221",
   "paletteSource": "maxcleme/beadcolors@94b99999652866f1a1879d6369fe735f811949e5",

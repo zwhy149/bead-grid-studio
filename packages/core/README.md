@@ -13,7 +13,7 @@
 - **Line Art & Feature Preservation**: Component-ownership skeletonization preserves thin outlines and small facial features (eyes, nose) at low resolutions without line blurring.
 - **Adaptive Background Extraction**: Otsu thresholding with boundary-connected flood-fill distinguishes subject white areas from outer transparent space.
 - **Material Budgeting**: Intelligent color clustering minimizes required physical bead colors while preserving critical contrast and highlight anchors.
-- **Open Exchange Formats**: Native serialization conforming to versioned [JSON Schemas](../../schema/).
+- **Open Exchange Formats**: Native serialization conforming to versioned [JSON Schemas](../../schemas/).
 
 ---
 

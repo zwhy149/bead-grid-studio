@@ -58,7 +58,7 @@ The updated architecture enforces clear layer separation between user entrypoint
                                      v
 +------------------------------------+------------------------------------+
 |                         Outputs & Schemas                               |
-|  - schemas/pattern.schema.json & schemas/palette.schema.json (Draft-07)  |
+|  - schemas/pattern.schema.json & schemas/palette.schema.json (2020-12)  |
 |  - Printable Construction Sheets (SVG), CSV BOM, ANSI Terminal Art     |
 +-------------------------------------------------------------------------+
 ```
@@ -89,7 +89,7 @@ The standalone package `@bead-grid/core` is located in `packages/core/`:
 # Pattern Exchange Format
 
 The project defines an open, vendor-neutral data standard for physical pixel crafts:
-- **Specification**: Defined in `schemas/pattern.schema.json` (JSON Schema Draft-07).
+- **Specification**: Defined in `schemas/pattern.schema.json` (JSON Schema 2020-12).
 - **Structure**:
   - `version`: Integer format version (`1`).
   - `metadata`: Pattern title, author, board dimensions, creation timestamp, license.
@@ -103,7 +103,7 @@ The project defines an open, vendor-neutral data standard for physical pixel cra
 # Palette Format
 
 Palette definitions are standardized to encourage open color sharing among craft brands:
-- **Specification**: Defined in `schemas/palette.schema.json` (JSON Schema Draft-07).
+- **Specification**: Defined in `schemas/palette.schema.json` (JSON Schema 2020-12).
 - **Structure**: Includes `paletteId`, `name`, `version`, `colors` array with `code`, `name`, `hex`, and optional OKLab coordinates (`L`, `a`, `b`).
 - **Standard Library**: Built-in MARD 221 color catalog (`packages/core/src/palette.js`), pinned with SHA-256 provenance against upstream color standards.
 - **Sample Palettes**: Provided in `examples/palettes/mini-starter-12.json` and `examples/palettes/monochrome-8.json`.

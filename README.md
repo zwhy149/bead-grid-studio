@@ -158,7 +158,7 @@ Bead Grid Studio 不仅是一个面向最终用户的 Web/PWA 工具，本项目
 
 - **DOM-free 图像量化核心** (`packages/core/`，`@bead-grid/core`)：0 外部依赖的纯 JavaScript ES Module，可在 Node.js、浏览器 Worker、Deno 等多环境无差异执行 OKLab 与 CIEDE2000 色差量化。详见 [Core 文档](packages/core/README.md)。
 - **无头命令行工具** (`bin/bead-grid.mjs`)：终端一行命令完成图像转拼豆施工图，输出 ANSI 24-bit 终端彩色预览或标准 JSON。详见 [CLI 示例](examples/cli/README.md)。
-- **开放图纸与色板规范** (`schemas/`)：基于 JSON Schema Draft-07 的版本化数据标准，打破封闭工艺文件格式壁垒。详见 [图纸规范说明](docs/pattern-format.md) 与 [色板规范说明](docs/palette-format.md)。
+- **开放图纸与色板规范** (`schemas/`)：基于 JSON Schema 2020-12 的版本化数据标准，打破封闭工艺文件格式壁垒。详见 [图纸规范说明](docs/pattern-format.md) 与 [色板规范说明](docs/palette-format.md)。
 - **可复现基准测试套件** (`benchmarks/`)：覆盖 16、24、32、48、60 全规格网格，测量量化延迟、内存占用与 100% 位一致性（Determinism）。详见 [性能基准文档](docs/benchmark.md)。
 - **开箱即用集成范例** (`examples/`)：包含原生浏览器、Node.js 批处理流水线、CLI 脚本及自定义品牌色板注册。
 
@@ -169,7 +169,7 @@ Web / PWA (Browser UI) ──────> Browser Adapter ──┐
 Headless CLI (Node.js) ──────────────────────────┼──> @bead-grid/core
 Node.js Pipeline / Script ───────────────────────┤     ├── Pattern Model & BOM
 Automated Tests / Benchmarks ────────────────────┘     ├── OKLab / CIEDE2000 Matching
-                                                       └── Open Schemas (Draft-07)
+                                                       └── Open Schemas (2020-12)
 ```
 
 系统详细架构设计与数据流说明详见 [ARCHITECTURE.md](ARCHITECTURE.md)。
@@ -227,7 +227,7 @@ npm run health      # 运行项目健康与公开指标检查
 ## 当前重点与路线图
 
 - [x] 解耦 `@bead-grid/core` 核心独立包与纯 Node.js CLI 工具。
-- [x] 发布开放色板规范与图纸交换 JSON Schema (Draft-07)。
+- [x] 发布开放色板规范与图纸交换 JSON Schema (JSON Schema 2020-12)。
 - [x] 建立可复现量化基准套件与性能报告 (`benchmarks/` / `docs/benchmark.md`)。
 - [x] 按色制作助手：单色号隔离、逐色完成进度、本地草稿恢复与 UTF-8 CSV 导出。
 - [ ] 物理底板分割：大图自动切片为 29x29 / 52x52 物理底板分页打印 (SVG/PDF)。
@@ -285,7 +285,7 @@ MARD、Artkal、Hama、Perler 等是第三方标识，本项目与这些品牌�
 
 ```text
 packages/core/            解耦的 DOM-free 图像量化核心库与 TypeScript 定义
-schemas/                  开放数据规范（图纸与色板 JSON Schema Draft-07）
+schemas/                  开放数据规范（图纸与色板 JSON Schema 2020-12）
 bin/                      无头 Node.js CLI 工具 (bead-grid)
 examples/                 Browser、Node.js 与 CLI 集成范例
 src/                      浏览器应用、核心 Module、i18n 和色板数据

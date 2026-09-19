@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://zwhy149.github.io/bead-grid-studio/schema/palette.schema.json",
+  "$id": "https://zwhy149.github.io/bead-grid-studio/schemas/palette.schema.json",
   "title": "BeadGridStudioPalette",
   "description": "JSON Schema for Bead Grid Studio open palette definitions.",
   "type": "object",

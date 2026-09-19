@@ -27,8 +27,8 @@ This document contains strictly verified, factual data points for open-source gr
 | :--- | :---: | :--- |
 | **Reusable Core** | **YES** | [`packages/core/`](../packages/core/README.md): Zero-dependency, DOM-free ES Module with TypeScript definitions (`index.d.ts`), exporting `generateBeadPattern`, `quantizePixels`, and OKLab/CIEDE2000 math. |
 | **CLI** | **YES** | [`bin/bead-grid.mjs`](../bin/bead-grid.mjs): Headless command-line tool supporting ANSI previews, custom palettes, and JSON pattern outputs. |
-| **Pattern Schema** | **YES** | [`schemas/pattern.schema.json`](../schemas/pattern.schema.json): JSON Schema Draft-07 defining open Pattern Exchange Format v1. |
-| **Palette Schema** | **YES** | [`schemas/palette.schema.json`](../schemas/palette.schema.json): JSON Schema Draft-07 defining standardized craft color palettes. |
+| **Pattern Schema** | **YES** | [`schemas/pattern.schema.json`](../schemas/pattern.schema.json): JSON Schema 2020-12 defining open Pattern Exchange Format v1. |
+| **Palette Schema** | **YES** | [`schemas/palette.schema.json`](../schemas/palette.schema.json): JSON Schema 2020-12 defining standardized craft color palettes. |
 | **Benchmarks** | **YES** | [`benchmarks/run-benchmark.mjs`](../benchmarks/run-benchmark.mjs): Evaluates 16, 24, 32, 48, 60 cell grids with latency, memory, and SHA-256 hashes recorded in [`docs/benchmark.md`](benchmark.md). |
 | **Examples** | **YES** | [`examples/`](../examples/): Working runnable examples for browser ES modules, Node.js pipelines, CLI scripts, and custom palettes. |
 | **CI** | **YES** | [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): Node 24 matrix running source integrity checks, unit tests, and Playwright Chromium smoke suites. |

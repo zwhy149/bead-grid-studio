@@ -21,9 +21,9 @@ Auditor: Senior Open Source Maintainer & Release Engineer
    - Outputs ANSI 24-bit color terminal preview and standardized JSON patterns.
 
 3. **Open Standards & JSON Schemas**:
-   - `schemas/pattern.schema.json` (JSON Schema Draft-07): Standardized Pattern Exchange Format v1.
-   - `schemas/palette.schema.json` (JSON Schema Draft-07): Standardized Craft Palette specification.
-   - Both schemas validated and mirrored in `schema/` for backwards-compatible paths.
+   - `schemas/pattern.schema.json` (JSON Schema 2020-12): Standardized Pattern Exchange Format v1.
+   - `schemas/palette.schema.json` (JSON Schema 2020-12): Standardized Craft Palette specification.
+   - Both schemas validated via `npm run schema:validate` under canonical `schemas/` directory.
 
 4. **Integration Examples**:
    - `examples/browser/`: Standalone browser ES Module integration without build steps.

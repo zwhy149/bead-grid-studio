@@ -127,7 +127,7 @@ bead-grid-studio/
 │           ├── analysis.js       # Image complexity, edge density, line-art
 │           ├── quantize.js       # Core quantization pipeline
 │           └── pattern.js        # Pattern v1 data model & validation
-├── schemas/                      # Formal JSON Schema definitions (Draft-07)
+├── schemas/                      # Formal JSON Schema definitions (JSON Schema 2020-12)
 │   ├── palette.schema.json       # Palette exchange specification
 │   └── pattern.schema.json       # Pattern exchange specification
 ├── bin/

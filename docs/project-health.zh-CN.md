@@ -30,7 +30,7 @@ Bead Grid Studio 是本地优先的拼豆图纸生成器与像素工艺量化引
 | **便携单 HTML 体积** | **414.5 KB** | `npm run build` 生成的单文件离线版 (`release/bead-grid-studio-v1.2.0.html`) |
 | **单元测试通过数** | **38 passed** | `npm run test:unit`（Node.js 原生测试） |
 | **确定性测试通过数** | **18 passed** | `npm run test:determinism`（8 组黄金夹具 3 轮运行位一致性断言） |
-| **支持开放规范数** | **2 个 Schema** | JSON Schema Draft-07 (`schemas/pattern.schema.json`, `schemas/palette.schema.json`) |
+| **支持开放规范数** | **2 个 Schema** | JSON Schema 2020-12 (`schemas/pattern.schema.json`, `schemas/palette.schema.json`) |
 | **核心算法库** | **ESM 独立包** | `@bead-grid/core`（0 外部运行时依赖） |
 | **开源许可证** | **Apache-2.0** | [`LICENSE`](../LICENSE) |
 

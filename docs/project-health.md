@@ -30,7 +30,7 @@ Bead Grid Studio is a local-first fuse-bead pattern generator and craft quantiza
 | **Single-File Portable HTML** | **414.5 KB** | `npm run build` (`release/bead-grid-studio-v1.2.0.html`, SHA-256 verified) |
 | **Unit Test Coverage** | **38 passed** | `npm run test:unit` (Node.js native test runner) |
 | **Determinism Suite** | **18 passed** | `npm run test:determinism` (3 consecutive runs across 8 golden fixtures) |
-| **Supported Open Schemas** | **2** | JSON Schema Draft-07 (`schemas/pattern.schema.json`, `schemas/palette.schema.json`) |
+| **Supported Open Schemas** | **2** | JSON Schema 2020-12 (`schemas/pattern.schema.json`, `schemas/palette.schema.json`) |
 | **Core Architecture** | **ESM Standalone** | `@bead-grid/core` (0 external runtime dependencies) |
 | **License** | **Apache-2.0** | [`LICENSE`](../LICENSE) |
 

@@ -31,7 +31,7 @@ All three commands pass out-of-the-box in seconds using Node's native test runne
 
 ## 3. Which files best prove ecosystem value?
 1. [`packages/core/src/index.js`](../packages/core/src/index.js) & [`packages/core/index.d.ts`](../packages/core/index.d.ts): Runtime-agnostic, zero-dependency ES Module exporting `generateBeadPattern`, `quantizePixels`, and OKLab/CIEDE2000 math.
-2. [`schemas/pattern.schema.json`](../schemas/pattern.schema.json) & [`schemas/palette.schema.json`](../schemas/palette.schema.json): Standardized JSON Schemas (Draft-07) establishing vendor-neutral physical craft data exchange.
+2. [`schemas/pattern.schema.json`](../schemas/pattern.schema.json) & [`schemas/palette.schema.json`](../schemas/palette.schema.json): Standardized JSON Schemas (JSON Schema 2020-12) establishing vendor-neutral physical craft data exchange.
 3. [`bin/bead-grid.mjs`](../bin/bead-grid.mjs): Headless CLI tool enabling terminal batch processing and ANSI color art previews.
 4. [`examples/`](../examples/): Real, runnable integration examples for Browser, Node.js pipelines, and custom palettes.
 

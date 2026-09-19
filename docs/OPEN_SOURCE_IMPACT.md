@@ -51,8 +51,8 @@ By isolating algorithmic geometry, perceptual color science (OKLab, CIELAB, CIED
 
 ### 2. Open Data Exchange Standards
 Bead Grid Studio establishes formal JSON Schemas:
-- **`schema/palette.schema.json`**: Enables any physical bead manufacturer, craft brand, or individual artist to publish versioned color catalogs with RGB and perceptual color definitions.
-- **`schema/pattern.schema.json`**: An open interchange format for grid patterns that liberates crafters from proprietary `.dat` or `.pat` files, allowing seamless interoperability between generators, viewers, and robotic assemblers.
+- **`schemas/palette.schema.json`**: Enables any physical bead manufacturer, craft brand, or individual artist to publish versioned color catalogs with RGB and perceptual color definitions.
+- **`schemas/pattern.schema.json`**: An open interchange format for grid patterns that liberates crafters from proprietary `.dat` or `.pat` files, allowing seamless interoperability between generators, viewers, and robotic assemblers.
 
 ### 3. Local-First & Zero-Telemetry Philosophy
 Demonstrates that production-grade creative software can achieve high adoption and delight users without harvesting user images, setting tracking cookies, or erecting paywalls.

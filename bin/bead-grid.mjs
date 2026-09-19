@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decodePng } from '../tests/helpers/png.js';
+import { decodePng } from '../src/adapters/png.js';
 import {
   generateBeadPattern,
   createCustomPalette,

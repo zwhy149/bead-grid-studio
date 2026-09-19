@@ -31,8 +31,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.2.0';
-    const BUILD_DATE = '2026-08-26';
+    const APP_VERSION = '1.3.0';
+    const BUILD_DATE = '2026-09-19';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);

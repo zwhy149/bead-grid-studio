@@ -160,7 +160,7 @@ flowchart TD
 - **P0-1**：建立高精度回归锁定测试（Golden Fixture Regression Tests），确保图像转换结果像素级确定性不变。
 - **P0-2**：抽离 `packages/core` 纯逻辑引擎（Geometry, Color, Quantize, Palette, Pattern），完全脱离 DOM。
 - **P0-3**：重构 `src/app.js` 统一引用 `packages/core`，消除内联重复色彩数学代码与 Web Worker 字符串拼凑。
-- **P0-4**：制定与输出标准化 JSON Schema：`schema/palette.schema.json` 与 `schema/pattern.schema.json`。
+- **P0-4**：制定与输出标准化 JSON Schema：`schemas/palette.schema.json` 与 `schemas/pattern.schema.json`。
 - **P0-5**：创建 Node.js 命令行工具（CLI）与零依赖集成样例（`examples/node-cli`、`examples/custom-palette` 等）。
 - **P0-6**：编写 `scripts/project-health.mjs`，自动采集并生成真实可验证的 `project-health.json` 与 `docs/project-health.md`。
 - **P0-7**：升级中英文 `README` 首屏结构，突出“开源引擎 + 应用”，清晰列出使用路径与真实采用数据。

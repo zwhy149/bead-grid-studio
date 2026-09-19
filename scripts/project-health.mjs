@@ -14,12 +14,13 @@ const API_VERSION = '2022-11-28';
 const BASELINE_METRICS = {
   stars: 175,
   forks: 19,
-  openIssues: 7,
-  openPullRequests: 0,
+  openIssues: 4,
+  openPullRequests: 3,
   releases: 7,
   totalAssetDownloads: 156,
   contributors: 3,
   lastRelease: 'v1.2.0',
+  capturedAt: '2026-09-19T04:46:04.290Z',
   releaseDetails: [
     { tag: 'v1.2.0', downloads: 18, name: 'v1.2.0' },
     { tag: 'v1.1.3', downloads: 15, name: 'v1.1.3' },
@@ -73,6 +74,7 @@ async function fetchLiveGitHubMetrics(repository) {
 
   return {
     source: 'live-api',
+    capturedAt: new Date().toISOString(),
     stars: repoData.stargazers_count,
     forks: repoData.forks_count,
     openIssues: openIssuesOnly,
@@ -96,7 +98,7 @@ function inspectLocalCodeHealth() {
   const corePkgPath = path.join(rootDir, 'packages', 'core', 'package.json');
   const corePkg = JSON.parse(fs.readFileSync(corePkgPath, 'utf8'));
 
-  const portableHtmlPath = path.join(rootDir, 'release', 'bead-grid-studio-v1.2.0.html');
+  const portableHtmlPath = path.join(rootDir, 'release', `bead-grid-studio-v${pkg.version}.html`);
   const portableSize = fs.existsSync(portableHtmlPath) ? fs.statSync(portableHtmlPath).size : null;
 
   // Count test files and assertions
@@ -156,6 +158,7 @@ async function main() {
       totalAssetDownloads: githubMetrics.totalAssetDownloads,
       contributors: githubMetrics.contributors,
       lastRelease: githubMetrics.lastRelease,
+      capturedAt: githubMetrics.capturedAt || '2026-09-19T04:46:04.290Z',
       releasesBreakdown: githubMetrics.releaseDetails,
       license: 'Apache-2.0',
     },

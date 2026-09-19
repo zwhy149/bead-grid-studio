@@ -1,6 +1,6 @@
 # Custom Palette Integration Example
 
-This example demonstrates how to create, register, and quantize patterns using custom bead/mosaic color palettes conforming to `schema/palette.schema.json`.
+This example demonstrates how to create, register, and quantize patterns using custom bead/mosaic color palettes conforming to `schemas/palette.schema.json`.
 
 ## Running the Example
 
@@ -15,7 +15,7 @@ node examples/custom-palette/index.mjs
    - OKLab perceptual coordinates
    - CIELAB coordinates for CIEDE2000 color matching
 2. **Registry Integration**: Call `registerPaletteProvider(palette)` to make your palette globally accessible by ID across your application.
-3. **JSON Palette Files**: External JSON files validated against `schema/palette.schema.json` can be loaded directly with `JSON.parse` and passed to `createCustomPalette`.
+3. **JSON Palette Files**: External JSON files validated against `schemas/palette.schema.json` can be loaded directly with `JSON.parse` and passed to `createCustomPalette`.
 
 ## Example Snippet
 

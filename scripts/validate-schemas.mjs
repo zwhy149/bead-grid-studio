@@ -48,7 +48,7 @@ async function validateSchemas() {
     schemaVersion: 1,
     type: 'bead-grid-studio',
     version: 2,
-    appVersion: '1.2.0',
+    appVersion: '1.3.0',
     title: 'Rocket Badge Pattern',
     createdAt: new Date().toISOString(),
     grid: {

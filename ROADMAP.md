@@ -7,7 +7,7 @@ The roadmap is evidence-driven. An item moves into a release only when it has ac
 ## 1.2 — Core Extraction & Ecosystem Standards (✅ Completed)
 
 - [x] **Reusable Core Engine**: DOM-free `@bead-grid/core` runtime-agnostic library with clean ES Modules and TypeScript types (`index.d.ts`).
-- [x] **Open Data Standards**: Standardized open JSON Schemas (Draft-07) for color palettes (`schemas/palette.schema.json`) and pattern exchange format (`schemas/pattern.schema.json`).
+- [x] **Open Data Standards**: Standardized open JSON Schemas (JSON Schema 2020-12) for color palettes (`schemas/palette.schema.json`) and pattern exchange format (`schemas/pattern.schema.json`).
 - [x] **Headless CLI**: Command-line generator (`bin/bead-grid.mjs`) supporting batch processing, ANSI previews, and JSON exports.
 - [x] **Reproducible Benchmarks**: Standardized benchmark suite (`benchmarks/run-benchmark.mjs`) measuring quantization latency, memory allocation, and 100% bitwise determinism across 16, 24, 32, 48, 60 cell grids.
 - [x] **Developer Examples**: Working integration examples for browser ES modules, Node.js scripts, CLI invocation, and custom palettes (`examples/`).

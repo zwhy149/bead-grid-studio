@@ -15,7 +15,7 @@ Help expand our library of standard craft color sets! You can contribute curated
   - Earth tone 16-color wildlife palette
   - Neon / Cyberpunk 8-color mini palette
 - **Requirements**:
-  - Validates against `schema/palette.schema.json`
+  - Validates against `schemas/palette.schema.json`
   - Accurate physical hex codes (`#RRGGBB`)
   - Unique color codes (e.g. `P01`, `P02`) and names
 - **Reference**: See [Palette Format Documentation](docs/palette-format.md).

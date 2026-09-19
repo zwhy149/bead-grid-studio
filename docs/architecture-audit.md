@@ -45,10 +45,10 @@ const pattern = await generateBeadPattern(rawPixelBuffer, { cols: 48, rows: 48 }
 Only standard image decoding (such as `sharp`, `pngjs`, or pure Node `decodePng`) is required to supply the raw `{ width, height, data }` pixel buffer.
 
 ### E. Is the existing JSON close to a standardized Pattern Format?
-Yes. The internal project save format contains `version`, `grid.cols`, `grid.rows`, `cells`, and `palette`. However, legacy versions (`v1`) stored raw indices into a 64-color palette, and lacked a formal JSON Schema, SHA metadata, or formal export validation. By publishing `schema/pattern.schema.json` with a versioned schema (`schemaVersion: 1`), we preserve 100% backward compatibility for loading legacy project files while defining a vendor-neutral standard.
+Yes. The internal project save format contains `version`, `grid.cols`, `grid.rows`, `cells`, and `palette`. However, legacy versions (`v1`) stored raw indices into a 64-color palette, and lacked a formal JSON Schema, SHA metadata, or formal export validation. By publishing `schemas/pattern.schema.json` with a versioned schema (`schemaVersion: 1`), we preserve 100% backward compatibility for loading legacy project files while defining a vendor-neutral standard.
 
 ### F. Is the custom palette feature close to a standardized Palette Format?
-Yes. The palette structure maps string codes (e.g. `H2`, `A14`) to hexadecimal strings (`#FFFFFF`, `#FF5733`) and localized names. Standardizing it into `schema/palette.schema.json` formalizes the uniqueness of color codes, regex validation of `#RRGGBB` hex strings, and optional anchor assignments (`transparent`, `white`, `black`).
+Yes. The palette structure maps string codes (e.g. `H2`, `A14`) to hexadecimal strings (`#FFFFFF`, `#FF5733`) and localized names. Standardizing it into `schemas/palette.schema.json` formalizes the uniqueness of color codes, regex validation of `#RRGGBB` hex strings, and optional anchor assignments (`transparent`, `white`, `black`).
 
 ### G. Are current tests sufficient to guarantee safe refactoring?
 The test suite now encompasses:
@@ -159,7 +159,7 @@ All DOM and browser interactions are isolated in `src/app.js` and `examples/basi
 
 - Maintain `@bead-grid/core` as the single canonical algorithmic engine.
 - Establish comprehensive Golden Regression Fixtures in `tests/fixtures/` covering all 8 specified visual profiles.
-- Formally support `schemas/` and `schema/` for automated JSON Schema validation.
+- Formally support `schemas/` for automated JSON Schema validation.
 - Provide deterministic benchmark runs across grid sizes `16, 24, 32, 48, 60`.
 - Document local-first aggregate telemetry architecture in `docs/privacy-preserving-metrics.md` without deploying tracking code.
 - Publish `docs/oss-application-facts.md` and `docs/oss-application-draft.md` containing verifiable evidence.

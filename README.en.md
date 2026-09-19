@@ -160,7 +160,7 @@ Bead Grid Studio is not only an end-user Web/PWA application. The repository als
 
 - **DOM-free Quantization Core** (`packages/core/`, `@bead-grid/core`): Runtime-agnostic, zero-dependency ES module executing OKLab and CIEDE2000 color matching identically across Node.js, Web Workers, and Deno. See [Core Documentation](packages/core/README.md).
 - **Headless CLI** (`bin/bead-grid.mjs`): Single-command terminal execution for batch conversion with 24-bit ANSI color terminal previews or JSON exports. See [CLI Examples](examples/cli/README.md).
-- **Open Pattern & Palette Schemas** (`schemas/`): JSON Schema Draft-07 specifications liberating craft patterns from proprietary file formats. See [Pattern Format Guide](docs/pattern-format.md) and [Palette Format Guide](docs/palette-format.md).
+- **Open Pattern & Palette Schemas** (`schemas/`): JSON Schema 2020-12 specifications liberating craft patterns from proprietary file formats. See [Pattern Format Guide](docs/pattern-format.md) and [Palette Format Guide](docs/palette-format.md).
 - **Reproducible Benchmark Suite** (`benchmarks/`): Measures quantization latency, memory overhead, and 100% bitwise determinism across 16, 24, 32, 48, and 60 grid dimensions. See [Benchmark Guide](docs/benchmark.md).
 - **Ready-to-run Examples** (`examples/`): Standalone examples for Browser, Node.js backend pipelines, and custom brand palettes.
 
@@ -171,7 +171,7 @@ Web / PWA (Browser UI) ──────> Browser Adapter ──┐
 Headless CLI (Node.js) ──────────────────────────┼──> @bead-grid/core
 Node.js Pipeline / Script ───────────────────────┤     ├── Pattern Model & BOM
 Automated Tests / Benchmarks ────────────────────┘     ├── OKLab / CIEDE2000 Matching
-                                                       └── Open Schemas (Draft-07)
+                                                       └── Open Schemas (2020-12)
 ```
 
 For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -229,7 +229,7 @@ See the complete [Developer Guide](docs/developer-guide.md).
 ## Current Focus & Roadmap
 
 - [x] Extracted `@bead-grid/core` standalone package and headless Node.js CLI.
-- [x] Published formal JSON Schemas for color palettes and pattern exchange (Draft-07).
+- [x] Published formal JSON Schemas for color palettes and pattern exchange (JSON Schema 2020-12).
 - [x] Implemented reproducible quantization benchmark suite across 16, 24, 32, 48, 60 grids.
 - [x] Color-by-color Making Assistant: color isolation, step-by-step progress tracking, local draft recovery, and UTF-8 CSV BOM export.
 - [ ] Physical pegboard splitting: automatically slice large murals (>100x100) into 29x29 or 52x52 paginated printable sheets (SVG/PDF).
@@ -289,7 +289,7 @@ For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md
 
 ```text
 packages/core/            Decoupled DOM-free core quantization engine & TypeScript definitions
-schemas/                  Open data specifications (Pattern & Palette JSON Schema Draft-07)
+schemas/                  Open data specifications (Pattern & Palette JSON Schema 2020-12)
 bin/                      Headless Node.js CLI tool (bead-grid)
 examples/                 Browser, Node.js, and CLI integration examples
 src/                      Browser app, core modules, i18n, and palette data

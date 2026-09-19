@@ -2,7 +2,7 @@
 
 The Bead Grid Studio Pattern Format is an open, versioned specification for exchanging, storing, and rendering discrete grid-based bead patterns, pixel art, and mosaic craft designs.
 
-The canonical JSON Schema is published at [`schema/pattern.schema.json`](../schema/pattern.schema.json).
+The canonical JSON Schema is published at [`schemas/pattern.schema.json`](../schemas/pattern.schema.json).
 
 ---
 
@@ -10,7 +10,7 @@ The canonical JSON Schema is published at [`schema/pattern.schema.json`](../sche
 
 ```json
 {
-  "$schema": "https://zwhy149.github.io/bead-grid-studio/schema/pattern.schema.json",
+  "$schema": "https://zwhy149.github.io/bead-grid-studio/schemas/pattern.schema.json",
   "schemaVersion": 1,
   "type": "bead-grid-studio",
   "version": 2,

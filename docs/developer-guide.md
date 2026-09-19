@@ -33,8 +33,8 @@ Welcome to the Bead Grid Studio developer guide. This document explains the code
                                v
 +-------------------------------------------------------------+
 |                    Open Data Standards                      |
-|  - schema/palette.schema.json  (JSON Schema Draft-07)       |
-|  - schema/pattern.schema.json  (JSON Schema Draft-07)       |
+|  - schemas/palette.schema.json  (JSON Schema 2020-12)       |
+|  - schemas/pattern.schema.json  (JSON Schema 2020-12)       |
 +-------------------------------------------------------------+
 ```
 
@@ -63,7 +63,7 @@ bead-grid-studio/
 │       ├── index.d.ts           # Complete TypeScript definitions
 │       └── package.json
 ├── public/                      # Static assets and PWA service worker
-├── schema/                      # JSON Schemas (palette & pattern)
+├── schemas/                     # JSON Schemas (palette & pattern, 2020-12)
 ├── scripts/                     # Build, packaging, check, and metrics scripts
 ├── src/                         # Web application UI source
 └── tests/                       # Unit tests, helpers, and Playwright E2E suites
@@ -110,6 +110,8 @@ npm run qa:ci
 ```bash
 npm run benchmark
 ```
+
+See [docs/command-reference.md](command-reference.md) for the complete manual of all npm scripts, flags, and CLI arguments.
 
 ---
 
