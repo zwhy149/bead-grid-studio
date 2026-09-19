@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-19T04:49:54.585Z",
+  "timestamp": "2026-09-19T06:21:24.402Z",
   "environment": {
     "nodeVersion": "v24.15.0",
     "os": "Windows_NT 10.0.26200 (x64)",
@@ -15,62 +15,62 @@
     {
       "gridSize": "16x16",
       "cells": 256,
-      "avgDurationMs": 353.25,
-      "minDurationMs": 145.32,
-      "maxDurationMs": 674.58,
+      "avgDurationMs": 395.85,
+      "minDurationMs": 126.76,
+      "maxDurationMs": 659.56,
       "totalBeads": 122,
       "uniqueColors": 4,
       "checksum": "3b04bbd47b0a2ef9",
       "determinism": "100% bitwise identical",
-      "heapDeltaKb": 7215.3
+      "heapDeltaKb": 8858.1
     },
     {
       "gridSize": "24x24",
       "cells": 576,
-      "avgDurationMs": 151.51,
-      "minDurationMs": 115.35,
-      "maxDurationMs": 266.93,
+      "avgDurationMs": 263.68,
+      "minDurationMs": 124,
+      "maxDurationMs": 375.87,
       "totalBeads": 268,
       "uniqueColors": 7,
       "checksum": "e9586bb308017a4a",
       "determinism": "100% bitwise identical",
-      "heapDeltaKb": 2548.8
+      "heapDeltaKb": -2101.9
     },
     {
       "gridSize": "32x32",
       "cells": 1024,
-      "avgDurationMs": 168.89,
-      "minDurationMs": 127.52,
-      "maxDurationMs": 199.58,
+      "avgDurationMs": 117.29,
+      "minDurationMs": 103.55,
+      "maxDurationMs": 131.41,
       "totalBeads": 466,
       "uniqueColors": 8,
       "checksum": "be70ae3da006ec70",
       "determinism": "100% bitwise identical",
-      "heapDeltaKb": -4757.9
+      "heapDeltaKb": 6978
     },
     {
       "gridSize": "48x48",
       "cells": 2304,
-      "avgDurationMs": 238.24,
-      "minDurationMs": 125.62,
-      "maxDurationMs": 392.85,
+      "avgDurationMs": 248.4,
+      "minDurationMs": 112.97,
+      "maxDurationMs": 563.01,
       "totalBeads": 1028,
       "uniqueColors": 9,
       "checksum": "8c46216637a038bd",
       "determinism": "100% bitwise identical",
-      "heapDeltaKb": 2619.4
+      "heapDeltaKb": -771
     },
     {
       "gridSize": "60x60",
       "cells": 3600,
-      "avgDurationMs": 134.84,
-      "minDurationMs": 123.84,
-      "maxDurationMs": 142.69,
+      "avgDurationMs": 138.3,
+      "minDurationMs": 122.76,
+      "maxDurationMs": 154.08,
       "totalBeads": 1594,
       "uniqueColors": 9,
       "checksum": "5bb97a407d69b902",
       "determinism": "100% bitwise identical",
-      "heapDeltaKb": 6512
+      "heapDeltaKb": 12071.1
     }
   ],
   "notice": "Results may vary by machine."

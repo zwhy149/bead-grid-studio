@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { decodePng } from '../helpers/png.js';
+import { decodePng } from '../../src/adapters/png.js';
 import { generateBeadPattern } from '../../packages/core/src/index.js';
 
 const __filename = fileURLToPath(import.meta.url);

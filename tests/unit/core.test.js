@@ -27,7 +27,7 @@ import {
   serializePattern,
   validatePattern,
 } from '../../packages/core/src/index.js';
-import { decodePng } from '../helpers/png.js';
+import { decodePng } from '../../src/adapters/png.js';
 
 test('color math: hex, rgb, OKLab, and CIEDE2000 distances are accurate and bounded', () => {
   assert.deepEqual(hexToRgb('#FEAC4C'), [254, 172, 76]);

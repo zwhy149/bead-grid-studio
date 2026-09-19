@@ -17,11 +17,11 @@ The grid sizes below correspond to the core pegboard dimensions designated in `R
 
 | Grid Size | Total Cells | Avg Duration (ms) | Min (ms) | Max (ms) | Total Beads | Unique Colors | Result Checksum (SHA-256) | Determinism |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **16x16** | 256 | **353.25** | 145.32 | 674.58 | 122 | 4 | `3b04bbd47b0a2ef9` | 100% bitwise identical |
-| **24x24** | 576 | **151.51** | 115.35 | 266.93 | 268 | 7 | `e9586bb308017a4a` | 100% bitwise identical |
-| **32x32** | 1024 | **168.89** | 127.52 | 199.58 | 466 | 8 | `be70ae3da006ec70` | 100% bitwise identical |
-| **48x48** | 2304 | **238.24** | 125.62 | 392.85 | 1028 | 9 | `8c46216637a038bd` | 100% bitwise identical |
-| **60x60** | 3600 | **134.84** | 123.84 | 142.69 | 1594 | 9 | `5bb97a407d69b902` | 100% bitwise identical |
+| **16x16** | 256 | **395.85** | 126.76 | 659.56 | 122 | 4 | `3b04bbd47b0a2ef9` | 100% bitwise identical |
+| **24x24** | 576 | **263.68** | 124 | 375.87 | 268 | 7 | `e9586bb308017a4a` | 100% bitwise identical |
+| **32x32** | 1024 | **117.29** | 103.55 | 131.41 | 466 | 8 | `be70ae3da006ec70` | 100% bitwise identical |
+| **48x48** | 2304 | **248.4** | 112.97 | 563.01 | 1028 | 9 | `8c46216637a038bd` | 100% bitwise identical |
+| **60x60** | 3600 | **138.3** | 122.76 | 154.08 | 1594 | 9 | `5bb97a407d69b902` | 100% bitwise identical |
 
 ## Reproducibility & Determinism Guarantee
 
