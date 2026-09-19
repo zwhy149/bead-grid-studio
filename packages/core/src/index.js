@@ -51,10 +51,12 @@ import {
   analyzePattern,
   assessPatternQuality,
   createPattern,
+  deserializePattern,
   embedPatternGrid,
   occupiedBounds,
   parsePattern,
   serializePattern,
+  validatePattern,
 } from './pattern.js';
 
 /**
@@ -174,4 +176,6 @@ export {
   createPattern,
   serializePattern,
   parsePattern,
+  deserializePattern,
+  validatePattern,
 };

@@ -1,42 +1,37 @@
-# Performance Benchmarks & Quality Metrics
+# Performance Benchmarks & Determinism Report
 
-This document details the performance characteristics, throughput, and determinism of the `@bead-grid/core` quantization engine.
+> **Notice**: Results may vary by machine. Performance measurements below represent factual executions on the test system.
 
-## Benchmark Methodology
+## Benchmark Environment
 
-Benchmarks measure the full computational pipeline under Node.js:
-1. **Source Complexity Analysis**: Edge density detection, contrast variance, and line-art classification.
-2. **Perceptual Downsampling**: Spatial downsampling from high-resolution master images to target pegboard dimensions (16x16, 29x29, 52x52, etc.).
-3. **DeltaE / OKLab Quantization**: Distance calculations in perceptual color space to map millions of RGB combinations to discrete physical bead codes.
-4. **Palette Consolidation**: Graph/cluster merging of nearby color codes subject to user maximum color limits.
-5. **Deterministic Serialization**: Generation of structured pattern exchange objects conforming to `schema/pattern.schema.json`.
+- **Node Version**: `v24.15.0`
+- **OS**: `Windows_NT 10.0.26200 (x64)`
+- **CPU**: `Intel(R) Core(TM) i7-9750H CPU @ 2.60GHz` (12 cores)
+- **Runtime**: `Node.js V8`
+- **Fixture**: `tests/fixtures/rocket-badge.png (1024x1024 RGBA)`
+- **Parameters**: Palette: `mard-compatible-base-221`, Process Mode: `cartoon`, Max Colors: 32, Iterations: 5
 
-## How to Run Locally
+## Benchmark Results across Standard Grid Dimensions
 
-```bash
-# Run benchmark suite and output benchmarks/results.json
-npm run benchmark
-```
+The grid sizes below correspond to the core pegboard dimensions designated in `ROADMAP.md` (16, 24, 32, 48, 60 cells):
 
-## Scenario Profiles
+| Grid Size | Total Cells | Avg Duration (ms) | Min (ms) | Max (ms) | Total Beads | Unique Colors | Result Checksum (SHA-256) | Determinism |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **16x16** | 256 | **353.25** | 145.32 | 674.58 | 122 | 4 | `3b04bbd47b0a2ef9` | 100% bitwise identical |
+| **24x24** | 576 | **151.51** | 115.35 | 266.93 | 268 | 7 | `e9586bb308017a4a` | 100% bitwise identical |
+| **32x32** | 1024 | **168.89** | 127.52 | 199.58 | 466 | 8 | `be70ae3da006ec70` | 100% bitwise identical |
+| **48x48** | 2304 | **238.24** | 125.62 | 392.85 | 1028 | 9 | `8c46216637a038bd` | 100% bitwise identical |
+| **60x60** | 3600 | **134.84** | 123.84 | 142.69 | 1594 | 9 | `5bb97a407d69b902` | 100% bitwise identical |
 
-| Scenario | Target Grid | Mode | Source Resolution | Focus |
-| :--- | :--- | :--- | :--- | :--- |
-| **Small Grid** | 16 x 16 | Cartoon | 1024 x 1024 PNG | Ultra-fast badge/icon conversion (< 15ms) |
-| **Mini Pegboard (Standard)** | 29 x 29 | Cartoon | 1024 x 1024 PNG | Common 2.6mm mini pegboard standard (< 30ms) |
-| **Large Pegboard** | 52 x 52 | Cartoon | 1024 x 1024 PNG | High bead density, 48 max colors (< 70ms) |
-| **HD Detail Mode** | 52 x 52 | Detail | 1024 x 1024 PNG | Preserves subtle highlights and fine texturing |
-| **Constrained Palette** | 29 x 29 | Cartoon | 1024 x 1024 PNG | Evaluates search speed on small 12-color kit (< 15ms) |
-| **High-Entropy Gradient** | 40 x 40 | Photo | 256 x 256 Procedural | Continuous gradient quantization stress test |
-| **Complexity Analysis** | Full Image | Analyzer | 1024 x 1024 PNG | Edge detection and document/photo heuristic analysis |
-
-## Determinism & Reproducibility Guarantee
+## Reproducibility & Determinism Guarantee
 
 All quantization operations in `@bead-grid/core` are 100% deterministic:
-- Identical input pixel buffers with identical parameters produce bitwise-identical cell matrices.
-- Sorting of top material codes breaks ties by lexicographical bead code (`code.localeCompare()`).
-- Automated tests in `tests/unit/core.test.js` assert that consecutive runs over identical buffers yield zero variance.
+- Consecutive executions over identical inputs produce bitwise-identical cell matrices.
+- Sorting of material codes breaks ties by lexicographical bead code (`code.localeCompare()`).
+- Test suite `npm run test:determinism` validates determinism on every test run.
 
-## Memory Footprint
+## How to Reproduce
 
-The engine utilizes typed arrays (`Uint8ClampedArray`, `Int16Array`, `Uint8Array`) with zero memory leaks, allowing it to execute smoothly on resource-constrained embedded devices, mobile browsers, and serverless edge functions.
+```bash
+npm run benchmark
+```

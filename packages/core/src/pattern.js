@@ -255,3 +255,38 @@ export function parsePattern(input, options = {}) {
     },
   });
 }
+
+/**
+ * Validates whether an object conforms to schema/pattern.schema.json.
+ * @param {any} input
+ * @returns {{ valid: boolean, errors: string[] }}
+ */
+export function validatePattern(input) {
+  const errors = [];
+  if (!input || typeof input !== 'object') {
+    return { valid: false, errors: ['Pattern must be an object'] };
+  }
+
+  const cols = input.grid?.cols ?? input.width;
+  const rows = input.grid?.rows ?? input.height;
+  if (!Number.isInteger(cols) || cols < 4 || cols > 160) {
+    errors.push(`Invalid cols: ${cols}. Must be integer between 4 and 160.`);
+  }
+  if (!Number.isInteger(rows) || rows < 4 || rows > 160) {
+    errors.push(`Invalid rows: ${rows}. Must be integer between 4 and 160.`);
+  }
+
+  const cells = input.grid?.cells ?? input.cells;
+  if (!Array.isArray(cells)) {
+    errors.push('cells must be an array.');
+  } else if (cols && rows && cells.length !== cols * rows) {
+    errors.push(`cells length ${cells.length} does not match ${cols}x${rows} (${cols * rows}).`);
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+}
+
+export const deserializePattern = parsePattern;

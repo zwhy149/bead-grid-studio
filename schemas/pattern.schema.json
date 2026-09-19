@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zwhy149.github.io/bead-grid-studio/schema/pattern.schema.json",
+  "title": "BeadGridStudioPattern",
+  "description": "JSON Schema for Bead Grid Studio open pattern exchange format (v1).",
+  "type": "object",
+  "required": ["schemaVersion", "type", "version", "grid", "palette"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Schema format version for exchange stability."
+    },
+    "type": {
+      "type": "string",
+      "const": "bead-grid-studio",
+      "description": "Application signature."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2,
+      "description": "Internal project file format version (2 is current; 1 is legacy auto-migrated)."
+    },
+    "appVersion": {
+      "type": "string",
+      "description": "Version of the software or engine that created the pattern."
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 80,
+      "description": "User-facing title of the pattern."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 creation or export timestamp."
+    },
+    "grid": {
+      "type": "object",
+      "required": ["cols", "rows", "cells"],
+      "properties": {
+        "cols": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 160,
+          "description": "Number of grid columns."
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 160,
+          "description": "Number of grid rows."
+        },
+        "cells": {
+          "type": "array",
+          "description": "Linear array of cells of length cols * rows. Contains color code string (e.g. 'A1', 'H7') or null for empty cells.",
+          "items": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "palette": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifier of the palette provider used."
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable palette name."
+        },
+        "source": {
+          "type": "string",
+          "description": "Provenance or source of palette colors."
+        }
+      },
+      "additionalProperties": true
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "totalBeads": { "type": "integer", "minimum": 0 },
+        "emptyCells": { "type": "integer", "minimum": 0 },
+        "usedColors": { "type": "integer", "minimum": 0 },
+        "density": { "type": "number", "minimum": 0, "maximum": 1 },
+        "beadCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "count"],
+            "properties": {
+              "code": { "type": "string" },
+              "name": { "type": "string" },
+              "hex": { "type": "string" },
+              "count": { "type": "integer", "minimum": 0 },
+              "share": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "description": "Optional editor and generation settings persisted with the project.",
+      "properties": {
+        "processMode": { "type": "string" },
+        "fitMode": { "type": "string" },
+        "whiteMode": { "type": "string" },
+        "maxColors": { "type": "integer" },
+        "mergeStrength": { "type": "integer" },
+        "protectDark": { "type": "boolean" },
+        "boardProfile": { "type": "string" },
+        "boardTilesX": { "type": "integer" },
+        "boardTilesY": { "type": "integer" }
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary user or third-party metadata.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

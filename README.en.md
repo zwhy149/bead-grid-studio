@@ -238,16 +238,22 @@ MARD, Artkal, Hama, and Perler are third-party marks. This independent project i
 
 Report security issues privately through [SECURITY.md](SECURITY.md). Do not attach private, customer, or unlicensed images to a public Issue. GitHub Pages does not apply the optional `_headers` file; see [Deployment](docs/deployment.md) for the exact hosting boundary.
 
-## Repository structure
+## Repository Structure & Architecture
+
+For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```text
-src/                      browser app, core Modules, i18n, and palette data
+packages/core/            Decoupled DOM-free core quantization engine & TypeScript definitions
+schemas/                  Open data specifications (Pattern & Palette JSON Schema Draft-07)
+bin/                      Headless Node.js CLI tool (bead-grid)
+examples/                 Browser, Node.js, and CLI integration examples
+src/                      Browser app, core modules, i18n, and palette data
 public/                   PWA, offline cache, SEO, privacy, and legal pages
-tests/unit/               pure invariant tests
-tests/e2e/                desktop, mobile, and browser tests
-tests/fixtures/           original or explicitly licensed fixtures
-scripts/                  source checks, screenshots, metrics, and portable build
-docs/                     architecture, algorithm, deployment, provenance, and ADRs
+tests/unit/               Pure invariant tests & deterministic golden tests
+tests/e2e/                Desktop, mobile, and browser tests
+tests/fixtures/           Original or explicitly licensed fixtures
+scripts/                  Source checks, metrics, and portable build
+docs/                     Architecture, algorithm, deployment, provenance, and ADRs
 ```
 
 ## License

@@ -11,6 +11,7 @@ import {
   createCustomPalette,
   createPattern,
   deltaE2000,
+  deserializePattern,
   fitPatternInsideBoard,
   generateBeadPattern,
   getPaletteProvider,
@@ -24,6 +25,7 @@ import {
   rgbToHex,
   rgbToOklab,
   serializePattern,
+  validatePattern,
 } from '../../packages/core/src/index.js';
 import { decodePng } from '../helpers/png.js';
 
@@ -204,4 +206,33 @@ test('quantize handles edge case inputs gracefully without throwing', () => {
     rows: 4,
   });
   assert.equal(transparent.nonEmpty, 0);
+});
+
+test('pattern validation: validatePattern accurately validates conformant and non-conformant patterns', () => {
+  const validPattern = {
+    grid: {
+      cols: 10,
+      rows: 10,
+      cells: new Array(100).fill(null),
+    },
+  };
+  const validResult = validatePattern(validPattern);
+  assert.equal(validResult.valid, true);
+  assert.equal(validResult.errors.length, 0);
+
+  const invalidPattern = {
+    grid: {
+      cols: 10,
+      rows: 10,
+      cells: new Array(50).fill(null), // Mismatched cell count
+    },
+  };
+  const invalidResult = validatePattern(invalidPattern);
+  assert.equal(invalidResult.valid, false);
+  assert.ok(invalidResult.errors.length > 0);
+
+  // Test deserializePattern alias works identically to parsePattern
+  const parsed = deserializePattern(validPattern);
+  assert.equal(parsed.grid.cols, 10);
+  assert.equal(parsed.grid.rows, 10);
 });

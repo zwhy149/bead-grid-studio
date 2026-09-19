@@ -185,6 +185,8 @@ export function createPattern(options: {
 
 export function serializePattern(pattern: PatternModel, space?: number): string;
 export function parsePattern(input: string | object, options?: { paletteId?: string; lenient?: boolean }): PatternModel;
+export const deserializePattern: typeof parsePattern;
+export function validatePattern(input: any): { valid: boolean; errors: string[] };
 
 export function gridForLongSide(width: number, height: number, longSide: number, minSide?: number, maxSide?: number): GridDimensions;
 export function gridFromAspectAnchor(width: number, height: number, value: number, axis?: 'cols' | 'rows', minSide?: number, maxSide?: number): GridDimensions;

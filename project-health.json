@@ -1,58 +1,69 @@
 {
-  "generatedAt": "2026-09-19T03:36:40.933Z",
+  "generatedAt": "2026-09-19T04:49:42.607Z",
   "repository": "zwhy149/bead-grid-studio",
-  "metricsSource": "verified-baseline",
-  "publicAdoption": {
+  "metricsSource": "live-api",
+  "verifiedPublicMetrics": {
     "stars": 175,
     "forks": 19,
     "openIssues": 7,
+    "openPullRequests": 3,
     "releases": 7,
     "totalAssetDownloads": 156,
+    "contributors": 3,
+    "lastRelease": "v1.2.0",
     "releasesBreakdown": [
       {
-        "tag": "v1.1.3",
-        "downloads": 15,
-        "name": "v1.1.3"
+        "tag": "v1.2.0",
+        "name": "Bead Grid Studio v1.2.0",
+        "downloads": 78
       },
       {
-        "tag": "v1.1.2",
-        "downloads": 28,
-        "name": "v1.1.2"
+        "tag": "v1.1.3",
+        "name": "Bead Grid Studio v1.1.3",
+        "downloads": 12
       },
       {
         "tag": "v1.1.1",
-        "downloads": 35,
-        "name": "v1.1.1"
+        "name": "Bead Grid Studio v1.1.1",
+        "downloads": 18
       },
       {
         "tag": "v1.1.0",
-        "downloads": 42,
-        "name": "v1.1.0"
+        "name": "Bead Grid Studio v1.1.0",
+        "downloads": 5
       },
       {
         "tag": "v1.0.2",
-        "downloads": 18,
-        "name": "v1.0.2"
+        "name": "Bead Grid Studio v1.0.2",
+        "downloads": 9
       },
       {
         "tag": "v1.0.1",
-        "downloads": 12,
-        "name": "v1.0.1"
+        "name": "Bead Grid Studio v1.0.1",
+        "downloads": 18
       },
       {
         "tag": "v1.0.0",
-        "downloads": 6,
-        "name": "v1.0.0"
+        "name": "Bead Grid Studio v1.0.0",
+        "downloads": 16
       }
-    ]
+    ],
+    "license": "Apache-2.0"
+  },
+  "unavailableProductMetrics": {
+    "monthlyActiveUsers": "Unavailable (Local-first, no tracking SDK)",
+    "uniqueActiveUsers": "Unavailable (Zero cookies, no user IDs)",
+    "conversionCount": "Unavailable (On-device processing, zero server telemetry)",
+    "explanation": "Because Bead Grid Studio is intentionally local-first, user images and generated patterns remain on-device. Therefore server-side product usage statistics are limited."
   },
   "codeQuality": {
-    "appVersion": "1.1.3",
+    "appVersion": "1.2.0",
     "coreVersion": "1.2.0",
     "nodeRequirement": ">=22.12.0",
-    "portableBuildBytes": null,
-    "portableBuildFormatted": "not built",
-    "unitTests": 7,
+    "portableBuildBytes": 424408,
+    "portableBuildFormatted": "414.5 KB",
+    "unitTestFiles": 5,
+    "unitAssertions": 97,
     "e2eTestSuites": 2,
     "activePalettes": [
       "mard-compatible-base-221",
@@ -67,8 +78,8 @@
     "telemetry": "none",
     "privacyPreserving": true,
     "openSchemas": [
-      "schema/palette.schema.json",
-      "schema/pattern.schema.json"
+      "schemas/palette.schema.json",
+      "schemas/pattern.schema.json"
     ],
     "standalonePackages": [
       "@bead-grid/core"

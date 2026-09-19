@@ -234,12 +234,18 @@ MARD、Artkal、Hama、Perler 等是第三方标识，本项目与这些品牌�
 
 安全问题请按 [SECURITY.md](SECURITY.md) 私下报告。公开 Issue 不要附带隐私图片、客户图片或无权公开的作品。GitHub Pages 不会应用仓库里的可选 `_headers` 文件；具体托管安全边界见[部署说明](docs/deployment.zh-CN.md)。
 
-## 仓库结构
+## 仓库结构与架构
+
+系统详细架构设计与 ASCII 流程图见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ```text
+packages/core/            解耦的 DOM-free 图像量化核心库与 TypeScript 定义
+schemas/                  开放数据规范（图纸与色板 JSON Schema Draft-07）
+bin/                      无头 Node.js CLI 工具 (bead-grid)
+examples/                 Browser、Node.js 与 CLI 集成范例
 src/                      浏览器应用、核心 Module、i18n 和色板数据
 public/                   PWA、离线缓存、SEO、隐私与许可页
-tests/unit/               纯函数不变量测试
+tests/unit/               纯函数不变量测试与确定性 Golden 测试
 tests/e2e/                桌面、移动端和浏览器测试
 tests/fixtures/           自制或明确授权的测试图
 scripts/                  源码检查、截图、指标和单 HTML 构建
