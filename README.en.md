@@ -13,6 +13,7 @@
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US"><strong>🚀 Live Demo</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Offline / GitHub Release</strong></a> ·
   <a href="#30-second-quick-start"><strong>30-second Quick Start</strong></a> ·
+  <a href="docs/project-health.md"><strong>📊 Project Health & Metrics</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ Star on GitHub</strong></a>
 </p>
 
@@ -20,6 +21,8 @@
   <a href="https://github.com/zwhy149/bead-grid-studio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/zwhy149/bead-grid-studio/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-87351c"></a>
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
+  <a href="docs/project-health.md"><img alt="Offline Downloads" src="https://img.shields.io/badge/Offline%20Downloads-156+-blue"></a>
+  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.2.0-brightgreen"></a>
 </p>
 
 Bead Grid Studio is a **local-first fuse-bead pattern generator**. It has no account, image-upload API, analytics SDK, or cloud conversion service.
@@ -64,8 +67,10 @@ You can instead select **Choose Image** and use PNG, JPEG, WebP, or GIF. The ima
 | --- | --- | --- |
 | Convert an image now | [Open the live demo](https://zwhy149.github.io/bead-grid-studio/?lang=en-US) | None |
 | Work offline or carry the app on a USB drive | [Download the portable HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | None |
+| Batch conversion / Headless script automation | [CLI Tool (`bead-grid`)](#command-line-cli--automation) | Node.js |
+| Embed conversion engine in Node.js or web app | [@bead-grid/core package](packages/core/README.md) | Node.js |
 | Publish your own copy | [Fork and deployment guide](docs/deployment.md) | GitHub account; Cloudflare optional |
-| Modify or contribute code | [Run locally](#run-locally-for-development) | Node.js |
+| Modify or contribute code | [Developer Guide](docs/developer-guide.md) | Node.js |
 
 ## Download the offline app
 
@@ -132,6 +137,29 @@ The rocket in these screenshots is an original fixture under `tests/fixtures/` a
 
 The project does not promise lossless reproduction at 16 or 24 cells. It protects outlines, openings, and disconnected features when the target grid can represent them, then reports details that are physically smaller than one bead.
 
+## Command-line CLI & Automation
+
+You can generate pattern specifications directly from your terminal or automated scripts:
+
+```bash
+# Generate 29x29 standard bead pattern with truecolor ANSI terminal preview
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+
+# Quantize using a custom 12-color starter palette and output JSON pattern
+node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json -o pattern.json
+```
+
+See [CLI Documentation](bin/bead-grid.mjs) and [Node.js Integration Example](examples/node-cli/README.md).
+
+## Core Engine & Open Data Standards
+
+To enable third-party ecosystem integration and custom tooling, the project provides:
+
+1. **`@bead-grid/core`**: A zero-dependency, runtime-agnostic library packaging geometry fitting, OKLab perceptual color delta, CIEDE2000 quantization, and material consolidation. See [Core Documentation](packages/core/README.md).
+2. **Open Palette Specification**: Formal JSON Schema Draft-07 allowing any craft manufacturer or artist to publish standardized color sets. See [Palette Format Guide](docs/palette-format.md) and [Schema Definition](schema/palette.schema.json).
+3. **Open Pattern Exchange Format**: Vendor-neutral JSON exchange format liberating craft designs from proprietary file lock-in. See [Pattern Format Guide](docs/pattern-format.md) and [Schema Definition](schema/pattern.schema.json).
+4. **Reproducible Benchmarks**: Automated performance benchmark suite with latency and memory tracking. See [Benchmark Guide](docs/benchmark.md).
+
 ## Run locally for development
 
 Node.js 22.12 or newer is required:
@@ -143,33 +171,37 @@ npm ci
 npm run dev
 ```
 
-Run every quality gate with:
+Run test and benchmark suites:
 
 ```bash
 npm run setup
-npm run qa
+npm run qa          # Runs source integrity, unit tests, and Playwright E2E
+npm run benchmark   # Runs quantization performance benchmarks
+npm run health      # Verifies local code health and public metrics
 ```
 
-`npm run qa` checks source, license, and palette invariants, pure-function tests, Chromium/Firefox/WebKit E2E, and the application's built-in conversion regressions.
+See the complete [Developer Guide](docs/developer-guide.md).
 
-## Current Focus
+## Current Focus & Roadmap
 
-- Extract a DOM-free conversion core and give Worker and test adapters the same validation.
-- Expand conversion regression fixtures for transparent art, line art, photos, documents, and extreme aspect ratios.
-- Publish reproducible 16/24/32/48/60-cell output benchmarks.
-- Define a versioned diagnostics contract.
+- [x] Extracted `@bead-grid/core` standalone package and headless Node.js CLI.
+- [x] Published formal JSON Schemas for color palettes and pattern exchange.
+- [x] Implemented reproducible quantization benchmark suite.
+- [ ] Making workflow improvements: color isolation and completed-region tracking.
+- [ ] Physical pegboard splitting (29x29 / 52x52) for multi-board paginated printing.
 
-See [ROADMAP.md](ROADMAP.md) for the full roadmap.
+See [ROADMAP.md](ROADMAP.md) for the full evidence-driven roadmap.
 
-## Help the project grow
+## Community Showcase & Contributing
 
+- 🎨 **Showcase** — Finished a physical bead piece? Share your photos and pattern files in the [Community Showcase](docs/showcase.md)!
 - ⭐ **Star** — if Bead Grid Studio saves you time.
 - 🐛 **Report a bug** — if a conversion behaves unexpectedly; open an [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose).
 - 💡 **Suggest an idea** — if something would improve your workflow; use [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions).
 - 🔀 **Fork** — customize palettes, languages, UI, or workflows.
-- 💻 **Contribute** — read [CONTRIBUTING.md](CONTRIBUTING.md), pick an Issue, and send a Pull Request.
+- 💻 **Contribute** — browse [GOOD_FIRST_ISSUES.md](GOOD_FIRST_ISSUES.md) and read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-For a first contribution, browse [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+Verifiable project health data and adoption indicators are documented in [docs/project-health.md](docs/project-health.md) and [docs/USAGE_METRICS.md](docs/USAGE_METRICS.md).
 
 Maintainers can run `npm run metrics` to read Stars, Forks, Open Issues, and real Release asset download counts from GitHub's public API. The script is not included in the web app and never tracks app visitors.
 

@@ -13,6 +13,7 @@
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN"><strong>🚀 在线体验</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ 离线版 / GitHub Release</strong></a> ·
   <a href="#30-秒快速开始"><strong>30 秒上手</strong></a> ·
+  <a href="docs/project-health.md"><strong>📊 项目健康与指标</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ GitHub Star</strong></a>
 </p>
 
@@ -20,6 +21,8 @@
   <a href="https://github.com/zwhy149/bead-grid-studio/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/zwhy149/bead-grid-studio/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-87351c"></a>
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
+  <a href="docs/project-health.md"><img alt="Offline Downloads" src="https://img.shields.io/badge/Offline%20Downloads-156+-blue"></a>
+  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.2.0-brightgreen"></a>
 </p>
 
 ## 示例 / Examples
@@ -62,8 +65,10 @@
 | --- | --- | --- |
 | 立即把图片转成拼豆图 | [打开在线版](https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN) | 不需要 |
 | 断网使用或保存到 U 盘 | [从 Releases 下载单 HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | 不需要 |
+| 批量转换 / 终端自动化 | [命令行 CLI 工具 (`bead-grid`)](#命令行-cli-与自动化) | Node.js |
+| 在 Node.js / 网页中复用核心能力 | [@bead-grid/core 核心包](packages/core/README.md) | Node.js |
 | 部署成自己的公开网页 | [Fork 与部署教程](docs/deployment.zh-CN.md) | 需要 GitHub 账号；Cloudflare 可选 |
-| 修改代码或参与开发 | [开发者本地运行](#开发者本地运行) | 需要 Node.js |
+| 修改代码或参与开发 | [开发者指南](docs/developer-guide.md) | 需要 Node.js |
 
 ## 下载离线版
 
@@ -130,6 +135,29 @@ Fork → 启用 GitHub Actions → Settings → Pages → Deploy
 
 本项目不会承诺把任意图片在 16 或 24 格内“无损还原”。它会尽量保护轮廓、开口和彼此分离的小部件；如果细节已经小于一颗豆，会明确提示，而不是静默声称完美。
 
+## 命令行 CLI 与自动化
+
+你可以直接在终端中进行无界面的批量拼豆施工图生成，适用于脚本、流水线与自动化制作：
+
+```bash
+# 生成 29x29 标准拼豆施工图并在终端以彩色 ANSI 预览
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+
+# 使用极简 12 色入门色板转换并输出 JSON 图纸工程
+node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json -o pattern.json
+```
+
+详见 [CLI 使用说明](bin/bead-grid.mjs) 与 [Node.js 集成示例](examples/node-cli/README.md)。
+
+## 核心算法库与开放标准
+
+为了支持更多第三方开发者集成与二次开发，本项目已解耦出核心算法库与开放数据规范：
+
+1. **`@bead-grid/core`**：零外部依赖、跨运行时的核心库，封装了几何贴合、OKLab/CIEDE2000 色差量化与材料合并逻辑。详见 [Core 文档](packages/core/README.md)。
+2. **开放色板规范**：基于 JSON Schema Draft-07，任何厂商或创作者均可发布标准化色板。详见 [色板规范说明](docs/palette-format.md) 与 [Schema 定义](schema/palette.schema.json)。
+3. **开放图纸交换格式**：标准结构化图纸格式，打破封闭私有格式壁垒。详见 [图纸交换格式说明](docs/pattern-format.md) 与 [Schema 定义](schema/pattern.schema.json)。
+4. **性能基准测试**：提供自动化性能测试套件与可复现指标。详见 [性能基准文档](docs/benchmark.md)。
+
 ## 开发者本地运行
 
 需要 Node.js 22.12 或更高版本：
@@ -141,35 +169,37 @@ npm ci
 npm run dev
 ```
 
-完整测试：
+完整测试与基准测试：
 
 ```bash
 npm run setup
-npm run qa
+npm run qa          # 运行代码检查、单元测试与 E2E 测试
+npm run benchmark   # 运行量化性能基准测试
+npm run health      # 运行项目健康与公开指标检查
 ```
 
-`npm run qa` 会执行源码、许可和色板门禁，纯函数测试，Chromium/Firefox/WebKit E2E，以及应用内转换回归。
+详见完整的 [开发者指南](docs/developer-guide.md)。
 
-## 当前重点
+## 当前重点与路线图
 
-- 抽离可独立测试的转换核心，并让 Worker 与测试适配器复用同一验证。
-- 扩充透明图、线稿、照片、文档和极端比例的转换回归 fixture。
-- 发布 16/24/32/48/60 格输出的可复现基准结果。
-- 明确、版本化转换诊断的输出契约。
+- [x] 解耦 `@bead-grid/core` 核心独立包与纯 Node.js CLI 工具。
+- [x] 发布开放色板规范与图纸交换 JSON Schema。
+- [x] 建立可复现量化基准套件与性能报告。
+- [ ] 制作流程优化：单色隔离、已完成区域划线追踪。
+- [ ] 大图自动分割为 29x29 / 52x52 物理底板分页打印。
 
-完整计划见 [ROADMAP.md](ROADMAP.md)。
+完整路线图见 [ROADMAP.md](ROADMAP.md)。
 
-## 帮助项目成长
+## 社区展示与参与贡献
 
+- 🎨 **作品展示** — 完成了物理拼豆作品？欢迎在 [社区展示区](docs/showcase.md) 分享成品照片与图纸！
 - ⭐ **Star** — 如果这个工具帮你节省了时间。
 - 🐛 **反馈 Bug** — 如果转换结果出现异常，请提交 [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose)。
 - 💡 **提出建议** — 如果你希望增加实用功能，欢迎前往 [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions)。
 - 🔀 **Fork** — 定制自己的色板、语言、界面或流程。
-- 💻 **参与贡献** — 阅读 [CONTRIBUTING.md](CONTRIBUTING.md)，选择一个 Issue 并提交 Pull Request。
+- 💻 **参与贡献** — 查看 [GOOD_FIRST_ISSUES.md](GOOD_FIRST_ISSUES.md) 与 [CONTRIBUTING.md](CONTRIBUTING.md)，提交你的 Pull Request。
 
-第一次参与可先查看 [`good first issue`](https://github.com/zwhy149/bead-grid-studio/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)。
-
-维护者可以运行 `npm run metrics` 查看 GitHub 官方公开 API 返回的 Stars、Forks、Open Issues 和真实 Release asset 下载量。该脚本不在网页中运行，也不会追踪应用访问者。
+真实可验证的项目健康数据与公开指标见 [docs/project-health.md](docs/project-health.md) 与 [docs/USAGE_METRICS.md](docs/USAGE_METRICS.md)。
 
 需要核验项目活跃度、社区处理记录、发布安全和公开数据边界时，请查看[项目健康度与公开影响证据](docs/project-health.zh-CN.md)。
 

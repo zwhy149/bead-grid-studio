@@ -1,0 +1,77 @@
+{
+  "generatedAt": "2026-09-19T03:36:40.933Z",
+  "repository": "zwhy149/bead-grid-studio",
+  "metricsSource": "verified-baseline",
+  "publicAdoption": {
+    "stars": 175,
+    "forks": 19,
+    "openIssues": 7,
+    "releases": 7,
+    "totalAssetDownloads": 156,
+    "releasesBreakdown": [
+      {
+        "tag": "v1.1.3",
+        "downloads": 15,
+        "name": "v1.1.3"
+      },
+      {
+        "tag": "v1.1.2",
+        "downloads": 28,
+        "name": "v1.1.2"
+      },
+      {
+        "tag": "v1.1.1",
+        "downloads": 35,
+        "name": "v1.1.1"
+      },
+      {
+        "tag": "v1.1.0",
+        "downloads": 42,
+        "name": "v1.1.0"
+      },
+      {
+        "tag": "v1.0.2",
+        "downloads": 18,
+        "name": "v1.0.2"
+      },
+      {
+        "tag": "v1.0.1",
+        "downloads": 12,
+        "name": "v1.0.1"
+      },
+      {
+        "tag": "v1.0.0",
+        "downloads": 6,
+        "name": "v1.0.0"
+      }
+    ]
+  },
+  "codeQuality": {
+    "appVersion": "1.1.3",
+    "coreVersion": "1.2.0",
+    "nodeRequirement": ">=22.12.0",
+    "portableBuildBytes": null,
+    "portableBuildFormatted": "not built",
+    "unitTests": 7,
+    "e2eTestSuites": 2,
+    "activePalettes": [
+      "mard-compatible-base-221",
+      "mard-mini-12",
+      "mard-mono-8"
+    ],
+    "colorCount": 221,
+    "privacyModel": "local-first, 0 network telemetry"
+  },
+  "compliance": {
+    "license": "Apache-2.0",
+    "telemetry": "none",
+    "privacyPreserving": true,
+    "openSchemas": [
+      "schema/palette.schema.json",
+      "schema/pattern.schema.json"
+    ],
+    "standalonePackages": [
+      "@bead-grid/core"
+    ]
+  }
+}

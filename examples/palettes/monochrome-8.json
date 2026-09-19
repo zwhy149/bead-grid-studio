@@ -1,0 +1,24 @@
+{
+  "$schema": "../../schema/palette.schema.json",
+  "schemaVersion": 1,
+  "id": "monochrome-8",
+  "name": "Monochrome 8-Step Shading Palette",
+  "manufacturer": "Community",
+  "source": "Open palette standard example for manga, line art, and grayscale shading",
+  "license": "CC0-1.0",
+  "beadMm": 2.6,
+  "anchors": {
+    "white": "M01",
+    "black": "M08"
+  },
+  "colors": [
+    { "code": "M01", "name": "Pure White", "hex": "#FEFFFF", "series": "H" },
+    { "code": "M02", "name": "Off White", "hex": "#F1EDED", "series": "H" },
+    { "code": "M03", "name": "Very Light Gray", "hex": "#EDEDED", "series": "H" },
+    { "code": "M04", "name": "Light Gray", "hex": "#CECDD5", "series": "H" },
+    { "code": "M05", "name": "Medium Gray", "hex": "#B6B1BA", "series": "H" },
+    { "code": "M06", "name": "Dark Gray", "hex": "#89858C", "series": "H" },
+    { "code": "M07", "name": "Charcoal Black", "hex": "#2F2B2F", "series": "H" },
+    { "code": "M08", "name": "Deep Black", "hex": "#000000", "series": "H" }
+  ]
+}

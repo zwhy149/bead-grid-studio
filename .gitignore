@@ -12,3 +12,5 @@ Thumbs.db
 # IDEs and Editors
 .vscode/
 .idea/
+output-pattern.json
+*-output.json

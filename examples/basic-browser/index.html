@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bead Grid Core - Basic Browser Integration Demo</title>
+  <style>
+    :root {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 24px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+      border: 1px solid #334155;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    button, input[type="file"] {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    .preview-box {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    canvas {
+      background: #0f172a;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      image-rendering: pixelated;
+    }
+    .stats {
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background: #090d16;
+      padding: 12px;
+      border-radius: 6px;
+      flex: 1;
+      min-width: 260px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bead Grid Core — Browser Example</h1>
+    <p>Demonstrates client-side in-browser pattern generation using <code>@bead-grid/core</code> ES Modules.</p>
+
+    <div class="card">
+      <div class="controls">
+        <input type="file" id="fileInput" accept="image/*">
+        <button id="demoBtn">Generate Sample Rocket</button>
+      </div>
+
+      <div class="preview-box">
+        <canvas id="patternCanvas" width="300" height="300"></canvas>
+        <div class="stats" id="statsOutput">Select an image or click "Generate Sample Rocket" to begin.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      generateBeadPattern,
+      getPaletteProvider
+    } from '../../packages/core/src/index.js';
+
+    const canvas = document.getElementById('patternCanvas');
+    const ctx = canvas.getContext('2d');
+    const statsOutput = document.getElementById('statsOutput');
+    const fileInput = document.getElementById('fileInput');
+    const demoBtn = document.getElementById('demoBtn');
+
+    function renderPatternToCanvas(pattern) {
+      const { cols, rows, cells } = pattern.grid;
+      const palette = getPaletteProvider(pattern.palette.id).colors;
+      const colorMap = new Map(palette.map(c => [c.code, c.hex]));
+
+      canvas.width = cols * 10;
+      canvas.height = rows * 10;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const code = cells[y * cols + x];
+          if (code) {
+            ctx.fillStyle = colorMap.get(code) || '#ffffff';
+            ctx.beginPath();
+            ctx.arc(x * 10 + 5, y * 10 + 5, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      const top5 = pattern.statistics.colors.slice(0, 5)
+        .map(c => `  - [${c.code}] ${c.name}: ${c.count} beads`)
+        .join('\n');
+
+      statsOutput.innerText =
+        `Title: ${pattern.title}\n` +
+        `Size: ${cols} x ${rows}\n` +
+        `Total Beads: ${pattern.statistics.totalBeads}\n` +
+        `Palette: ${pattern.palette.name}\n\n` +
+        `Top Materials:\n${top5}`;
+    }
+
+    async function processImage(imgSource) {
+      const offscreen = document.createElement('canvas');
+      offscreen.width = 100;
+      offscreen.height = 100;
+      const offCtx = offscreen.getContext('2d');
+      offCtx.drawImage(imgSource, 0, 0, 100, 100);
+      const imgData = offCtx.getImageData(0, 0, 100, 100);
+
+      statsOutput.innerText = 'Quantizing and calculating color metrics...';
+
+      const pattern = await generateBeadPattern(imgData, {
+        cols: 29,
+        rows: 29,
+        palette: 'mard-compatible-base-221',
+        processMode: 'cartoon',
+        maxColors: 24,
+        whiteMode: 'auto',
+        title: 'Browser Demo Pattern'
+      });
+
+      renderPatternToCanvas(pattern);
+    }
+
+    demoBtn.addEventListener('click', () => {
+      // Create simple procedural demo graphic
+      const offscreen = document.createElement('canvas');
+      offscreen.width = 64;
+      offscreen.height = 64;
+      const offCtx = offscreen.getContext('2d');
+      offCtx.fillStyle = '#ffffff';
+      offCtx.fillRect(0, 0, 64, 64);
+      offCtx.fillStyle = '#ef4444';
+      offCtx.beginPath();
+      offCtx.arc(32, 32, 24, 0, Math.PI * 2);
+      offCtx.fill();
+      offCtx.fillStyle = '#3b82f6';
+      offCtx.fillRect(24, 24, 16, 16);
+
+      const imgData = offCtx.getImageData(0, 0, 64, 64);
+      generateBeadPattern(imgData, {
+        cols: 29,
+        rows: 29,
+        palette: 'mard-compatible-base-221',
+        title: 'Procedural Rocket Badge'
+      }).then(renderPatternToCanvas);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => processImage(img);
+      img.src = URL.createObjectURL(file);
+    });
+  </script>
+</body>
+</html>

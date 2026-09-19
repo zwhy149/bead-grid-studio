@@ -1,0 +1,60 @@
+{
+  "name": "@bead-grid/core",
+  "version": "1.2.0",
+  "description": "Deterministic, runtime-agnostic image-to-grid quantization and constrained palette matching engine.",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./geometry": {
+      "types": "./index.d.ts",
+      "import": "./src/geometry.js"
+    },
+    "./color": {
+      "types": "./index.d.ts",
+      "import": "./src/color.js"
+    },
+    "./palette": {
+      "types": "./index.d.ts",
+      "import": "./src/palette.js"
+    },
+    "./quantize": {
+      "types": "./index.d.ts",
+      "import": "./src/quantize.js"
+    },
+    "./pattern": {
+      "types": "./index.d.ts",
+      "import": "./src/pattern.js"
+    },
+    "./analysis": {
+      "types": "./index.d.ts",
+      "import": "./src/analysis.js"
+    }
+  },
+  "files": [
+    "src",
+    "index.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "bead-pattern",
+    "fuse-beads",
+    "image-quantization",
+    "palette-matching",
+    "pixel-art",
+    "ciede2000",
+    "oklab",
+    "grid-generation"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

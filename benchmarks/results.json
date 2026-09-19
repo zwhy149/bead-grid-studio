@@ -1,0 +1,71 @@
+{
+  "timestamp": "2026-09-19T03:37:38.334Z",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "win32",
+    "arch": "x64"
+  },
+  "results": [
+    {
+      "scenario": "Small Grid (16x16) - Rocket Badge (1024px source)",
+      "avgMs": 282.76,
+      "minMs": 160.21,
+      "maxMs": 406.98,
+      "iterations": 5,
+      "heapDeltaKb": 4878.3
+    },
+    {
+      "scenario": "Mini Pegboard Standard (29x29) - Rocket Badge",
+      "avgMs": 177.22,
+      "minMs": 105.19,
+      "maxMs": 316.84,
+      "iterations": 5,
+      "heapDeltaKb": 6135.5
+    },
+    {
+      "scenario": "Large Pegboard (52x52) - Rocket Badge (Cartoon)",
+      "avgMs": 214.96,
+      "minMs": 108.75,
+      "maxMs": 397.96,
+      "iterations": 5,
+      "heapDeltaKb": 671.1
+    },
+    {
+      "scenario": "HD Detail Mode (52x52) - Rocket Badge (Detail Mode)",
+      "avgMs": 289.79,
+      "minMs": 129.97,
+      "maxMs": 460.37,
+      "iterations": 5,
+      "heapDeltaKb": 2313.8
+    },
+    {
+      "scenario": "Constrained Palette (29x29) - 12 Mini Starter Colors",
+      "avgMs": 168.96,
+      "minMs": 108.73,
+      "maxMs": 379.05,
+      "iterations": 5,
+      "heapDeltaKb": 5895.7
+    },
+    {
+      "scenario": "High-Entropy Gradient (256x256 source -> 40x40 Photo Mode)",
+      "avgMs": 142.88,
+      "minMs": 75.56,
+      "maxMs": 338.63,
+      "iterations": 5,
+      "heapDeltaKb": 2646
+    },
+    {
+      "scenario": "Complexity & Line Art Analyzer (1024x1024 Rocket Badge)",
+      "avgMs": 0.01,
+      "minMs": 0.01,
+      "maxMs": 0.01,
+      "iterations": 5,
+      "heapDeltaKb": 33.1
+    }
+  ],
+  "e2ePipeline": {
+    "elapsedMs": 444.83,
+    "beadCount": 383,
+    "colorCount": 9
+  }
+}

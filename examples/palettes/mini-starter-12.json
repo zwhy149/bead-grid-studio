@@ -1,0 +1,28 @@
+{
+  "$schema": "../../schema/palette.schema.json",
+  "schemaVersion": 1,
+  "id": "starter-12",
+  "name": "Starter 12-Color Mini Palette",
+  "manufacturer": "Community",
+  "source": "Open palette standard example for beginners and small kits",
+  "license": "CC0-1.0",
+  "beadMm": 2.6,
+  "anchors": {
+    "white": "S01",
+    "black": "S02"
+  },
+  "colors": [
+    { "code": "S01", "name": "White", "hex": "#FEFFFF", "series": "H" },
+    { "code": "S02", "name": "Black", "hex": "#000000", "series": "H" },
+    { "code": "S03", "name": "Primary Red", "hex": "#E7002F", "series": "F" },
+    { "code": "S04", "name": "Primary Yellow", "hex": "#FBED56", "series": "A" },
+    { "code": "S05", "name": "Primary Blue", "hex": "#0F54C0", "series": "C" },
+    { "code": "S06", "name": "Grass Green", "hex": "#35E352", "series": "B" },
+    { "code": "S07", "name": "Orange", "hex": "#FE8B4C", "series": "A" },
+    { "code": "S08", "name": "Purple", "hex": "#8854B3", "series": "D" },
+    { "code": "S09", "name": "Rose Pink", "hex": "#F551A2", "series": "E" },
+    { "code": "S10", "name": "Sky Blue", "hex": "#41CCFF", "series": "C" },
+    { "code": "S11", "name": "Skin / Sand", "hex": "#FFE2CE", "series": "G" },
+    { "code": "S12", "name": "Medium Gray", "hex": "#89858C", "series": "H" }
+  ]
+}

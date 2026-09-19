@@ -1,0 +1,46 @@
+name: "Community Showcase Submission"
+description: "Share your finished fuse-bead art, pixel craft, or tool built with Bead Grid Studio"
+title: "[Showcase]: "
+labels: ["showcase", "community"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for sharing your creation with the Bead Grid Studio community!
+  - type: input
+    id: creation-name
+    attributes:
+      label: "Creation Title"
+      placeholder: "e.g., Retro Rocket Badge 29x29"
+    validations:
+      required: true
+  - type: textarea
+    id: photo
+    attributes:
+      label: "Photo / Image of Finished Work"
+      description: "Drag and drop or paste images of your physical bead piece or screenshot."
+      placeholder: "Drop your image here..."
+    validations:
+      required: true
+  - type: input
+    id: dimensions
+    attributes:
+      label: "Grid Dimensions"
+      placeholder: "e.g., 29x29 mini board or 52x52"
+    validations:
+      required: false
+  - type: textarea
+    id: pattern-json
+    attributes:
+      label: "Pattern JSON (Optional)"
+      description: "Paste exported pattern JSON conforming to schema/pattern.schema.json"
+      placeholder: "{\n  \"schemaVersion\": 1,\n  ..."
+    validations:
+      required: false
+  - type: input
+    id: attribution
+    attributes:
+      label: "Creator / Social Link"
+      placeholder: "@yourname on GitHub / X / Instagram"
+    validations:
+      required: false
