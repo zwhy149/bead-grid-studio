@@ -11,9 +11,12 @@
 
 <p align="center">
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US"><strong>🚀 Live Demo</strong></a> ·
-  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Offline / GitHub Release</strong></a> ·
-  <a href="#30-second-quick-start"><strong>30-second Quick Start</strong></a> ·
-  <a href="docs/project-health.md"><strong>📊 Project Health & Metrics</strong></a> ·
+  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Offline / Release</strong></a> ·
+  <a href="#30-second-quick-start"><strong>30s Quick Start</strong></a> ·
+  <a href="packages/core/README.md"><strong>💻 Core API (@bead-grid/core)</strong></a> ·
+  <a href="schemas/pattern.schema.json"><strong>📐 Schemas</strong></a> ·
+  <a href="docs/benchmark.md"><strong>⚡ Benchmarks</strong></a> ·
+  <a href="docs/project-health.md"><strong>📊 Project Health</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ Star on GitHub</strong></a>
 </p>
 
@@ -151,14 +154,55 @@ node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json
 
 See [CLI Documentation](bin/bead-grid.mjs) and [Node.js Integration Example](examples/node-cli/README.md).
 
-## Core Engine & Open Data Standards
+## Developer & Open-source Ecosystem
 
-To enable third-party ecosystem integration and custom tooling, the project provides:
+Bead Grid Studio is not only an end-user Web/PWA application. The repository also provides a complete, reusable open-source stack:
 
-1. **`@bead-grid/core`**: A zero-dependency, runtime-agnostic library packaging geometry fitting, OKLab perceptual color delta, CIEDE2000 quantization, and material consolidation. See [Core Documentation](packages/core/README.md).
-2. **Open Palette Specification**: Formal JSON Schema Draft-07 allowing any craft manufacturer or artist to publish standardized color sets. See [Palette Format Guide](docs/palette-format.md) and [Schema Definition](schema/palette.schema.json).
-3. **Open Pattern Exchange Format**: Vendor-neutral JSON exchange format liberating craft designs from proprietary file lock-in. See [Pattern Format Guide](docs/pattern-format.md) and [Schema Definition](schema/pattern.schema.json).
-4. **Reproducible Benchmarks**: Automated performance benchmark suite with latency and memory tracking. See [Benchmark Guide](docs/benchmark.md).
+- **DOM-free Quantization Core** (`packages/core/`, `@bead-grid/core`): Runtime-agnostic, zero-dependency ES module executing OKLab and CIEDE2000 color matching identically across Node.js, Web Workers, and Deno. See [Core Documentation](packages/core/README.md).
+- **Headless CLI** (`bin/bead-grid.mjs`): Single-command terminal execution for batch conversion with 24-bit ANSI color terminal previews or JSON exports. See [CLI Examples](examples/cli/README.md).
+- **Open Pattern & Palette Schemas** (`schemas/`): JSON Schema Draft-07 specifications liberating craft patterns from proprietary file formats. See [Pattern Format Guide](docs/pattern-format.md) and [Palette Format Guide](docs/palette-format.md).
+- **Reproducible Benchmark Suite** (`benchmarks/`): Measures quantization latency, memory overhead, and 100% bitwise determinism across 16, 24, 32, 48, and 60 grid dimensions. See [Benchmark Guide](docs/benchmark.md).
+- **Ready-to-run Examples** (`examples/`): Standalone examples for Browser, Node.js backend pipelines, and custom brand palettes.
+
+### Architecture Overview
+
+```text
+Web / PWA (Browser UI) ──────> Browser Adapter ──┐
+Headless CLI (Node.js) ──────────────────────────┼──> @bead-grid/core
+Node.js Pipeline / Script ───────────────────────┤     ├── Pattern Model & BOM
+Automated Tests / Benchmarks ────────────────────┘     ├── OKLab / CIEDE2000 Matching
+                                                       └── Open Schemas (Draft-07)
+```
+
+For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### 5-minute Developer Quick Start
+
+Call the core engine directly in Node.js with zero browser dependencies:
+
+```javascript
+import { generateBeadPattern } from './packages/core/src/index.js';
+
+// Pass raw pixel data (data: Uint8ClampedArray/Uint8Array, width, height)
+const pattern = await generateBeadPattern(imagePixelData, {
+  cols: 29,
+  rows: 29,
+  palette: 'mard-compatible-base-221',
+  processMode: 'cartoon',
+  maxColors: 32,
+});
+
+console.log(`Total beads: ${pattern.statistics.totalBeads}`);
+console.log(`Unique colors: ${pattern.statistics.usedColors}`);
+console.log(`Top color code: ${pattern.materials[0].code} (${pattern.materials[0].count} beads)`);
+```
+
+Run executable integration examples:
+```bash
+node examples/node/index.mjs
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+npm run schema:validate
+```
 
 ## Run locally for development
 
@@ -185,10 +229,11 @@ See the complete [Developer Guide](docs/developer-guide.md).
 ## Current Focus & Roadmap
 
 - [x] Extracted `@bead-grid/core` standalone package and headless Node.js CLI.
-- [x] Published formal JSON Schemas for color palettes and pattern exchange.
-- [x] Implemented reproducible quantization benchmark suite.
-- [ ] Making workflow improvements: color isolation and completed-region tracking.
-- [ ] Physical pegboard splitting (29x29 / 52x52) for multi-board paginated printing.
+- [x] Published formal JSON Schemas for color palettes and pattern exchange (Draft-07).
+- [x] Implemented reproducible quantization benchmark suite across 16, 24, 32, 48, 60 grids.
+- [x] Color-by-color Making Assistant: color isolation, step-by-step progress tracking, local draft recovery, and UTF-8 CSV BOM export.
+- [ ] Physical pegboard splitting: automatically slice large murals (>100x100) into 29x29 or 52x52 paginated printable sheets (SVG/PDF).
+- [ ] Visual custom palette JSON importer dialog in the web interface.
 
 See [ROADMAP.md](ROADMAP.md) for the full evidence-driven roadmap.
 

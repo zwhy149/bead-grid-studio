@@ -13,7 +13,10 @@
   <a href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN"><strong>🚀 在线体验</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ 离线版 / GitHub Release</strong></a> ·
   <a href="#30-秒快速开始"><strong>30 秒上手</strong></a> ·
-  <a href="docs/project-health.md"><strong>📊 项目健康与指标</strong></a> ·
+  <a href="packages/core/README.md"><strong>💻 开发者核心 (@bead-grid/core)</strong></a> ·
+  <a href="schemas/pattern.schema.json"><strong>📐 数据规范 (Schema)</strong></a> ·
+  <a href="docs/benchmark.md"><strong>⚡ 基准测试</strong></a> ·
+  <a href="docs/project-health.zh-CN.md"><strong>📊 项目健康与指标</strong></a> ·
   <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ GitHub Star</strong></a>
 </p>
 
@@ -149,14 +152,55 @@ node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json
 
 详见 [CLI 使用说明](bin/bead-grid.mjs) 与 [Node.js 集成示例](examples/node-cli/README.md)。
 
-## 核心算法库与开放标准
+## 开发者与开源生态 / Developer & Open-source Ecosystem
 
-为了支持更多第三方开发者集成与二次开发，本项目已解耦出核心算法库与开放数据规范：
+Bead Grid Studio 不仅是一个面向最终用户的 Web/PWA 工具，本项目同时提供可独立复用的完整开源技术栈：
 
-1. **`@bead-grid/core`**：零外部依赖、跨运行时的核心库，封装了几何贴合、OKLab/CIEDE2000 色差量化与材料合并逻辑。详见 [Core 文档](packages/core/README.md)。
-2. **开放色板规范**：基于 JSON Schema Draft-07，任何厂商或创作者均可发布标准化色板。详见 [色板规范说明](docs/palette-format.md) 与 [Schema 定义](schema/palette.schema.json)。
-3. **开放图纸交换格式**：标准结构化图纸格式，打破封闭私有格式壁垒。详见 [图纸交换格式说明](docs/pattern-format.md) 与 [Schema 定义](schema/pattern.schema.json)。
-4. **性能基准测试**：提供自动化性能测试套件与可复现指标。详见 [性能基准文档](docs/benchmark.md)。
+- **DOM-free 图像量化核心** (`packages/core/`，`@bead-grid/core`)：0 外部依赖的纯 JavaScript ES Module，可在 Node.js、浏览器 Worker、Deno 等多环境无差异执行 OKLab 与 CIEDE2000 色差量化。详见 [Core 文档](packages/core/README.md)。
+- **无头命令行工具** (`bin/bead-grid.mjs`)：终端一行命令完成图像转拼豆施工图，输出 ANSI 24-bit 终端彩色预览或标准 JSON。详见 [CLI 示例](examples/cli/README.md)。
+- **开放图纸与色板规范** (`schemas/`)：基于 JSON Schema Draft-07 的版本化数据标准，打破封闭工艺文件格式壁垒。详见 [图纸规范说明](docs/pattern-format.md) 与 [色板规范说明](docs/palette-format.md)。
+- **可复现基准测试套件** (`benchmarks/`)：覆盖 16、24、32、48、60 全规格网格，测量量化延迟、内存占用与 100% 位一致性（Determinism）。详见 [性能基准文档](docs/benchmark.md)。
+- **开箱即用集成范例** (`examples/`)：包含原生浏览器、Node.js 批处理流水线、CLI 脚本及自定义品牌色板注册。
+
+### 架构一览 / Architecture
+
+```text
+Web / PWA (Browser UI) ──────> Browser Adapter ──┐
+Headless CLI (Node.js) ──────────────────────────┼──> @bead-grid/core
+Node.js Pipeline / Script ───────────────────────┤     ├── Pattern Model & BOM
+Automated Tests / Benchmarks ────────────────────┘     ├── OKLab / CIEDE2000 Matching
+                                                       └── Open Schemas (Draft-07)
+```
+
+系统详细架构设计与数据流说明详见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+
+### 5 分钟开发者快速上手 / 5-minute Developer Quick Start
+
+无需浏览器 DOM，直接在 Node.js 中调用核心引擎：
+
+```javascript
+import { generateBeadPattern } from './packages/core/src/index.js';
+
+// 传入包含像素 Buffer 的图像对象 (data: Uint8ClampedArray/Uint8Array, width, height)
+const pattern = await generateBeadPattern(imagePixelData, {
+  cols: 29,
+  rows: 29,
+  palette: 'mard-compatible-base-221',
+  processMode: 'cartoon',
+  maxColors: 32,
+});
+
+console.log(`总颗粒数: ${pattern.statistics.totalBeads}`);
+console.log(`使用色数: ${pattern.statistics.usedColors}`);
+console.log(`用料首项: ${pattern.materials[0].code} (${pattern.materials[0].count} 颗)`);
+```
+
+运行可执行示例：
+```bash
+node examples/node/index.mjs
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+npm run schema:validate
+```
 
 ## 开发者本地运行
 
@@ -183,10 +227,11 @@ npm run health      # 运行项目健康与公开指标检查
 ## 当前重点与路线图
 
 - [x] 解耦 `@bead-grid/core` 核心独立包与纯 Node.js CLI 工具。
-- [x] 发布开放色板规范与图纸交换 JSON Schema。
-- [x] 建立可复现量化基准套件与性能报告。
-- [ ] 制作流程优化：单色隔离、已完成区域划线追踪。
-- [ ] 大图自动分割为 29x29 / 52x52 物理底板分页打印。
+- [x] 发布开放色板规范与图纸交换 JSON Schema (Draft-07)。
+- [x] 建立可复现量化基准套件与性能报告 (`benchmarks/` / `docs/benchmark.md`)。
+- [x] 按色制作助手：单色号隔离、逐色完成进度、本地草稿恢复与 UTF-8 CSV 导出。
+- [ ] 物理底板分割：大图自动切片为 29x29 / 52x52 物理底板分页打印 (SVG/PDF)。
+- [ ] Web 端可视化色板导入：支持拖拽导入自定义 `palette.schema.json`。
 
 完整路线图见 [ROADMAP.md](ROADMAP.md)。
 

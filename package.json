@@ -40,6 +40,7 @@
     "health": "node scripts/project-health.mjs",
     "benchmark": "node benchmarks/run-benchmark.mjs",
     "check": "node scripts/check-source.mjs && node scripts/check-palette.mjs",
+    "schema:validate": "node scripts/validate-schemas.mjs",
     "test:unit": "node --test tests/unit/*.test.js",
     "test:determinism": "node --test tests/unit/golden.test.js",
     "test:e2e": "npm run build && playwright test",
