@@ -1,6 +1,6 @@
 # Fork and deploy your own Bead Grid Studio
 
-[简体中文](deployment.zh-CN.md) · **English**
+**English** · [简体中文](deployment.zh-CN.md)
 
 Bead Grid Studio is a static browser application. Image decoding and conversion stay on the user's device; the hosted files do not provide account, payment, license-key, image-upload, or conversion APIs.
 

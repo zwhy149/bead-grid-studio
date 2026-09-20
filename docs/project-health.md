@@ -1,6 +1,6 @@
 # Project Health & Public Impact Evidence
 
-[简体中文](project-health.zh-CN.md) · **English**
+**English** · [简体中文](project-health.zh-CN.md)
 
 This page gives maintainers, contributors, reviewers, and open-source grant programs a factual snapshot of Bead Grid Studio. Because the tool is strictly local-first and zero-telemetry by design, we do not monitor user sessions, collect tracking cookies, or upload user artwork. Instead, adoption and project health are verified through open-source repository signals, automated release assets, and public GitHub APIs.
 
