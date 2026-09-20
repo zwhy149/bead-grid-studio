@@ -1,16 +1,28 @@
 import enUS from './en-US.js';
+import frFR from './fr-FR.js';
+import jaJP from './ja-JP.js';
+import koKR from './ko-KR.js';
 import zhCN from './zh-CN.js';
 
-export const DEFAULT_LOCALE = 'zh-CN';
-export const SUPPORTED_LOCALES = Object.freeze(['zh-CN', 'en-US']);
+export const DEFAULT_LOCALE = 'en-US';
+export const SUPPORTED_LOCALES = Object.freeze(['en-US', 'ja-JP', 'ko-KR', 'fr-FR', 'zh-CN']);
 export const LOCALE_STORAGE_KEY = 'bead-grid-studio:locale';
 
-const dictionaries = Object.freeze({ 'zh-CN': zhCN, 'en-US': enUS });
+const dictionaries = Object.freeze({
+  'en-US': enUS,
+  'ja-JP': jaJP,
+  'ko-KR': koKR,
+  'fr-FR': frFR,
+  'zh-CN': zhCN,
+});
 const listeners = new Set();
 
 export function normalizeLocale(value) {
   const text = String(value || '').trim().replace('_', '-').toLowerCase();
   if (text === 'zh' || text.startsWith('zh-')) return 'zh-CN';
+  if (text === 'ja' || text.startsWith('ja-')) return 'ja-JP';
+  if (text === 'ko' || text.startsWith('ko-')) return 'ko-KR';
+  if (text === 'fr' || text.startsWith('fr-')) return 'fr-FR';
   if (text === 'en' || text.startsWith('en-')) return 'en-US';
   return null;
 }
@@ -87,12 +99,12 @@ function translationParams(node) {
 }
 
 function syncLocalizedLegalLinks(root) {
-  const english = activeLocale === 'en-US';
+  const useEnglish = activeLocale !== 'zh-CN';
   root.querySelectorAll('a[href$="privacy.html"],a[href$="privacy.en.html"]').forEach((link) => {
-    link.setAttribute('href', english ? './privacy.en.html' : './privacy.html');
+    link.setAttribute('href', useEnglish ? './privacy.en.html' : './privacy.html');
   });
   root.querySelectorAll('a[href$="terms.html"],a[href$="terms.en.html"]').forEach((link) => {
-    link.setAttribute('href', english ? './terms.en.html' : './terms.html');
+    link.setAttribute('href', useEnglish ? './terms.en.html' : './terms.html');
   });
 }
 

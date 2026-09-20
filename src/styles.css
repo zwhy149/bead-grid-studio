@@ -180,9 +180,9 @@
 
     .language-switcher > span { color: var(--faint); font-size: 10px; }
     .language-switcher button {
-      min-width: 42px;
+      min-width: 28px;
       min-height: 44px;
-      padding: 5px 8px;
+      padding: 5px 6px;
       color: var(--muted);
       background: transparent;
       border-radius: 7px;
@@ -1334,7 +1334,7 @@
       .brand-copy { display: none; }
       .top-actions .top-hide-mobile, .top-divider, .zoom-control { display: none; }
       .top-actions { gap: 5px; }
-      .language-switcher button { min-width: 44px; min-height: 44px; }
+      .language-switcher button { min-width: 26px; min-height: 44px; padding: 0 4px; }
       .button, .button.compact, .preset-button, .size-mode-button, .board-layout-button, .tool-button, .segment-button, .toggle-button, .palette-series button { min-height: 44px; }
       .icon-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
       .toggle-button { min-width: 44px; }
@@ -1427,9 +1427,14 @@
     @media (max-width: 560px) {
       .top-actions #undoBtn,
       .top-actions #redoBtn { display: none; }
-      .topbar { gap: 6px; padding-inline: 8px; }
-      .top-actions { min-width: 0; }
-      #topExportBtn { min-width: 0; padding-inline: 10px; }
+      .topbar { gap: 4px; padding-inline: 6px; }
+      .brand-mark { padding: 6px; gap: 2px; border-radius: 9px; }
+      .brand-mark i { width: 6px; height: 6px; }
+      .language-switcher { gap: 1px; padding: 2px; }
+      .language-switcher > span { display: none; }
+      .language-switcher button { min-width: 22px; min-height: 44px; padding: 0 2px; font-size: 9px; }
+      .top-actions { gap: 4px; min-width: 0; }
+      #topExportBtn { min-width: 0; padding-inline: 6px; font-size: 11px; }
       .stage-toolbar { padding-inline: 7px; }
       .view-toggles { gap: 0; }
       .segment-button, .toggle-button { padding-inline: 7px; }

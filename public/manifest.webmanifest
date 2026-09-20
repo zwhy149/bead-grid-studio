@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Bead Grid Studio / 豆格工坊",
+  "name": "Bead Grid Studio",
   "short_name": "Bead Grid",
-  "description": "Turn images into editable, printable fuse-bead patterns locally. 图片仅在浏览器本地处理，可生成可编辑、可打印的拼豆图纸。",
+  "description": "Turn images into editable, printable fuse-bead patterns locally with per-cell color codes and material counts.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

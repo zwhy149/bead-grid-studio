@@ -1,11 +1,14 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import { dirname, extname, join, resolve } from 'node:path';
 import enUS from '../src/i18n/en-US.js';
+import frFR from '../src/i18n/fr-FR.js';
+import jaJP from '../src/i18n/ja-JP.js';
+import koKR from '../src/i18n/ko-KR.js';
 import zhCN from '../src/i18n/zh-CN.js';
 import { DEFAULT_PALETTE_PROVIDER_ID, getPaletteProvider } from '../src/palettes/catalog.js';
 import { PALETTE } from '../src/palettes/mard221.js';
 
-const [html, app, geometry, manifest, worker, ciWorkflow, pagesWorkflow, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeZh, readmeEn, readmeRedirect, licenseAdr, deployZh, deployEn, privacyEn, termsEn, robots, sitemap] = await Promise.all([
+const [html, app, geometry, manifest, worker, ciWorkflow, pagesWorkflow, license, publicLicense, notice, publicNotice, packageJson, versionJson, healthJson, readmeEn, readmeEnRedirect, readmeZh, readmeJa, readmeKo, readmeFr, licenseAdr, deployZh, deployEn, privacyEn, termsEn, robots, sitemap] = await Promise.all([
   readFile('index.html', 'utf8'),
   readFile('src/app.js', 'utf8'),
   readFile('src/core/geometry.js', 'utf8'),
@@ -23,6 +26,9 @@ const [html, app, geometry, manifest, worker, ciWorkflow, pagesWorkflow, license
   readFile('README.md', 'utf8'),
   readFile('README.en.md', 'utf8'),
   readFile('README.zh-CN.md', 'utf8'),
+  readFile('README.ja.md', 'utf8'),
+  readFile('README.ko.md', 'utf8'),
+  readFile('README.fr.md', 'utf8'),
   readFile('docs/adr/0003-apache-license.md', 'utf8'),
   readFile('docs/deployment.zh-CN.md', 'utf8'),
   readFile('docs/deployment.md', 'utf8'),
@@ -67,7 +73,13 @@ check(geometry.includes('export function fitPatternInsideBoard'), 'geometry publ
 
 const zhKeys = Object.keys(zhCN).sort();
 const enKeys = Object.keys(enUS).sort();
+const jaKeys = Object.keys(jaJP).sort();
+const koKeys = Object.keys(koKR).sort();
+const frKeys = Object.keys(frFR).sort();
 check(JSON.stringify(zhKeys) === JSON.stringify(enKeys), 'zh-CN and en-US dictionaries must expose the same keys');
+check(JSON.stringify(enKeys) === JSON.stringify(jaKeys), 'en-US and ja-JP dictionaries must expose the same keys');
+check(JSON.stringify(enKeys) === JSON.stringify(koKeys), 'en-US and ko-KR dictionaries must expose the same keys');
+check(JSON.stringify(enKeys) === JSON.stringify(frKeys), 'en-US and fr-FR dictionaries must expose the same keys');
 const markupI18nKeys = [...html.matchAll(/\bdata-i18n(?:-aria|-title|-placeholder|-alt)?="([^"]+)"/g)].map((match) => match[1]);
 const missingMarkupKeys = [...new Set(markupI18nKeys.filter((key) => !(key in zhCN) || !(key in enUS)))];
 check(missingMarkupKeys.length === 0, `HTML references missing i18n keys: ${missingMarkupKeys.join(', ')}`);
@@ -144,7 +156,7 @@ const removedReferenceTerms = ['Zip' + 'pland', 'perler' + '-beads', 'AG' + 'PL'
 check(!removedReferenceTerms.some((term) => publishedText.toLowerCase().includes(term.toLowerCase())), 'removed project-reference term found in published source');
 check(['拼豆图纸生成器', '图片转拼豆', '拼豆像素画', '逐格色号', '辅助线', '用料统计'].every((term) => readmeZh.includes(term)), 'Chinese README search terms are incomplete');
 check(['local-first fuse-bead pattern generator', 'editable', 'printable', 'per-cell color codes', 'board guides', 'material counts'].every((term) => readmeEn.includes(term)), 'English README search terms are incomplete');
-check(readmeZh.includes('README.en.md') && readmeEn.includes('README.md'), 'README language switch is incomplete');
+check(readmeZh.includes('README.md') && readmeEn.includes('README.zh-CN.md'), 'README language switch is incomplete');
 check(deployZh.includes('GitHub Pages') && deployZh.includes('Cloudflare Pages') && deployEn.includes('GitHub Pages') && deployEn.includes('Cloudflare Pages'), 'bilingual deployment guide is incomplete');
 check(privacyEn.includes('<html lang="en-US">') && termsEn.includes('<html lang="en-US">'), 'English privacy or terms page is missing');
 const canonicalSitemapUrl = 'https://zwhy149.github.io/bead-grid-studio/sitemap.xml';
@@ -180,9 +192,12 @@ const requiredSitemapUrls = [
 check(requiredSitemapUrls.every((url) => sitemapUrls.has(url)), 'sitemap is missing a required localized URL');
 
 const markdownFiles = [
-  ['README.md', readmeZh],
-  ['README.en.md', readmeEn],
-  ['README.zh-CN.md', readmeRedirect],
+  ['README.md', readmeEn],
+  ['README.en.md', readmeEnRedirect],
+  ['README.zh-CN.md', readmeZh],
+  ['README.ja.md', readmeJa],
+  ['README.ko.md', readmeKo],
+  ['README.fr.md', readmeFr],
   ['docs/deployment.zh-CN.md', deployZh],
   ['docs/deployment.md', deployEn],
 ];

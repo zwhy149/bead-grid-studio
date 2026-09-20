@@ -1,61 +1,70 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#fbfaf7">
-  <meta name="description" content="上传图片，一键生成带逐格色号、粗辅助线与用量统计的拼豆施工图。图片仅在你的浏览器本地处理，不上传服务器。">
+  <meta name="description" content="Turn images into editable, printable fuse-bead patterns with per-cell color codes, board guides, and material counts. Images stay in your browser.">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://zwhy149.github.io/bead-grid-studio/">
-  <link rel="alternate" hreflang="zh-CN" href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN">
   <link rel="alternate" hreflang="en" href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US">
+  <link rel="alternate" hreflang="ja" href="https://zwhy149.github.io/bead-grid-studio/?lang=ja-JP">
+  <link rel="alternate" hreflang="ko" href="https://zwhy149.github.io/bead-grid-studio/?lang=ko-KR">
+  <link rel="alternate" hreflang="fr" href="https://zwhy149.github.io/bead-grid-studio/?lang=fr-FR">
+  <link rel="alternate" hreflang="zh-CN" href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN">
   <link rel="alternate" hreflang="x-default" href="https://zwhy149.github.io/bead-grid-studio/">
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="zh_CN">
-  <meta property="og:title" content="豆格工坊 · 在线拼豆图纸生成器">
-  <meta property="og:description" content="图片本地处理，自动配色、统计豆子并导出可打印的拼豆施工图。">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Bead Grid Studio · Image to Fuse Bead Pattern">
+  <meta property="og:description" content="Match colors, count beads, edit the grid, and export a printable pattern. Everything is processed locally.">
   <meta property="og:url" content="https://zwhy149.github.io/bead-grid-studio/">
   <meta property="og:image" content="https://zwhy149.github.io/bead-grid-studio/social-preview.png">
   <meta property="og:image:alt" content="Bead Grid Studio original image to fuse bead pattern preview">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="675">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="在线拼豆图纸生成器｜图片转拼豆 · 豆格工坊">
-  <meta name="twitter:description" content="上传图片，一键生成带逐格色号、辅助线与用料统计的拼豆施工图；图片仅在浏览器本地处理。">
+  <meta name="twitter:title" content="Bead Grid Studio — Image to Fuse Bead Pattern Generator">
+  <meta name="twitter:description" content="Turn images into editable, printable fuse-bead patterns with per-cell color codes, board guides, and material counts. Images stay in your browser.">
   <meta name="twitter:image" content="https://zwhy149.github.io/bead-grid-studio/social-preview.png">
   <link rel="icon" href="./app-icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./app-icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
-  <title>在线拼豆图纸生成器｜图片转拼豆 · 豆格工坊</title>
+  <title>Bead Grid Studio — Image to Fuse Bead Pattern Generator</title>
   <link rel="stylesheet" href="./src/styles.css">
-  <script type="application/ld+json" id="softwareJsonLd">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Bead Grid Studio / 豆格工坊","applicationCategory":"DesignApplication","operatingSystem":"Any modern web browser","url":"https://zwhy149.github.io/bead-grid-studio/","isAccessibleForFree":true,"license":"https://www.apache.org/licenses/LICENSE-2.0"}</script>
+  <script type="application/ld+json" id="softwareJsonLd">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Bead Grid Studio","applicationCategory":"DesignApplication","operatingSystem":"Any modern web browser","url":"https://zwhy149.github.io/bead-grid-studio/","isAccessibleForFree":true,"license":"https://www.apache.org/licenses/LICENSE-2.0"}</script>
 </head>
 <body>
-  <h1 class="visually-hidden" data-i18n="app.heading">豆格工坊：在线拼豆图纸生成器</h1>
-  <a class="skip-link" href="#canvasViewport" data-i18n="app.skipCanvas">跳到图纸画布</a>
+  <h1 class="visually-hidden" data-i18n="app.heading">Bead Grid Studio: Fuse Bead Pattern Generator</h1>
+  <a class="skip-link" href="#canvasViewport" data-i18n="app.skipCanvas">Skip to pattern canvas</a>
 
   <div class="app-shell">
     <header class="topbar">
-      <div class="brand" aria-label="豆格工坊" data-i18n-aria="brand.aria">
+      <div class="brand" aria-label="Bead Grid Studio" data-i18n-aria="brand.aria">
         <span class="brand-mark" aria-hidden="true">
           <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
         </span>
-        <span class="brand-copy"><strong data-i18n="brand.name">豆格工坊</strong><span data-i18n="brand.tagline">在线拼豆图纸生成器</span></span>
+        <span class="brand-copy"><strong data-i18n="brand.name">Bead Grid Studio</strong><span data-i18n="brand.tagline">Fuse bead pattern generator</span></span>
       </div>
 
       <div class="project-meta">
-        <strong id="projectTitle">未命名图纸</strong>
-        <span id="projectSubtitle">图片仅在当前浏览器中处理</span>
+        <strong id="projectTitle">Untitled pattern</strong>
+        <span id="projectSubtitle">Images are processed only in this browser</span>
       </div>
 
       <div class="top-actions">
-        <button class="button secondary top-hide-mobile" id="topUploadBtn" type="button" data-i18n="action.chooseImage">选择图片</button>
-        <div class="language-switcher" role="group" aria-label="界面语言" data-i18n-aria="language.label">
-          <button type="button" data-locale="zh-CN" aria-pressed="true" title="中文" data-i18n="language.chinese" data-i18n-title="language.chinese">中文</button>
+        <button class="button secondary top-hide-mobile" id="topUploadBtn" type="button" data-i18n="action.chooseImage">Choose Image</button>
+        <div class="language-switcher" role="group" aria-label="Interface language" data-i18n-aria="language.label">
+          <button type="button" data-locale="en-US" aria-pressed="true" title="EN" data-i18n="language.english" data-i18n-title="language.english">EN</button>
           <span aria-hidden="true">/</span>
-          <button type="button" data-locale="en-US" aria-pressed="false" title="EN" data-i18n="language.english" data-i18n-title="language.english">EN</button>
+          <button type="button" data-locale="ja-JP" aria-pressed="false" title="JA" data-i18n="language.japanese" data-i18n-title="language.japanese">JA</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-locale="ko-KR" aria-pressed="false" title="KO" data-i18n="language.korean" data-i18n-title="language.korean">KO</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-locale="fr-FR" aria-pressed="false" title="FR" data-i18n="language.french" data-i18n-title="language.french">FR</button>
+          <span aria-hidden="true">/</span>
+          <button type="button" data-locale="zh-CN" aria-pressed="false" title="中文" data-i18n="language.chinese" data-i18n-title="language.chinese">中文</button>
         </div>
         <button class="icon-button" id="productHelpBtn" type="button" aria-label="使用说明、隐私与版本" title="使用说明、隐私与版本" data-i18n-aria="aria.help" data-i18n-title="aria.help">?</button>
         <button class="icon-button" id="undoBtn" type="button" aria-label="撤销" title="撤销 Ctrl+Z" data-i18n-aria="aria.undo" data-i18n-title="title.undo" disabled><span aria-hidden="true">↶</span></button>

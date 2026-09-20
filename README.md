@@ -1,23 +1,23 @@
-# 拼豆图纸生成器｜豆格工坊（图片转拼豆 / 拼豆像素画）
+# Bead Grid Studio — Local-first Fuse-bead Pattern Generator
 
 <p align="center">
-  <strong>把图片变成可编辑、可打印的拼豆施工图。</strong><br>
-  Bead Grid Studio 支持图片转拼豆、拼豆像素画编辑、自动配色、逐格色号、辅助线与用料统计，全程在你的浏览器本地完成。
+  <strong>Turn images into editable, printable fuse-bead patterns.</strong><br>
+  Color matching, per-cell color codes, board guides, and material counts run locally in your browser.
 </p>
 
 <p align="center">
-  <strong>简体中文</strong> · <a href="README.en.md"><strong>English</strong></a>
+  <strong>English</strong> · <a href="README.ja.md"><strong>日本語</strong></a> · <a href="README.ko.md"><strong>한국어</strong></a> · <a href="README.fr.md"><strong>Français</strong></a> · <a href="README.zh-CN.md"><strong>简体中文</strong></a>
 </p>
 
 <p align="center">
-  <a href="https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN"><strong>🚀 在线体验</strong></a> ·
-  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ 离线版 / GitHub Release</strong></a> ·
-  <a href="#30-秒快速开始"><strong>30 秒上手</strong></a> ·
-  <a href="packages/core/README.md"><strong>💻 开发者核心 (@bead-grid/core)</strong></a> ·
-  <a href="schemas/pattern.schema.json"><strong>📐 数据规范 (Schema)</strong></a> ·
-  <a href="docs/benchmark.md"><strong>⚡ 基准测试</strong></a> ·
-  <a href="docs/project-health.zh-CN.md"><strong>📊 项目健康与指标</strong></a> ·
-  <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ GitHub Star</strong></a>
+  <a href="https://zwhy149.github.io/bead-grid-studio/?lang=en-US"><strong>🚀 Live Demo</strong></a> ·
+  <a href="https://github.com/zwhy149/bead-grid-studio/releases/latest"><strong>⬇ Offline / Release</strong></a> ·
+  <a href="#30-second-quick-start"><strong>30s Quick Start</strong></a> ·
+  <a href="packages/core/README.md"><strong>💻 Core API (@bead-grid/core)</strong></a> ·
+  <a href="schemas/pattern.schema.json"><strong>📐 Schemas</strong></a> ·
+  <a href="docs/benchmark.md"><strong>⚡ Benchmarks</strong></a> ·
+  <a href="docs/project-health.md"><strong>📊 Project Health</strong></a> ·
+  <a href="https://github.com/zwhy149/bead-grid-studio"><strong>⭐ Star on GitHub</strong></a>
 </p>
 
 <p align="center">
@@ -28,65 +28,67 @@
   <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.2.0-brightgreen"></a>
 </p>
 
-## 示例 / Examples
+Bead Grid Studio is a **local-first fuse-bead pattern generator**. It has no account, image-upload API, analytics SDK, or cloud conversion service.
 
-### Simple Graphic / 简洁图形：原图 → 拼豆图纸
+## Examples
 
-两侧都使用仓库自有的火箭素材。右侧是应用真实运行后生成的界面截图，不是 AI 绘制的产品假图。
+### Simple Graphic: original → fuse-bead pattern
 
-| 原始图片 | 自动生成并可继续编辑的拼豆图纸 |
+Both sides use the repository's original rocket fixture. The right side is a screenshot of the real running app, not an AI-generated product mockup.
+
+| Original image | Generated pattern, ready to edit |
 | --- | --- |
-| ![仓库自有火箭原图](tests/fixtures/rocket-badge.png) | ![中文桌面版生成火箭拼豆图纸](docs/assets/app-desktop-zh.png) |
+| ![Original rocket fixture owned by the repository](tests/fixtures/rocket-badge.png) | ![English desktop app generating the rocket fuse-bead pattern](docs/assets/app-desktop-en.png) |
 
-> 截图会由 `npm run capture:docs` 使用同一张火箭素材自动更新。完整的中文桌面与手机截图见[界面预览](#界面预览)。
+> Run `npm run capture:docs` to regenerate the screenshot from the same fixture. See [Screenshots](#screenshots) for complete desktop and mobile views.
 
-## 它能帮你完成什么
+## What it helps you do
 
-- **图片 → 拼豆图纸**：适合线稿、卡通、照片、文档结构和像素图。
-- **自动配色**：匹配可追溯的拼豆色板，同时保留黑白锚点和重要强调色。
-- **可编辑网格**：画笔、橡皮、取色、镜像、旋转、撤销与重做。
-- **制作信息齐全**：逐格色号、四边坐标、粗辅助线、底板接缝与用料统计。
-- **按色制作助手**：一次突出一个色号，完成后自动切换下一色，并在本地保存制作进度。
-- **可打印、可继续编辑**：导出施工图 PNG，并可保存和读取 JSON 工程。
-- **材料表可流转**：导出 UTF-8 CSV，包含色号、颜色、数量与完成状态。
-- **本地优先**：无需账号、没有图片上传接口、没有统计 SDK；原图像素留在你的设备中。
+- **Image → bead pattern** for line art, cartoons, photos, document structure, and pixel art.
+- **Automatic color matching** with black/white anchors and protection for important accent colors.
+- **Editable grid** with brush, eraser, picker, mirror, rotate, undo, and redo.
+- **Making-ready details** with per-cell color codes, four-side coordinates, board guides, seams, and material counts.
+- **Color-by-color Making Assistant** that isolates one code, advances after completion, and keeps progress locally.
+- **Printable and resumable output** as a construction-sheet PNG and editable JSON project.
+- **Portable material lists** as UTF-8 CSV with codes, color names, quantities, and completion state.
+- **Local-only processing** with no sign-up and no source-image upload.
 
-## 30 秒快速开始
+## 30-second Quick Start
 
-1. 打开[在线版](https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN)。
-2. 点击 **试试示例**，不需要先准备图片，几秒钟即可看到真实火箭图纸。
-3. 选择图案长边格数或真实底板；不确定时保留自动推荐。
-4. 根据需要调整颜色或用画笔修正一两格。
-5. 点击 **开始制作**，按颜色逐项摆豆；也可直接点击 **导出图纸** 保存施工图。
-6. 需要备料或记录进度时，从用料统计导出 CSV，并保存 JSON 工程。
+1. Open the [live demo](https://zwhy149.github.io/bead-grid-studio/?lang=en-US).
+2. Select **Try a Sample**. You do not need an image to see a real rocket pattern in seconds.
+3. Choose a long-side cell count or physical board; keep the recommendation if unsure.
+4. Adjust colors or touch up a few cells when needed.
+5. Select **Start Making** to place one color at a time, or use **Export Pattern** for a coded build sheet.
+6. Export the material CSV and save the JSON project when you need purchasing or progress records.
 
-也可以直接点击 **选择图片**，使用 PNG、JPG、WebP 或 GIF。图片只在当前浏览器内解码和转换。
+You can instead select **Choose Image** and use PNG, JPEG, WebP, or GIF. The image is decoded and converted only in the current browser.
 
-## 选择适合你的使用方式
+## Choose your path
 
-| 你想做什么 | 最省事的入口 | 是否需要安装 |
+| Goal | Fastest route | Installation |
 | --- | --- | --- |
-| 立即把图片转成拼豆图 | [打开在线版](https://zwhy149.github.io/bead-grid-studio/?lang=zh-CN) | 不需要 |
-| 断网使用或保存到 U 盘 | [从 Releases 下载单 HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | 不需要 |
-| 批量转换 / 终端自动化 | [命令行 CLI 工具 (`bead-grid`)](#命令行-cli-与自动化) | Node.js |
-| 在 Node.js / 网页中复用核心能力 | [@bead-grid/core 核心包](packages/core/README.md) | Node.js |
-| 部署成自己的公开网页 | [Fork 与部署教程](docs/deployment.zh-CN.md) | 需要 GitHub 账号；Cloudflare 可选 |
-| 修改代码或参与开发 | [开发者指南](docs/developer-guide.md) | 需要 Node.js |
+| Convert an image now | [Open the live demo](https://zwhy149.github.io/bead-grid-studio/?lang=en-US) | None |
+| Work offline or carry the app on a USB drive | [Download the portable HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | None |
+| Batch conversion / Headless script automation | [CLI Tool (`bead-grid`)](#command-line-cli--automation) | Node.js |
+| Embed conversion engine in Node.js or web app | [@bead-grid/core package](packages/core/README.md) | Node.js |
+| Publish your own copy | [Fork and deployment guide](docs/deployment.md) | GitHub account; Cloudflare optional |
+| Modify or contribute code | [Developer Guide](docs/developer-guide.md) | Node.js |
 
-## 下载离线版
+## Download the offline app
 
-普通使用者不需要下载源码，也不需要安装 Node.js。离线版是一个完整 HTML 文件，适用于 Windows、macOS 和 Linux 的现代浏览器：
+Regular users do not need the source code or Node.js. The offline app is one self-contained HTML file for modern browsers on Windows, macOS, and Linux:
 
-1. 打开[最新 Release](https://github.com/zwhy149/bead-grid-studio/releases/latest)。
-2. 展开页面底部的 **Assets**。
-3. 下载名字类似 `bead-grid-studio-vX.Y.Z.html` 的文件，其中 `X.Y.Z` 是版本号。
-4. 不要把 GitHub 自动生成的 `Source code` ZIP 当作离线应用。
-5. 双击 HTML 并选择 Chrome、Edge、Firefox 或 Safari 打开。
+1. Open the [latest Release](https://github.com/zwhy149/bead-grid-studio/releases/latest).
+2. Expand **Assets** near the bottom of the Release page.
+3. Download the file named like `bead-grid-studio-vX.Y.Z.html`, where `X.Y.Z` is the version.
+4. Do not use GitHub's automatically generated `Source code` ZIP as the offline app.
+5. Double-click the HTML and open it with Chrome, Edge, Firefox, or Safari.
 
-单 HTML 已内嵌代码、样式、Apache-2.0 许可证和第三方许可，不依赖外部 CDN。Release 还提供 ZIP 和 `SHA256SUMS.txt`；校验时只与**同一个 Release** 中的文件比较：
+The portable HTML embeds the application, styles, Apache-2.0 license, and third-party notices with no CDN dependency. The Release also includes a ZIP and `SHA256SUMS.txt`; compare files only with checksums from the **same Release**:
 
 ```powershell
-# Windows PowerShell：先进入下载目录
+# Windows PowerShell: run from the download directory
 Get-FileHash .\bead-grid-studio-vX.Y.Z.html -Algorithm SHA256
 Get-Content .\SHA256SUMS.txt
 ```
@@ -99,70 +101,70 @@ sha256sum --check SHA256SUMS.txt
 shasum -a 256 bead-grid-studio-vX.Y.Z.html
 ```
 
-手机用户优先使用在线 PWA，并通过浏览器“添加到主屏幕”。PWA 必须先在 HTTPS 网页中完整加载一次，之后才能用缓存断网打开。草稿保存在当前浏览器站点数据中；更换浏览器或清理缓存前，请导出 JSON 工程。
+On phones, prefer the hosted PWA and use the browser's “Add to Home Screen” action. The PWA must load once from HTTPS before its cached pages can open offline. Drafts live in the current browser's site data; export a JSON project before switching browsers or clearing that data.
 
-## Fork 后做成自己的版本
+## Fork & Make It Yours
 
-Fork 不只是复制代码。你可以用它：
+A Fork gives a developer a practical starting point to:
 
-- 部署自己的拼豆网站和网址；
-- 修改名称、品牌和界面；
-- 添加合法、可验证的色板；
-- 改进转换算法和导出格式；
-- 增加新语言；
-- 为社团、教室或工作室制作专用版本。
+- deploy a personal bead-pattern website and URL;
+- change the name, branding, and interface;
+- add a legally redistributable, verifiable palette;
+- improve conversion algorithms and export formats;
+- add another language;
+- build a dedicated edition for a club, classroom, or studio.
 
-最短流程：
+The shortest route is:
 
 ```text
-Fork → 启用 GitHub Actions → Settings → Pages → Deploy
+Fork → Enable GitHub Actions → Settings → Pages → Deploy
 ```
 
-仓库已经包含构建、完整 QA 和 Pages 工作流，不需要手工提交 `dist`。按[中文 Fork 与部署教程](docs/deployment.zh-CN.md)操作，通常几分钟即可得到自己的 GitHub Pages 地址；需要自定义域名和安全响应头时，可继续使用同一教程中的 Cloudflare Pages 方案。
+The repository already includes its build, complete QA, and Pages workflow; do not commit `dist` manually. Follow the [Fork and deployment guide](docs/deployment.md) to obtain a GitHub Pages URL in a few minutes. The same guide covers Cloudflare Pages when you need a custom domain and security response headers.
 
-## 界面预览
+## Screenshots
 
-| 中文桌面工作台 | 中文手机工作台 |
+| English desktop workbench | English mobile workbench |
 | --- | --- |
-| ![中文桌面工作台](docs/assets/app-desktop-zh.png) | ![中文手机工作台](docs/assets/app-mobile-zh.png) |
+| ![English desktop workbench](docs/assets/app-desktop-en.png) | ![English mobile workbench](docs/assets/app-mobile-en.png) |
 
-截图里的火箭位于 `tests/fixtures/`，由仓库自行制作，可按本项目许可证使用。
+The rocket in these screenshots is an original fixture under `tests/fixtures/` and may be reused under this repository's license.
 
-## 如果第一次结果不理想
+## When the first result needs work
 
-- 图案太粗：增加长边格数。
-- 主体太小或背景太多：先裁剪单个主体。
-- 宽图变得奇怪：保持“锁定原图比例”，不要强制塞进正方形图案。
-- 颜色太杂：减少本图最大用色或提高相近色合并。
-- 需要下次继续：同时保存 JSON 工程；JSON 不包含参考原图，需要时重新选择原图对照。
+- Pattern too coarse: increase the long-side cell count.
+- Subject too small or too much background: crop to one subject first.
+- Wide image looks distorted: keep aspect lock enabled; do not force it into a square pattern.
+- Too many similar colors: reduce the maximum colors or increase similar-color merging.
+- Need to continue later: also save the JSON project. JSON does not embed the reference image, so choose the source again when you need it for comparison.
 
-本项目不会承诺把任意图片在 16 或 24 格内“无损还原”。它会尽量保护轮廓、开口和彼此分离的小部件；如果细节已经小于一颗豆，会明确提示，而不是静默声称完美。
+The project does not promise lossless reproduction at 16 or 24 cells. It protects outlines, openings, and disconnected features when the target grid can represent them, then reports details that are physically smaller than one bead.
 
-## 命令行 CLI 与自动化
+## Command-line CLI & Automation
 
-你可以直接在终端中进行无界面的批量拼豆施工图生成，适用于脚本、流水线与自动化制作：
+You can generate pattern specifications directly from your terminal or automated scripts:
 
 ```bash
-# 生成 29x29 标准拼豆施工图并在终端以彩色 ANSI 预览
+# Generate 29x29 standard bead pattern with truecolor ANSI terminal preview
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
 
-# 使用极简 12 色入门色板转换并输出 JSON 图纸工程
+# Quantize using a custom 12-color starter palette and output JSON pattern
 node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json -o pattern.json
 ```
 
-详见 [CLI 使用说明](bin/bead-grid.mjs) 与 [Node.js 集成示例](examples/node-cli/README.md)。
+See [CLI Documentation](bin/bead-grid.mjs) and [Node.js Integration Example](examples/node-cli/README.md).
 
-## 开发者与开源生态 / Developer & Open-source Ecosystem
+## Developer & Open-source Ecosystem
 
-Bead Grid Studio 不仅是一个面向最终用户的 Web/PWA 工具，本项目同时提供可独立复用的完整开源技术栈：
+Bead Grid Studio is not only an end-user Web/PWA application. The repository also provides a complete, reusable open-source stack:
 
-- **DOM-free 图像量化核心** (`packages/core/`，`@bead-grid/core`)：0 外部依赖的纯 JavaScript ES Module，可在 Node.js、浏览器 Worker、Deno 等多环境无差异执行 OKLab 与 CIEDE2000 色差量化。详见 [Core 文档](packages/core/README.md)。
-- **无头命令行工具** (`bin/bead-grid.mjs`)：终端一行命令完成图像转拼豆施工图，输出 ANSI 24-bit 终端彩色预览或标准 JSON。详见 [CLI 示例](examples/cli/README.md)。
-- **开放图纸与色板规范** (`schemas/`)：基于 JSON Schema 2020-12 的版本化数据标准，打破封闭工艺文件格式壁垒。详见 [图纸规范说明](docs/pattern-format.md) 与 [色板规范说明](docs/palette-format.md)。
-- **可复现基准测试套件** (`benchmarks/`)：覆盖 16、24、32、48、60 全规格网格，测量量化延迟、内存占用与 100% 位一致性（Determinism）。详见 [性能基准文档](docs/benchmark.md)。
-- **开箱即用集成范例** (`examples/`)：包含原生浏览器、Node.js 批处理流水线、CLI 脚本及自定义品牌色板注册。
+- **DOM-free Quantization Core** (`packages/core/`, `@bead-grid/core`): Runtime-agnostic, zero-dependency ES module executing OKLab and CIEDE2000 color matching identically across Node.js, Web Workers, and Deno. See [Core Documentation](packages/core/README.md).
+- **Headless CLI** (`bin/bead-grid.mjs`): Single-command terminal execution for batch conversion with 24-bit ANSI color terminal previews or JSON exports. See [CLI Examples](examples/cli/README.md).
+- **Open Pattern & Palette Schemas** (`schemas/`): JSON Schema 2020-12 specifications liberating craft patterns from proprietary file formats. See [Pattern Format Guide](docs/pattern-format.md) and [Palette Format Guide](docs/palette-format.md).
+- **Reproducible Benchmark Suite** (`benchmarks/`): Measures quantization latency, memory overhead, and 100% bitwise determinism across 16, 24, 32, 48, and 60 grid dimensions. See [Benchmark Guide](docs/benchmark.md).
+- **Ready-to-run Examples** (`examples/`): Standalone examples for Browser, Node.js backend pipelines, and custom brand palettes.
 
-### 架构一览 / Architecture
+### Architecture Overview
 
 ```text
 Web / PWA (Browser UI) ──────> Browser Adapter ──┐
@@ -172,16 +174,16 @@ Automated Tests / Benchmarks ─────────────────
                                                        └── Open Schemas (2020-12)
 ```
 
-系统详细架构设计与数据流说明详见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-### 5 分钟开发者快速上手 / 5-minute Developer Quick Start
+### 5-minute Developer Quick Start
 
-无需浏览器 DOM，直接在 Node.js 中调用核心引擎：
+Call the core engine directly in Node.js with zero browser dependencies:
 
 ```javascript
 import { generateBeadPattern } from './packages/core/src/index.js';
 
-// 传入包含像素 Buffer 的图像对象 (data: Uint8ClampedArray/Uint8Array, width, height)
+// Pass raw pixel data (data: Uint8ClampedArray/Uint8Array, width, height)
 const pattern = await generateBeadPattern(imagePixelData, {
   cols: 29,
   rows: 29,
@@ -190,21 +192,21 @@ const pattern = await generateBeadPattern(imagePixelData, {
   maxColors: 32,
 });
 
-console.log(`总颗粒数: ${pattern.statistics.totalBeads}`);
-console.log(`使用色数: ${pattern.statistics.usedColors}`);
-console.log(`用料首项: ${pattern.materials[0].code} (${pattern.materials[0].count} 颗)`);
+console.log(`Total beads: ${pattern.statistics.totalBeads}`);
+console.log(`Unique colors: ${pattern.statistics.usedColors}`);
+console.log(`Top color code: ${pattern.materials[0].code} (${pattern.materials[0].count} beads)`);
 ```
 
-运行可执行示例：
+Run executable integration examples:
 ```bash
 node examples/node/index.mjs
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
 npm run schema:validate
 ```
 
-## 开发者本地运行
+## Run locally for development
 
-需要 Node.js 22.12 或更高版本：
+Node.js 22.12 or newer is required:
 
 ```bash
 git clone https://github.com/zwhy149/bead-grid-studio.git
@@ -213,92 +215,94 @@ npm ci
 npm run dev
 ```
 
-完整测试与基准测试：
+Run test and benchmark suites:
 
 ```bash
 npm run setup
-npm run qa          # 运行代码检查、单元测试与 E2E 测试
-npm run benchmark   # 运行量化性能基准测试
-npm run health      # 运行项目健康与公开指标检查
+npm run qa          # Runs source integrity, unit tests, and Playwright E2E
+npm run benchmark   # Runs quantization performance benchmarks
+npm run health      # Verifies local code health and public metrics
 ```
 
-详见完整的 [开发者指南](docs/developer-guide.md)。
+See the complete [Developer Guide](docs/developer-guide.md).
 
-## 当前重点与路线图
+## Current Focus & Roadmap
 
-- [x] 解耦 `@bead-grid/core` 核心独立包与纯 Node.js CLI 工具。
-- [x] 发布开放色板规范与图纸交换 JSON Schema (JSON Schema 2020-12)。
-- [x] 建立可复现量化基准套件与性能报告 (`benchmarks/` / `docs/benchmark.md`)。
-- [x] 按色制作助手：单色号隔离、逐色完成进度、本地草稿恢复与 UTF-8 CSV 导出。
-- [ ] 物理底板分割：大图自动切片为 29x29 / 52x52 物理底板分页打印 (SVG/PDF)。
-- [ ] Web 端可视化色板导入：支持拖拽导入自定义 `palette.schema.json`。
+- [x] Extracted `@bead-grid/core` standalone package and headless Node.js CLI.
+- [x] Published formal JSON Schemas for color palettes and pattern exchange (JSON Schema 2020-12).
+- [x] Implemented reproducible quantization benchmark suite across 16, 24, 32, 48, 60 grids.
+- [x] Color-by-color Making Assistant: color isolation, step-by-step progress tracking, local draft recovery, and UTF-8 CSV BOM export.
+- [ ] Physical pegboard splitting: automatically slice large murals (>100x100) into 29x29 or 52x52 paginated printable sheets (SVG/PDF).
+- [ ] Visual custom palette JSON importer dialog in the web interface.
 
-完整路线图见 [ROADMAP.md](ROADMAP.md)。
+See [ROADMAP.md](ROADMAP.md) for the full evidence-driven roadmap.
 
-## 社区展示与参与贡献
+## Community Showcase & Contributing
 
-- 🎨 **作品展示** — 完成了物理拼豆作品？欢迎在 [社区展示区](docs/showcase.md) 分享成品照片与图纸！
-- ⭐ **Star** — 如果这个工具帮你节省了时间。
-- 🐛 **反馈 Bug** — 如果转换结果出现异常，请提交 [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose)。
-- 💡 **提出建议** — 如果你希望增加实用功能，欢迎前往 [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions)。
-- 🔀 **Fork** — 定制自己的色板、语言、界面或流程。
-- 💻 **参与贡献** — 查看 [GOOD_FIRST_ISSUES.md](GOOD_FIRST_ISSUES.md) 与 [CONTRIBUTING.md](CONTRIBUTING.md)，提交你的 Pull Request。
+- 🎨 **Showcase** — Finished a physical bead piece? Share your photos and pattern files in the [Community Showcase](docs/showcase.md)!
+- ⭐ **Star** — if Bead Grid Studio saves you time.
+- 🐛 **Report a bug** — if a conversion behaves unexpectedly; open an [Issue](https://github.com/zwhy149/bead-grid-studio/issues/new/choose).
+- 💡 **Suggest an idea** — if something would improve your workflow; use [Discussions](https://github.com/zwhy149/bead-grid-studio/discussions).
+- 🔀 **Fork** — customize palettes, languages, UI, or workflows.
+- 💻 **Contribute** — browse [GOOD_FIRST_ISSUES.md](GOOD_FIRST_ISSUES.md) and read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-真实可验证的项目健康数据与公开指标见 [docs/project-health.md](docs/project-health.md) 与 [docs/USAGE_METRICS.md](docs/USAGE_METRICS.md)。
+Verifiable project health data and adoption indicators are documented in [docs/project-health.md](docs/project-health.md) and [docs/USAGE_METRICS.md](docs/USAGE_METRICS.md).
 
-需要核验项目活跃度、社区处理记录、发布安全和公开数据边界时，请查看[项目健康度与公开影响证据](docs/project-health.zh-CN.md)。
+Maintainers can run `npm run metrics` to read Stars, Forks, Open Issues, and real Release asset download counts from GitHub's public API. The script is not included in the web app and never tracks app visitors.
 
-## 主要能力与工程边界
+For reproducible project-activity signals, community review records, release safeguards, and explicit evidence boundaries, see [Project health and public impact evidence](docs/project-health.md).
 
-- 黑白线稿的小尺寸拓扑精修和分离部件保护。
-- 锁定原图比例、安全自动裁边、完整显示/铺满裁切和手动裁剪。
-- 常见 2.6 mm、5 mm 实体底板布局；图案在底板内居中，不做非等比拉伸。
-- MARD 兼容基础 221 色号及固定来源记录；普通不透明图片量化使用 220 个实色，`H1` 透明色仅供手动画入。
-- 带逐格色号、四边坐标、辅助线、接板线和用量统计的拼豆施工图 PNG。
-- 按色聚焦、逐色完成进度、工程/草稿恢复和 UTF-8 材料 CSV。
-- 响应式 Web/PWA、单 HTML 离线版和确定性回归测试。
+## Main capabilities and engineering boundaries
 
-### 小网格为什么不可能“一模一样”
+- Topology-aware refinement for small black-and-white line art.
+- Aspect locking, safe auto-trim, contain/cover previews, and manual crop.
+- Common 2.6 mm and 5 mm physical-board layouts without non-uniform pattern scaling.
+- MARD-compatible base 221-code catalog with pinned provenance; opaque conversion uses 220 solid colors and reserves transparent `H1` for manual editing.
+- Construction-sheet PNG with per-cell color codes, coordinates, board guides, seams, and material counts.
+- Color focus, per-color progress, draft/project recovery, and UTF-8 material CSV export.
+- Responsive Web/PWA, portable single-file HTML, and deterministic regression coverage.
 
-豆格数量就是信息容量：16×16 只有 256 个位置，源图中小于一格的鼻点、细字或反光不可能全部独立表示。转换器会保护可表达的结构，并报告无法容纳的细节。详见[算法说明](docs/algorithm.md)和[已知限制](docs/limitations.md)。
+### Why a small grid cannot be “identical”
 
-### 色号与实物色差
+A grid is an information budget: 16×16 provides only 256 physical positions. A mark, thin letter, or highlight smaller than one cell cannot always remain an independent bead. The converter preserves representable structure and reports missing detail. See [Algorithm](docs/algorithm.md) and [Known limitations](docs/limitations.md).
 
-默认色板为固定 MIT 数据源中的基础 221 子集（`A/B/C/D/E/F/G/H/M`）。屏幕 HEX 只能近似表示实物；显示器、环境光、打印、品牌配方和生产批次都会产生差异。大量采购前，请用实际购买品牌与批次的实物色卡复核。完整来源见[色板来源](docs/palette-provenance.md)。
+### Palette and physical color accuracy
 
-MARD、Artkal、Hama、Perler 等是第三方标识，本项目与这些品牌不存在隶属或官方背书关系。见[商标说明](TRADEMARKS.md)。
+The default palette is the base 221-code subset (`A/B/C/D/E/F/G/H/M`) from a pinned MIT-licensed source. Screen HEX values are approximations: displays, room light, printers, manufacturers, and production batches introduce differences. Verify expensive builds against the physical color card for the exact bead brand and batch. See [Palette provenance](docs/palette-provenance.md).
 
-### 隐私与安全
+MARD, Artkal, Hama, and Perler are third-party marks. This independent project is not affiliated with or endorsed by those brands. See [TRADEMARKS.md](TRADEMARKS.md).
 
-- 图片在本地解码、转换和导出。
-- JSON 工程不嵌入参考原图或原始文件名。
-- SVG/HTML 不能作为图片上传。
-- 文件大小、解码像素、工程大小、屏幕像素和导出像素都有上限。
-- 转换在可取消 Worker 中运行，并拒绝过期结果覆盖新工程。
-- Service Worker 只缓存同源应用资源。
+### Privacy and security
 
-安全问题请按 [SECURITY.md](SECURITY.md) 私下报告。公开 Issue 不要附带隐私图片、客户图片或无权公开的作品。GitHub Pages 不会应用仓库里的可选 `_headers` 文件；具体托管安全边界见[部署说明](docs/deployment.zh-CN.md)。
+- Images are decoded, converted, and exported locally.
+- Project JSON does not embed the reference image or its original filename.
+- SVG and HTML image uploads are rejected.
+- File, decoded-pixel, project, render, and export sizes are bounded.
+- Conversion runs in a cancellable Worker with stale-result rejection.
+- The service worker caches only same-origin application resources.
 
-## 仓库结构与架构
+Report security issues privately through [SECURITY.md](SECURITY.md). Do not attach private, customer, or unlicensed images to a public Issue. GitHub Pages does not apply the optional `_headers` file; see [Deployment](docs/deployment.md) for the exact hosting boundary.
 
-系统详细架构设计与 ASCII 流程图见 [ARCHITECTURE.md](ARCHITECTURE.md)。
+## Repository Structure & Architecture
+
+For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```text
-packages/core/            解耦的 DOM-free 图像量化核心库与 TypeScript 定义
-schemas/                  开放数据规范（图纸与色板 JSON Schema 2020-12）
-bin/                      无头 Node.js CLI 工具 (bead-grid)
-examples/                 Browser、Node.js 与 CLI 集成范例
-src/                      浏览器应用、核心 Module、i18n 和色板数据
-public/                   PWA、离线缓存、SEO、隐私与许可页
-tests/unit/               纯函数不变量测试与确定性 Golden 测试
-tests/e2e/                桌面、移动端和浏览器测试
-tests/fixtures/           自制或明确授权的测试图
-scripts/                  源码检查、截图、指标和单 HTML 构建
-docs/                     架构、算法、部署、色板来源和 ADR
+packages/core/            Decoupled DOM-free core quantization engine & TypeScript definitions
+schemas/                  Open data specifications (Pattern & Palette JSON Schema 2020-12)
+bin/                      Headless Node.js CLI tool (bead-grid)
+examples/                 Browser, Node.js, and CLI integration examples
+src/                      Browser app, core modules, i18n, and palette data
+public/                   PWA, offline cache, SEO, privacy, and legal pages
+tests/unit/               Pure invariant tests & deterministic golden tests
+tests/e2e/                Desktop, mobile, and browser tests
+tests/fixtures/           Original or explicitly licensed fixtures
+scripts/                  Source checks, metrics, and portable build
+docs/                     Architecture, algorithm, deployment, provenance, and ADRs
 ```
 
-## 许可证
+## License
 
-代码采用 [Apache-2.0](LICENSE)。第三方数据和构建工具归属见 [NOTICE](NOTICE)。许可证允许商业复用，但不授予“豆格工坊”名称、Logo 或第三方品牌标识的使用权。
+Code is licensed under [Apache-2.0](LICENSE). Third-party data and build-tool notices are in [NOTICE](NOTICE). The license permits commercial reuse; it does not grant rights to the Bead Grid Studio name, logo, or third-party marks.
 
-如果项目确实帮你省去了一次手工描图，可以 Star 仓库、分享给其他拼豆爱好者，或提交可复现的改进建议。Star 不会解锁任何功能。
+If the project genuinely saves you a manual redraw, consider starring it, sharing it with another maker, or filing a reproducible improvement. Stars never unlock features.
