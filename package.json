@@ -51,6 +51,6 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "vite": "8.2.2"
+    "vite": "8.2.4"
   }
 }
