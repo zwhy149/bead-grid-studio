@@ -52,9 +52,11 @@ import {
   assessPatternQuality,
   createPattern,
   deserializePattern,
+  despeckleGrid,
   embedPatternGrid,
   occupiedBounds,
   parsePattern,
+  replaceGridColor,
   serializePattern,
   validatePattern,
 } from './pattern.js';
@@ -178,4 +180,6 @@ export {
   parsePattern,
   deserializePattern,
   validatePattern,
+  despeckleGrid,
+  replaceGridColor,
 };

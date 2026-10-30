@@ -553,5 +553,17 @@ const koKR = {
   'view.ruler': '눈금자',
   'white.auto': '자동으로 비워두기',
   'white.keep': '흰색 비즈 유지',
+  'action.buyCoffee': '커피 한 잔 후원 ☕',
+  'tool.despeckle': '노이즈 제거',
+  'tool.replaceColor': '색상 바꾸기',
+  'product.sponsorTitle': '후원 및 감사의 글',
+  'product.sponsorText': '이 도구가 창작에 도움이 되었다면 개발자에게 커피 한 잔 ☕ 후원해 주시면 큰 힘이 됩니다. 모바일 환경 개선에 기여해 주신 모든 분들께 감사드립니다.',
+  'product.buyCoffee': '개발자에게 커피 사주기 ☕',
+  'toast.despeckleDone': '노이즈 제거 완료: 고립된 비즈 {count}개를 정리했습니다.',
+  'toast.noSpeckles': '고립된 비즈가 없습니다.',
+  'toast.replaceColorDone': '색상 교체 완료: {from} {count}개를 {to}(으)로 변경했습니다.',
+  'history.despeckle': '고립 비즈 노이즈 제거',
+  'history.replaceColor': '전체 색상 교체',
+  'prompt.replaceColorTarget': '현재 색상 {current}을(를) 바꿀 대상 색상 코드를 입력하세요 (예: A1, H2):',
 };
 export default koKR;

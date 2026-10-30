@@ -7,8 +7,10 @@ import {
 } from './core/geometry.js';
 import {
   deltaE2000,
+  despeckleGrid,
   hexToRgb,
   quantizePixels,
+  replaceGridColor,
   rgbToCielab,
   rgbToOklab,
 } from '../packages/core/src/index.js';
@@ -31,8 +33,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.3.0';
-    const BUILD_DATE = '2026-09-19';
+    const APP_VERSION = '1.4.0';
+    const BUILD_DATE = '2026-10-30';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
@@ -45,7 +47,7 @@ import {
       'detailAdvice','detailAdviceKicker','detailAdviceTitle','detailAdviceText','detailMetricScale','detailMetricFit','applyRecommendedBtn','openCropBtn',
       'processMode','processModeHint','fitMode','whiteMode','referenceOpacity','opacityValue','maxColors','maxColorsValue','mergeStrength','mergeStrengthValue','protectDark','convertBtn','gridCols','gridRows','gridColsLabel','gridRowsLabel','aspectLock','aspectStatus','patternSizeControls','boardSizeControls','boardProfile','boardStatus',
       'applySizeBtn','undoBtn','redoBtn','zoomOutBtn','zoomInBtn','zoomValue','topExportBtn','mirrorHBtn','mirrorVBtn','rotateBtn',
-      'clearBtn','saveProjectBtn','loadProjectBtn','projectInput','exportPngBtn','printBtn','majorGridStep','referenceCanvas','patternCanvas',
+      'clearBtn','despeckleBtn','replaceColorBtn','saveProjectBtn','loadProjectBtn','projectInput','exportPngBtn','printBtn','majorGridStep','referenceCanvas','patternCanvas',
       'topRuler','leftRuler','boardShell','canvasStack','canvasViewport','emptyState','legendStrip','paletteGrid','paletteSearch',
       'paletteCountLabel','totalBeads','usedColors','emptyCells','statsList','copyStatsBtn','selectedColorSwatch','selectedColorName','selectedColorCode',
       'statusSize','statusColors','statusBeads','statusZoom','statusMessage','gridToggle','rulerToggle','codesToggle','fitCanvasBtn','convertOverlay',
@@ -1948,6 +1950,46 @@ import {
       renderAll();
     }
 
+    function despecklePattern() {
+      if(blockMutationDuringConversion())return;
+      if (!state.grid.some(value => value >= 0)) return;
+      const { cells: next, changedCount } = despeckleGrid(state.grid, state.cols, state.rows, { minNeighbors: 1 });
+      if (changedCount === 0) {
+        toast('toast.noSpeckles');
+        return;
+      }
+      state.grid = next;
+      markCustomSettings();
+      commitHistory('history.despeckle');
+      renderAll();
+      toast('toast.despeckleDone', 'success', { count: changedCount });
+    }
+
+    function replaceColorPattern() {
+      if(blockMutationDuringConversion())return;
+      if (!state.grid.some(value => value >= 0)) return;
+      const currentColor = PALETTE[state.selectedColor] || PALETTE[0];
+      const targetInput = window.prompt(t('prompt.replaceColorTarget', { current: currentColor.code }));
+      if (!targetInput) return;
+      const targetCode = targetInput.trim().toUpperCase();
+      const targetColor = PALETTE.find(c => c.code.toUpperCase() === targetCode);
+      if (!targetColor) {
+        toast('toast.emptyPicker');
+        return;
+      }
+      if (targetColor.index === state.selectedColor) return;
+      const { cells: next, replacedCount } = replaceGridColor(state.grid, state.selectedColor, targetColor.index);
+      if (replacedCount === 0) {
+        toast('toast.noMaterials');
+        return;
+      }
+      state.grid = next;
+      markCustomSettings();
+      commitHistory('history.replaceColor');
+      renderAll();
+      toast('toast.replaceColorDone', 'success', { count: replacedCount, from: currentColor.code, to: targetColor.code });
+    }
+
     function setZoom(next) {
       const centerX = els.canvasViewport.scrollLeft + els.canvasViewport.clientWidth/2;
       const centerY = els.canvasViewport.scrollTop + els.canvasViewport.clientHeight/2;
@@ -2946,6 +2988,8 @@ import {
       els.mirrorVBtn.addEventListener('click',()=>transformGrid('mirrorV'));
       els.rotateBtn.addEventListener('click',()=>transformGrid('rotate'));
       els.clearBtn.addEventListener('click',clearGrid);
+      els.despeckleBtn?.addEventListener('click',despecklePattern);
+      els.replaceColorBtn?.addEventListener('click',replaceColorPattern);
       els.undoBtn.addEventListener('click',undo);els.redoBtn.addEventListener('click',redo);
       els.zoomOutBtn.addEventListener('click',()=>setZoom(state.zoom-.25));els.zoomInBtn.addEventListener('click',()=>setZoom(state.zoom+.25));
       els.fitCanvasBtn.addEventListener('click',()=>fitCanvasToViewport());

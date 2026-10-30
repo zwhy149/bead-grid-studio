@@ -25,7 +25,7 @@
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-87351c"></a>
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
   <a href="docs/project-health.md"><img alt="Offline Downloads" src="https://img.shields.io/badge/Offline%20Downloads-156+-blue"></a>
-  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.2.0-brightgreen"></a>
+  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.4.0-brightgreen"></a>
 </p>
 
 ## 示例 / Examples
@@ -302,3 +302,15 @@ docs/                     架构、算法、部署、色板来源和 ADR
 代码采用 [Apache-2.0](LICENSE)。第三方数据和构建工具归属见 [NOTICE](NOTICE)。许可证允许商业复用，但不授予“豆格工坊”名称、Logo 或第三方品牌标识的使用权。
 
 如果项目确实帮你省去了一次手工描图，可以 Star 仓库、分享给其他拼豆爱好者，或提交可复现的改进建议。Star 不会解锁任何功能。
+
+## 支持与赞助 / Buy Me a Coffee ☕
+
+如果这个开源小工具在拼豆创作上帮助到了你、为你节省了一点挑选色号和手工描图的时间，或者让你做出了一件满意的作品：
+
+欢迎请作者喝一杯温暖的咖啡 ☕！每一份鼓励都是这个纯前端、免登录、本地优先的开源工具持续维护、打磨细节与进化的最大动力。
+
+<p align="center">
+  <img src="docs/assets/sponsor-wechat.jpg" alt="微信赞赏码 / WeChat Pay" width="220">
+  <br>
+  <sub>扫码请喝咖啡 · 留言备注你的 GitHub ID 会被加入致谢列表哦</sub>
+</p>

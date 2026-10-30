@@ -553,5 +553,17 @@ const frFR = {
   'view.ruler': 'Règles',
   'white.auto': 'Laisser vide automatiquement',
   'white.keep': 'Conserver les perles blanches',
+  'action.buyCoffee': 'Offrir un café ☕',
+  'tool.despeckle': 'Supprimer les pixels isolés',
+  'tool.replaceColor': 'Remplacer une couleur',
+  'product.sponsorTitle': 'Soutien et remerciements',
+  'product.sponsorText': 'Si cet outil vous a été utile, vous pouvez offrir un café à l’auteur ☕. Un grand merci aux contributeurs qui améliorent l’expérience mobile et communautaire.',
+  'product.buyCoffee': 'Offrir un café à l’auteur ☕',
+  'toast.despeckleDone': 'Débruitage terminé : {count} perle(s) isolée(s) lissée(s).',
+  'toast.noSpeckles': 'Aucune perle isolée détectée.',
+  'toast.replaceColorDone': 'Couleur remplacée : {count} perles changées de {from} en {to}.',
+  'history.despeckle': 'lissé les perles isolées',
+  'history.replaceColor': 'remplacé la couleur dans le motif',
+  'prompt.replaceColorTarget': 'Remplacer toutes les perles {current} par quel code couleur ? (ex. A1, H2) :',
 };
 export default frFR;

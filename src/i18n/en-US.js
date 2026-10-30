@@ -33,7 +33,7 @@ const enUS = {
   'action.cropRegion': 'Crop One Region',
   'action.regenerate': 'Regenerate with These Settings',
   'action.applySize': 'Apply Size',
-  'action.saveProject': 'Save Editable Project (No Source Image)',
+  'action.saveProject': 'Save Project (JSON)',
   'action.loadProject': 'Open Project',
   'action.exportPng': 'Export Coded Pattern PNG',
   'action.print': 'Print / Paginate',
@@ -57,6 +57,7 @@ const enUS = {
   'action.star': 'Star on GitHub',
   'action.reportIssue': 'Report an Issue',
   'action.contribute': 'Contribute',
+  'action.buyCoffee': 'Buy Me a Coffee ☕',
 
   'aria.help': 'Help, privacy, and version',
   'aria.undo': 'Undo',
@@ -185,6 +186,8 @@ const enUS = {
   'tool.mirrorV': 'Flip Vertically',
   'tool.rotate': 'Rotate 90° Clockwise',
   'tool.clear': 'Clear Pattern',
+  'tool.despeckle': 'Despeckle',
+  'tool.replaceColor': 'Replace Color',
   'output.title': 'Project and Output',
   'output.subtitle': 'PNG / JSON / Print',
   'output.majorGrid': 'Bold Guide Interval',
@@ -305,6 +308,9 @@ const enUS = {
   'product.privacy': 'Privacy',
   'product.terms': 'Terms',
   'product.version': 'Version',
+  'product.sponsorTitle': 'Support & Acknowledgments',
+  'product.sponsorText': 'If this tool helped your crafting journey, buying the author a coffee ☕ is warmly appreciated; special thanks to all contributors helping improve the mobile and community experience.',
+  'product.buyCoffee': 'Buy Author a Coffee ☕',
 
   'conversion.title': 'Generating Fuse Bead Pattern',
   'conversion.analyzing': 'Analyzing image and palette…',
@@ -504,6 +510,9 @@ const enUS = {
   'toast.colorUndone': '{code} marked as not complete.',
   'toast.makingReset': 'Making progress reset.',
   'toast.csvExported': 'Material list exported: {colors} colors, {beads} beads.',
+  'toast.despeckleDone': 'Despeckle complete: smoothed {count} isolated stray bead(s).',
+  'toast.noSpeckles': 'No isolated stray beads detected.',
+  'toast.replaceColorDone': 'Color replaced: changed {count} beads from {from} to {to}.',
 
   'status.boardSwitched': 'Real board specification changed',
   'status.sizeCleared': 'Pattern size changed and canvas cleared',
@@ -539,6 +548,8 @@ const enUS = {
   'history.cleared': 'cleared the pattern',
   'history.keyboardDraw': 'drew with the keyboard',
   'history.keyboardErase': 'erased with the keyboard',
+  'history.despeckle': 'despeckled isolated beads',
+  'history.replaceColor': 'replaced color across pattern',
 
   'confirm.boardQualitySevere': '\n\nClarity warning: this board can preserve only the main outline and large fills; photo text and fine detail will not be readable.',
   'confirm.boardQualityLow': '\n\nClarity note: one board is suitable for simple cartoons. Use a 104-cell or larger layout for a complex photo.',
@@ -555,6 +566,7 @@ const enUS = {
   'confirm.coverCrop': 'Filling this canvas crops about {percent}% of the source. Confirm that the subject is not near an edge. Continue with Fill and Crop?',
 
   'prompt.projectName': 'The project name is stored in JSON. Rename it here if the source filename contains a person or order number.',
+  'prompt.replaceColorTarget': 'Replace all beads of {current} with which color code? (e.g. A1, H2):',
   'project.defaultName': 'bead-pattern-project',
   'project.importedName': 'Imported Pattern',
   'project.loadedSubtitle': 'JSON project loaded · source image not included',

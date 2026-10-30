@@ -57,6 +57,7 @@ const zhCN = {
   'action.star': 'GitHub Star',
   'action.reportIssue': '反馈问题',
   'action.contribute': '参与贡献',
+  'action.buyCoffee': '请喝咖啡 ☕',
 
   'aria.help': '使用说明、隐私与版本',
   'aria.undo': '撤销',
@@ -185,6 +186,8 @@ const zhCN = {
   'tool.mirrorV': '垂直镜像',
   'tool.rotate': '顺时针 90°',
   'tool.clear': '清空图纸',
+  'tool.despeckle': '智能降噪',
+  'tool.replaceColor': '替换色号',
   'output.title': '工程与输出',
   'output.subtitle': 'PNG / JSON / 打印',
   'output.majorGrid': '粗辅助线间隔',
@@ -305,6 +308,9 @@ const zhCN = {
   'product.privacy': '隐私说明',
   'product.terms': '使用条款',
   'product.version': '版本信息',
+  'product.sponsorTitle': '支持与致谢',
+  'product.sponsorText': '如果本项目帮助到了你，欢迎请作者喝杯咖啡 ☕；特别致谢所有贡献者共同改进移动端与社区体验。',
+  'product.buyCoffee': '请作者喝咖啡 ☕',
 
   'conversion.title': '正在生成拼豆图纸',
   'conversion.analyzing': '分析图片与色板…',
@@ -504,6 +510,9 @@ const zhCN = {
   'toast.colorUndone': '{code} 已恢复为未完成。',
   'toast.makingReset': '制作进度已重置。',
   'toast.csvExported': '材料表已导出：{colors} 色，{beads} 颗。',
+  'toast.despeckleDone': '智能降噪完成：已平滑 {count} 处孤立杂色豆。',
+  'toast.noSpeckles': '未发现孤立杂色豆。',
+  'toast.replaceColorDone': '色号替换完成：已将 {count} 颗 {from} 替换为 {to}。',
 
   'status.boardSwitched': '已切换真实底板规格',
   'status.sizeCleared': '已更改图纸尺寸并清空画布',
@@ -539,6 +548,8 @@ const zhCN = {
   'history.cleared': '已清空图纸',
   'history.keyboardDraw': '已使用键盘绘制',
   'history.keyboardErase': '已使用键盘擦除',
+  'history.despeckle': '已智能降噪',
+  'history.replaceColor': '已全局替换色号',
 
   'confirm.boardQualitySevere': '\n\n清晰度警告：这块板只能保留主体轮廓和大色块；照片文字与细节不会可读。',
   'confirm.boardQualityLow': '\n\n清晰度提示：单板适合一般卡通；复杂照片建议改用 104 格或更大布局。',
@@ -555,6 +566,7 @@ const zhCN = {
   'confirm.coverCrop': '铺满当前画布会裁掉约 {percent}% 的原图范围。继续前请确认主体不在边缘；是否仍要裁切铺满？',
 
   'prompt.projectName': '工程名称会写入 JSON；如原文件名含姓名或订单号，请在这里改名。',
+  'prompt.replaceColorTarget': '将当前色号 {current} 全局替换为哪个色号？请输入色号代码（如 A1、H2）：',
   'project.defaultName': '拼豆工程',
   'project.importedName': '导入图纸',
   'project.loadedSubtitle': '已读取 JSON 工程 · 参考底图未包含',

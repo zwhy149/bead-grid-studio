@@ -306,3 +306,15 @@ docs/                     Architecture, algorithm, deployment, provenance, and A
 Code is licensed under [Apache-2.0](LICENSE). Third-party data and build-tool notices are in [NOTICE](NOTICE). The license permits commercial reuse; it does not grant rights to the Bead Grid Studio name, logo, or third-party marks.
 
 If the project genuinely saves you a manual redraw, consider starring it, sharing it with another maker, or filing a reproducible improvement. Stars never unlock features.
+
+## Support & Buy Me a Coffee ☕
+
+If this local-first open-source tool helped your fuse-bead projects, saved you time with color matching, or made your crafting workflow more delightful:
+
+Buying the author a coffee ☕ is warmly appreciated! Your kindness and encouragement keep this project actively maintained and continuously evolving.
+
+<p align="center">
+  <img src="docs/assets/sponsor-wechat.jpg" alt="WeChat Pay / Sponsor QR Code" width="220">
+  <br>
+  <sub>WeChat Pay · Feel free to include your GitHub handle in the note so we can acknowledge you!</sub>
+</p>

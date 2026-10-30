@@ -12,6 +12,7 @@ import {
   createPattern,
   deltaE2000,
   deserializePattern,
+  despeckleGrid,
   fitPatternInsideBoard,
   generateBeadPattern,
   getPaletteProvider,
@@ -21,6 +22,7 @@ import {
   quantizePixels,
   recommendAutoHdSettings,
   recommendDocumentGrid,
+  replaceGridColor,
   rgbToCielab,
   rgbToHex,
   rgbToOklab,
@@ -235,4 +237,31 @@ test('pattern validation: validatePattern accurately validates conformant and no
   const parsed = deserializePattern(validPattern);
   assert.equal(parsed.grid.cols, 10);
   assert.equal(parsed.grid.rows, 10);
+});
+
+test('pattern despeckle: despeckleGrid cleans isolated stray beads', () => {
+  // 3x3 grid: all color 1, with a single isolated stray bead color 5 in the center
+  const grid = new Int16Array([
+    1, 1, 1,
+    1, 5, 1,
+    1, 1, 1,
+  ]);
+  const result = despeckleGrid(grid, 3, 3, { minNeighbors: 1 });
+  assert.equal(result.changedCount, 1);
+  assert.equal(result.cells[4], 1); // Center cell replaced with dominant neighbor 1
+});
+
+test('pattern color replace: replaceGridColor remapps all matching beads', () => {
+  const grid = new Int16Array([
+    1, 2, 1,
+    2, 3, 2,
+    1, 2, 1,
+  ]);
+  const result = replaceGridColor(grid, 2, 9);
+  assert.equal(result.replacedCount, 4);
+  assert.deepEqual(Array.from(result.cells), [
+    1, 9, 1,
+    9, 3, 9,
+    1, 9, 1,
+  ]);
 });

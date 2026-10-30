@@ -187,6 +187,17 @@ export function serializePattern(pattern: PatternModel, space?: number): string;
 export function parsePattern(input: string | object, options?: { paletteId?: string; lenient?: boolean }): PatternModel;
 export const deserializePattern: typeof parsePattern;
 export function validatePattern(input: any): { valid: boolean; errors: string[] };
+export function despeckleGrid(
+  grid: ArrayLike<number>,
+  cols: number,
+  rows: number,
+  options?: { minNeighbors?: number; iterations?: number }
+): { cells: Int16Array; changedCount: number };
+export function replaceGridColor(
+  grid: ArrayLike<number>,
+  sourceColor: number,
+  targetColor: number
+): { cells: Int16Array; replacedCount: number };
 
 export function gridForLongSide(width: number, height: number, longSide: number, minSide?: number, maxSide?: number): GridDimensions;
 export function gridFromAspectAnchor(width: number, height: number, value: number, axis?: 'cols' | 'rows', minSide?: number, maxSide?: number): GridDimensions;

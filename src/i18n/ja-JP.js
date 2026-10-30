@@ -553,5 +553,17 @@ const jaJP = {
   'view.ruler': 'ルーラー',
   'white.auto': '自動的に余白にする',
   'white.keep': '白いビーズを残す',
+  'action.buyCoffee': 'コーヒーを奢る ☕',
+  'tool.despeckle': 'ノイズ除去',
+  'tool.replaceColor': '色を置換',
+  'product.sponsorTitle': '支援と謝辞',
+  'product.sponsorText': '本ツールがお役に立ちましたら、作者にコーヒーを奢っていただけると幸いです ☕。モバイルとコミュニティ体験の改善に貢献してくださった方々に感謝いたします。',
+  'product.buyCoffee': '作者にコーヒーを奢る ☕',
+  'toast.despeckleDone': 'ノイズ除去完了：{count} 箇所の孤立ビーズを平滑化しました。',
+  'toast.noSpeckles': '孤立ビーズは見つかりませんでした。',
+  'toast.replaceColorDone': '色の置換完了：{from} から {to} へ {count} 個を置換しました。',
+  'history.despeckle': '孤立ビーズをノイズ除去',
+  'history.replaceColor': '図案全体の色を置換',
+  'prompt.replaceColorTarget': '現在の色 {current} をどの色コードに全置換しますか？ (例: A1, H2):',
 };
 export default jaJP;

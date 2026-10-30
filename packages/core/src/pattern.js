@@ -147,7 +147,7 @@ export function createPattern({
     schemaVersion: 1,
     type: 'bead-grid-studio',
     version: 2,
-    appVersion: '1.2.0',
+    appVersion: '1.4.0',
     title,
     createdAt: new Date().toISOString(),
     grid: {
@@ -290,3 +290,92 @@ export function validatePattern(input) {
 }
 
 export const deserializePattern = parsePattern;
+
+/**
+ * Removes isolated stray beads by replacing them with the dominant neighboring color.
+ * Significantly reduces single-bead clutter and purchasing burden for crafters.
+ * @param {ArrayLike<number>} grid Array of palette color indices (-1 for empty)
+ * @param {number} cols Grid columns
+ * @param {number} rows Grid rows
+ * @param {{ minNeighbors?: number, iterations?: number }} [options]
+ * @returns {{ cells: Int16Array, changedCount: number }}
+ */
+export function despeckleGrid(grid, cols, rows, { minNeighbors = 1, iterations = 1 } = {}) {
+  let current = new Int16Array(grid);
+  let totalChanged = 0;
+
+  for (let it = 0; it < iterations; it++) {
+    const next = new Int16Array(current);
+    let passChanged = 0;
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const idx = y * cols + x;
+        const color = current[idx];
+        if (color < 0) continue;
+
+        let sameColorNeighbors = 0;
+        const neighborCounts = new Map();
+
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            if (dx === 0 && dy === 0) continue;
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+              const nColor = current[ny * cols + nx];
+              if (nColor >= 0) {
+                if (nColor === color) {
+                  sameColorNeighbors++;
+                } else {
+                  neighborCounts.set(nColor, (neighborCounts.get(nColor) || 0) + 1);
+                }
+              }
+            }
+          }
+        }
+
+        if (sameColorNeighbors < minNeighbors && neighborCounts.size > 0) {
+          let bestNeighbor = -1;
+          let maxCount = -1;
+          for (const [nColor, count] of neighborCounts.entries()) {
+            if (count > maxCount) {
+              maxCount = count;
+              bestNeighbor = nColor;
+            }
+          }
+
+          if (bestNeighbor >= 0 && bestNeighbor !== color) {
+            next[idx] = bestNeighbor;
+            passChanged++;
+          }
+        }
+      }
+    }
+
+    current = next;
+    totalChanged += passChanged;
+    if (passChanged === 0) break;
+  }
+
+  return { cells: current, changedCount: totalChanged };
+}
+
+/**
+ * Replaces all occurrences of a specific color index with another in the pattern grid.
+ * @param {ArrayLike<number>} grid
+ * @param {number} sourceColor
+ * @param {number} targetColor
+ * @returns {{ cells: Int16Array, replacedCount: number }}
+ */
+export function replaceGridColor(grid, sourceColor, targetColor) {
+  const cells = new Int16Array(grid);
+  let replacedCount = 0;
+  for (let i = 0; i < cells.length; i++) {
+    if (cells[i] === sourceColor) {
+      cells[i] = targetColor;
+      replacedCount++;
+    }
+  }
+  return { cells, replacedCount };
+}
