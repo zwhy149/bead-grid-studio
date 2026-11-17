@@ -4,7 +4,7 @@
   "enabled": true,
   "slug": "bead-studio",
   "name": "Bead Grid Studio Engine",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "executa_type": "tool",
   "description": "Deterministic fuse-bead pattern quantization, AI matrix-to-pattern compilation, stray-bead despeckling, perceptual color matching (CIEDE2000), and SVG construction-sheet rendering.",
   "command": ["node", "bead_studio_plugin.js"],

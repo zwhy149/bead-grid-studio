@@ -32,7 +32,7 @@ import { decodePng } from './vendor/adapters/png.js';
 
 const MANIFEST = {
   display_name: 'Bead Grid Studio Engine',
-  version: '1.5.0',
+  version: '1.5.1',
   description:
     'Deterministic fuse-bead pattern quantization, AI matrix-to-pattern compilation, stray-bead despeckling, perceptual color matching (CIEDE2000), and SVG construction-sheet rendering.',
   author: 'zwhy149',
