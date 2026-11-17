@@ -1,5 +1,39 @@
 {
   "tool_id": "tool-dev-bead-studio",
   "type": "node",
-  "enabled": true
+  "enabled": true,
+  "slug": "bead-studio",
+  "name": "Bead Grid Studio Engine",
+  "version": "1.5.0",
+  "executa_type": "tool",
+  "description": "Deterministic fuse-bead pattern quantization, AI matrix-to-pattern compilation, stray-bead despeckling, perceptual color matching (CIEDE2000), and SVG construction-sheet rendering.",
+  "command": ["node", "bead_studio_plugin.js"],
+  "runtime": {
+    "requires": {
+      "node": ">=20"
+    },
+    "fallback": "fail"
+  },
+  "distribution": {
+    "active": "binary",
+    "profiles": {
+      "binary": {
+        "type": "binary",
+        "executable_name": "bead-studio",
+        "supports_protocol": true,
+        "binary_artifacts": {
+          "linux-x86_64": { "path": "dist/bead-studio-posix.tar.gz", "entrypoint": "bin/bead-studio" },
+          "linux-arm64": { "path": "dist/bead-studio-posix.tar.gz", "entrypoint": "bin/bead-studio" },
+          "darwin-arm64": { "path": "dist/bead-studio-posix.tar.gz", "entrypoint": "bin/bead-studio" },
+          "darwin-x86_64": { "path": "dist/bead-studio-posix.tar.gz", "entrypoint": "bin/bead-studio" },
+          "windows-x86_64": { "path": "dist/bead-studio-win.zip", "entrypoint": "bin/bead-studio.cmd" },
+          "windows-arm64": { "path": "dist/bead-studio-win.zip", "entrypoint": "bin/bead-studio.cmd" }
+        }
+      },
+      "local": {
+        "type": "local",
+        "executable_name": "bead-studio"
+      }
+    }
+  }
 }

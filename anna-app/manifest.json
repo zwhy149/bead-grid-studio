@@ -38,6 +38,7 @@
       }
     ],
     "form_factors": ["desktop", "mobile"],
+    "browser_permissions": ["web-share"],
     "csp_overrides": {},
     "state_merge": "last_writer_wins"
   },

@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+NODE_BIN="${ANNA_NODE_EXECUTABLE:-$(command -v node || true)}"
+: "${NODE_BIN:?Node.js >= 20 is required to run bead-studio.}"
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+exec "$NODE_BIN" "$SCRIPT_DIR/bead_studio_plugin.js" "$@"

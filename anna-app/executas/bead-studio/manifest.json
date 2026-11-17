@@ -1,0 +1,145 @@
+{
+  "display_name": "Bead Grid Studio Engine",
+  "version": "1.5.0",
+  "description": "Deterministic fuse-bead pattern quantization, AI matrix-to-pattern compilation, stray-bead despeckling, perceptual color matching (CIEDE2000), and SVG construction-sheet rendering.",
+  "author": "zwhy149",
+  "homepage": "https://github.com/zwhy149/bead-grid-studio",
+  "license": "Apache-2.0",
+  "tags": [
+    "creative",
+    "fuse-beads",
+    "pixel-art",
+    "quantization",
+    "anna-app"
+  ],
+  "tools": [
+    {
+      "name": "create_pixel_pattern",
+      "description": "Compile an ASCII/character pixel matrix or 2D token grid plus optional colorMap into a validated MARD-compatible bead pattern JSON, crafting complexity summary, and optional SVG sheet.",
+      "parameters": [
+        {
+          "name": "matrix",
+          "type": "array",
+          "description": "Array of equal-length row strings (e.g. [\"..RR..\", \".RRRR.\"]) or 2D array of color tokens. Use \".\" or \" \" for empty cells.",
+          "required": true
+        },
+        {
+          "name": "colorMap",
+          "type": "object",
+          "description": "Map of matrix character/token -> MARD code (e.g. \"F5\") or CSS HEX (e.g. \"#E7002F\").",
+          "required": false,
+          "default": {}
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "description": "Pattern title (max 80 chars).",
+          "required": false,
+          "default": "AI Pixel Pattern"
+        },
+        {
+          "name": "includeSvg",
+          "type": "boolean",
+          "description": "When true, returns a rendered SVG construction sheet string.",
+          "required": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "generate_pattern",
+      "description": "Convert a local PNG image file into a MARD-compatible 221-code fuse-bead pattern with optional stray-bead despeckling and SVG construction sheet.",
+      "parameters": [
+        {
+          "name": "imagePath",
+          "type": "string",
+          "description": "Path to an existing PNG file on disk.",
+          "required": true
+        },
+        {
+          "name": "width",
+          "type": "integer",
+          "description": "Target grid columns (4-160). Default: 32.",
+          "required": false,
+          "default": 32
+        },
+        {
+          "name": "height",
+          "type": "integer",
+          "description": "Target grid rows (4-160). Defaults to width.",
+          "required": false
+        },
+        {
+          "name": "processMode",
+          "type": "string",
+          "description": "Quantization mode: cartoon | detail | document | photo | pixel. Default: cartoon.",
+          "required": false,
+          "default": "cartoon"
+        },
+        {
+          "name": "maxColors",
+          "type": "integer",
+          "description": "Maximum active colors (2-64). Default: 24.",
+          "required": false,
+          "default": 24
+        },
+        {
+          "name": "despeckle",
+          "type": "boolean",
+          "description": "Clean isolated 1-bead noise after quantization. Default: true.",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "includeSvg",
+          "type": "boolean",
+          "description": "Include rendered SVG construction sheet. Default: false.",
+          "required": false,
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "optimize_pattern",
+      "description": "Optimize an existing bead-grid-studio pattern JSON: clean isolated stray beads, optionally merge rare colors (<=2 beads), and compute build complexity metrics.",
+      "parameters": [
+        {
+          "name": "pattern",
+          "type": "object",
+          "description": "A valid bead-grid-studio pattern object.",
+          "required": true
+        },
+        {
+          "name": "despeckle",
+          "type": "boolean",
+          "description": "Run isolated-bead despeckling. Default: true.",
+          "required": false,
+          "default": true
+        },
+        {
+          "name": "mergeRareColors",
+          "type": "boolean",
+          "description": "Auto-merge <=2-bead rare colors with deltaE <= 18 into closest used neighbor. Default: false.",
+          "required": false,
+          "default": false
+        }
+      ]
+    },
+    {
+      "name": "lookup_palette",
+      "description": "Search the MARD-compatible 221 bead palette by CSS HEX color (perceptual CIEDE2000), exact code, or color series (A/B/C/D/E/F/G/H/M).",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "description": "Hex color (#RRGGBB), MARD code (e.g. \"H7\"), or series letter (\"A\"-\"M\").",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "runtime": {
+    "type": "node",
+    "min_version": "18.0.0"
+  }
+}
