@@ -195,3 +195,92 @@ test('making assistant tracks one color, survives recovery, and exports material
   await page.locator('#readyMakeBtn').click();
   await expect.poll(async () => Number(await page.locator('#makingProgressBar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
 });
+
+test('standalone hides Anna AI panel while hover-highlight and Anna host workflow function cleanly', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Anna mock host workflow runs once in Chromium');
+
+  // 1. Standalone visit must keep Anna AI panel hidden.
+  await page.goto('/?lang=en-US');
+  await expect(page.locator('#annaAiPanel')).toBeHidden();
+  await page.locator('#trySampleBtn').click();
+  await waitForPattern(page);
+  await page.locator('#statsList .stat-row').first().hover();
+
+  // 2. Inside Anna OS iframe runtime (?wid=...&t=...), panel activates and syncs theme/storage/coach/simplify.
+  await page.addInitScript(() => {
+    window.__annaSavedStates = [];
+    window.__annaChatArtifacts = [];
+    const handlers = {};
+    window.__ANNA_MOCK_RUNTIME__ = {
+      theme: 'dark',
+      locale: 'en_US',
+      entryPayload: {
+        pattern: {
+          schemaVersion: 1,
+          type: 'bead-grid-studio',
+          version: 2,
+          appVersion: '1.5.0',
+          title: 'Mock Anna Heart',
+          createdAt: '2026-11-17T00:00:00.000Z',
+          grid: {
+            cols: 6,
+            rows: 6,
+            cells: [
+              'H7', 'H7', 'H7', 'H7', 'H7', 'H7',
+              'H7', 'F5', 'F5', 'F5', 'F5', 'H7',
+              'H7', 'F5', 'F4', 'F5', 'F5', 'H7',
+              'H7', 'F5', 'F5', 'F5', 'F5', 'H7',
+              'H7', 'F5', 'F5', 'F5', 'F5', 'H7',
+              'H7', 'H7', 'H7', 'H7', 'H7', 'H7',
+            ],
+          },
+          palette: { id: 'mard-compatible-base-221' },
+        },
+      },
+      on(evt, fn) {
+        handlers[evt] = fn;
+      },
+      storage: {
+        async get() { return { exists: false }; },
+        async set({ key, value }) {
+          window.__annaSavedStates.push({ key, value });
+          return { ok: true };
+        },
+      },
+      llm: {
+        async complete() {
+          return { content: 'Build H7 border first, then F5 body; iron medium heat for 12s.' };
+        },
+      },
+      chat: {
+        async append_artifact(payload) {
+          window.__annaChatArtifacts.push(payload);
+          return { ok: true };
+        },
+      },
+      mobile: {
+        async haptics() {},
+      },
+    };
+  });
+
+  await page.goto('/?wid=win-e2e&t=tok-e2e');
+  await expect(page.locator('#annaAiPanel')).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await waitForPattern(page);
+  await expect(page.locator('#totalBeads')).toHaveText('36');
+  await expect(page.locator('#usedColors')).toHaveText('3');
+  await expect(page.locator('#rareColorHint')).toBeVisible();
+
+  await page.locator('#simplifyColorsBtn').click();
+  await expect(page.locator('#usedColors')).toHaveText('2');
+  await expect(page.locator('#rareColorHint')).toBeHidden();
+
+  await page.locator('#annaCoachBtn').click();
+  await expect(page.locator('#annaCoachOutput')).toBeVisible();
+  await expect(page.locator('#annaCoachOutput')).toContainText('Build H7 border first');
+
+  await page.locator('#annaSendChatBtn').click();
+  await expect.poll(() => page.evaluate(() => window.__annaChatArtifacts.length)).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => window.__annaSavedStates.length)).toBeGreaterThan(0);
+});

@@ -1540,3 +1540,72 @@
       .crop-foot .button { flex: 1 1 auto; }
       .product-grid { grid-template-columns: 1fr; }
     }
+
+    .rare-merge-hint {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 8px 0;
+      padding: 8px 10px;
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+      border-radius: 10px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--accent-strong);
+    }
+
+    .anna-ai-panel {
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 45%, var(--panel)) 0%, var(--panel) 100%);
+    }
+
+    .anna-ai-panel input[type="search"] {
+      width: 100%;
+      padding: 7px 10px;
+      color: var(--ink);
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .anna-coach-output {
+      margin-top: 10px;
+      padding: 10px 11px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 11.5px;
+      line-height: 1.6;
+      color: var(--ink);
+      white-space: pre-wrap;
+    }
+
+    :root[data-theme="dark"] {
+      --page: #191816;
+      --panel: #22201d;
+      --panel-strong: #2b2925;
+      --workbench: #141311;
+      --board: #282521;
+      --ink: #f2ede4;
+      --muted: #b4aca0;
+      --faint: #847d72;
+      --line: #3a3630;
+      --line-strong: #514b43;
+      --accent: #e06d44;
+      --accent-strong: #f08d69;
+      --accent-soft: #3b261e;
+    }
+
+    :root[data-theme="dark"] .topbar {
+      background: rgba(34, 32, 29, .96);
+    }
+
+    :root[data-theme="dark"] .product-card {
+      background: #2b2925;
+    }
+
+    :root[data-theme="dark"] .product-links a {
+      background: #22201d;
+    }

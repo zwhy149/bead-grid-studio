@@ -25,7 +25,7 @@
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-87351c"></a>
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
   <a href="docs/project-health.md"><img alt="Offline Downloads" src="https://img.shields.io/badge/Offline%20Downloads-156+-blue"></a>
-  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.4.0-brightgreen"></a>
+  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.5.0-brightgreen"></a>
 </p>
 
 ## 示例 / Examples
@@ -45,7 +45,9 @@
 - **图片 → 拼豆图纸**：适合线稿、卡通、照片、文档结构和像素图。
 - **自动配色**：匹配可追溯的拼豆色板，同时保留黑白锚点和重要强调色。
 - **可编辑网格**：画笔、橡皮、取色、镜像、旋转、撤销与重做。
-- **制作信息齐全**：逐格色号、四边坐标、粗辅助线、底板接缝与用料统计。
+- **制作信息齐全**：逐格色号、四边坐标、粗辅助线、多底板分区编号（`1-1`、`1-2`…）与用料统计。
+- **悬停定位与一键并稀有色**：鼠标悬停统计列表即可只高亮画布对应色珠；一键合并 `<=2` 颗微弱杂色，减少零散备料。
+- **Anna AI OS 原生应用版 (`anna-app/`)**：提供 `schema: 4` 原生应用包（内置 `bead-studio` Executa、`bead-craft-coach` Skill 与 APS 状态同步），独立版零负担。
 - **按色制作助手**：一次突出一个色号，完成后自动切换下一色，并在本地保存制作进度。
 - **可打印、可继续编辑**：导出施工图 PNG，并可保存和读取 JSON 工程。
 - **材料表可流转**：导出 UTF-8 CSV，包含色号、颜色、数量与完成状态。
@@ -70,6 +72,7 @@
 | 断网使用或保存到 U 盘 | [从 Releases 下载单 HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | 不需要 |
 | 批量转换 / 终端自动化 | [命令行 CLI 工具 (`bead-grid`)](#命令行-cli-与自动化) | Node.js |
 | 在 Node.js / 网页中复用核心能力 | [@bead-grid/core 核心包](packages/core/README.md) | Node.js |
+| 作为 Anna AI OS 应用运行（AI 绘豆 + 施工顾问） | [Anna AI OS 应用包](anna-app/README.md) | Anna OS / `npm run build:anna` |
 | 部署成自己的公开网页 | [Fork 与部署教程](docs/deployment.zh-CN.md) | 需要 GitHub 账号；Cloudflare 可选 |
 | 修改代码或参与开发 | [开发者指南](docs/developer-guide.md) | 需要 Node.js |
 
@@ -145,6 +148,7 @@ Fork → 启用 GitHub Actions → Settings → Pages → Deploy
 ```bash
 # 生成 29x29 标准拼豆施工图并在终端以彩色 ANSI 预览
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 --despeckle --format svg > rocket.svg
 
 # 使用极简 12 色入门色板转换并输出 JSON 图纸工程
 node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json -o pattern.json
@@ -199,6 +203,8 @@ console.log(`用料首项: ${pattern.materials[0].code} (${pattern.materials[0].
 ```bash
 node examples/node/index.mjs
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 --despeckle --format svg > rocket.svg
+npm run build:anna
 npm run schema:validate
 ```
 
@@ -284,6 +290,7 @@ MARD、Artkal、Hama、Perler 等是第三方标识，本项目与这些品牌�
 系统详细架构设计与 ASCII 流程图见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ```text
+anna-app/                 Anna AI OS schema-4 原生应用包（manifest、bead-studio Executa 与 Craft Coach Skill）
 packages/core/            解耦的 DOM-free 图像量化核心库与 TypeScript 定义
 schemas/                  开放数据规范（图纸与色板 JSON Schema 2020-12）
 bin/                      无头 Node.js CLI 工具 (bead-grid)

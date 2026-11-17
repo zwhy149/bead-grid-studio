@@ -1,0 +1,49 @@
+{
+  "schema": 4,
+  "required_executas": [
+    {
+      "tool_id": "bundled:bead-studio",
+      "min_version": "1.0.0",
+      "version": "latest"
+    },
+    {
+      "tool_id": "bundled:bead-craft-coach",
+      "version": "latest"
+    }
+  ],
+  "optional_executas": [],
+  "system_prompt_addendum": "The user has Bead Grid Studio open. You are a fuse-bead design and crafting partner. When the user asks to design an original small pixel/bead pattern (e.g. heart, cat, badge, icon), craft a clean character matrix and invoke the bead-studio Executa (`create_pixel_pattern`) so every cell uses valid MARD-compatible base-221 color codes, then pass `{ pattern }` to `open_app_view` or `update_app_view`. When optimizing an existing pattern or simplifying rare colors, invoke `optimize_pattern` and quote exact returned color codes, bead counts, and estimated build times. Never invent color codes or counts.",
+  "user_message_prefix_template": "[Bead Grid Studio] {user_message}",
+  "tags": ["creative", "fuse-beads", "pixel-art", "design", "craft"],
+  "ui": {
+    "bundle": {
+      "format": "static-spa",
+      "entry": "index.html",
+      "external_origins": []
+    },
+    "views": [
+      {
+        "name": "main",
+        "title": "Bead Grid Studio",
+        "default": true,
+        "entry": "index.html",
+        "min_size": { "w": 360, "h": 520 },
+        "default_size": { "w": 1120, "h": 680 },
+        "max_size": { "w": 1920, "h": 1200 },
+        "resizable": true,
+        "movable": true,
+        "single_instance": true,
+        "summary_template": "Pattern studio: {title}",
+        "icon": "app-icon.svg"
+      }
+    ],
+    "form_factors": ["desktop", "mobile"],
+    "csp_overrides": {},
+    "state_merge": "last_writer_wins"
+  },
+  "dev": {
+    "fixtures": ["fixtures/*.jsonl"],
+    "seed_storage": {},
+    "user_id": 1
+  }
+}

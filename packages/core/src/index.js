@@ -48,16 +48,21 @@ import {
 import { quantizePixels } from './quantize.js';
 
 import {
+  analyzeBuildComplexity,
   analyzePattern,
   assessPatternQuality,
   createPattern,
+  createPatternFromMatrix,
   deserializePattern,
   despeckleGrid,
   embedPatternGrid,
+  findNearestPaletteColor,
   occupiedBounds,
   parsePattern,
+  renderPatternSvg,
   replaceGridColor,
   serializePattern,
+  suggestColorMerges,
   validatePattern,
 } from './pattern.js';
 
@@ -175,11 +180,16 @@ export {
   occupiedBounds,
   assessPatternQuality,
   analyzePattern,
+  analyzeBuildComplexity,
   createPattern,
+  createPatternFromMatrix,
+  findNearestPaletteColor,
+  renderPatternSvg,
   serializePattern,
   parsePattern,
   deserializePattern,
   validatePattern,
   despeckleGrid,
   replaceGridColor,
+  suggestColorMerges,
 };

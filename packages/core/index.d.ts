@@ -199,6 +199,64 @@ export function replaceGridColor(
   targetColor: number
 ): { cells: Int16Array; replacedCount: number };
 
+export function findNearestPaletteColor(
+  token: string,
+  palette?: readonly PaletteColor[],
+  options?: { includeTransparent?: boolean }
+): { color: PaletteColor; deltaE: number } | null;
+
+export function createPatternFromMatrix(config: {
+  matrix: string[] | (string | null)[][];
+  colorMap?: Record<string, string>;
+  palette?: PaletteProvider | readonly PaletteColor[];
+  title?: string;
+  metadata?: Record<string, any>;
+}): PatternModel;
+
+export function suggestColorMerges(
+  grid: ArrayLike<number> | (string | null)[],
+  palette?: readonly PaletteColor[],
+  options?: { maxBeadCount?: number; maxDeltaE?: number; protectAnchors?: boolean }
+): Array<{
+  fromIndex: number;
+  fromCode: string;
+  fromHex: string;
+  fromCount: number;
+  toIndex: number;
+  toCode: string;
+  toHex: string;
+  toCount: number;
+  deltaE: number;
+}>;
+
+export function analyzeBuildComplexity(
+  pattern: PatternModel,
+  options?: { boardCells?: number }
+): {
+  cols: number;
+  rows: number;
+  totalBeads: number;
+  usedColors: number;
+  isolatedBeads: number;
+  colorSwitches: number;
+  estimatedMinutes: number;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  boardsRequired: number;
+  boardGrid: string;
+  recommendedOrder: Array<{ code: string; count: number; role: 'outline' | 'fill' | 'accent' }>;
+};
+
+export function renderPatternSvg(
+  pattern: PatternModel,
+  options?: {
+    cellSize?: number;
+    showCodes?: boolean;
+    showGrid?: boolean;
+    majorGridStep?: number;
+    includeLegend?: boolean;
+  }
+): string;
+
 export function gridForLongSide(width: number, height: number, longSide: number, minSide?: number, maxSide?: number): GridDimensions;
 export function gridFromAspectAnchor(width: number, height: number, value: number, axis?: 'cols' | 'rows', minSide?: number, maxSide?: number): GridDimensions;
 export function fitPatternInsideBoard(sourceWidth: number, sourceHeight: number, boardCols: number, boardRows: number): BoardLayout;

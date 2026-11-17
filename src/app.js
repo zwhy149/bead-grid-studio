@@ -6,6 +6,8 @@ import {
   orientedSourceDimensions,
 } from './core/geometry.js';
 import {
+  analyzeBuildComplexity,
+  createPatternFromMatrix,
   deltaE2000,
   despeckleGrid,
   hexToRgb,
@@ -13,7 +15,20 @@ import {
   replaceGridColor,
   rgbToCielab,
   rgbToOklab,
+  suggestColorMerges,
 } from '../packages/core/src/index.js';
+import {
+  connectAnnaRuntime,
+  formatAnnaRpcError,
+  generateBeadArtImage,
+  generateCraftBuildPlan,
+  loadAnnaProjectState,
+  mapAnnaLocaleToStudio,
+  saveAnnaProjectState,
+  sendPatternArtifactToChat,
+  simplifyImageForBeads,
+  triggerMobileHaptic,
+} from './adapters/anna-runtime.js';
 import { LEGACY_64_HEX } from './palettes/mard221.js';
 import { DEFAULT_PALETTE_PROVIDER_ID, getPaletteProvider } from './palettes/catalog.js';
 import SAMPLE_IMAGE_URL from '../tests/fixtures/rocket-badge.png?inline';
@@ -33,8 +48,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.4.0';
-    const BUILD_DATE = '2026-10-30';
+    const APP_VERSION = '1.5.0';
+    const BUILD_DATE = '2026-11-17';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
@@ -56,7 +71,9 @@ import {
       'productDialog','productCloseBtn','productOkBtn','recoveryActions','restoreDraftBtn','clearDraftBtn','appVersion',
       'trySampleBtn','panelTrySampleBtn','patternReadyBar','readyMakeBtn','readyExportBtn','readySaveBtn','readyShareBtn','readyShareCardBtn',
       'makingAssistant','makingProgressText','makingProgressBar','makingColorSwatch','makingColorCode','makingColorCount','makingPrevBtn','makingCompleteBtn','makingNextBtn','makingShowAllBtn','makingResetBtn','makingCloseBtn','exportCsvBtn',
-      'shareDialog','shareFormat','sharePreviewCanvas','shareCardCloseBtn','shareCardCancelBtn','shareCardDownloadBtn'
+      'shareDialog','shareFormat','sharePreviewCanvas','shareCardCloseBtn','shareCardCancelBtn','shareCardDownloadBtn',
+      'rareColorHint','rareColorHintText','simplifyColorsBtn',
+      'annaAiPanel','annaPromptInput','annaGenerateBtn','annaSimplifyPhotoBtn','annaCoachBtn','annaSendChatBtn','annaCoachOutput'
     ].map(id => [id, document.getElementById(id)]));
 
     const state = {
@@ -102,6 +119,9 @@ import {
       lastCell: null,
       keyboardCursor: { x: 0, y: 0 },
       canvasFocused: false,
+      hoverHighlightColor: null,
+      annaRuntime: null,
+      lastAiImageUrl: null,
       renderQueued: false,
       statsQueued: false,
       converter: null,
@@ -754,6 +774,12 @@ import {
             updateSelectedColor();
             setTool('brush');
           });
+          button.addEventListener('mouseenter', () => {
+            if (!state.makingMode) { state.hoverHighlightColor = color.index; drawPattern(); }
+          });
+          button.addEventListener('mouseleave', () => {
+            if (!state.makingMode && state.hoverHighlightColor === color.index) { state.hoverHighlightColor = null; drawPattern(); }
+          });
           button.addEventListener('keydown',event=>{
             if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))return;
             const buttons=[...els.paletteGrid.querySelectorAll('.palette-color')];if(!buttons.length)return;
@@ -958,6 +984,22 @@ import {
       if(state.sizeMode!=='board')return;
       const profile=BOARD_PROFILES[state.boardProfile]||BOARD_PROFILES.mini52;
       drawMajorGrid(ctx,originX,originY,cols,rows,size,profile.cells,{color,lineWidth});
+      if((state.boardTilesX>1||state.boardTilesY>1)&&size>=8){
+        ctx.save();
+        const fontSize=Math.max(8,Math.min(13,Math.floor(size*.45)));
+        ctx.font=`800 ${fontSize}px ui-monospace,SFMono-Regular,Consolas,monospace`;
+        ctx.textAlign='left';ctx.textBaseline='top';
+        for(let ty=0;ty<state.boardTilesY;ty++){
+          for(let tx=0;tx<state.boardTilesX;tx++){
+            const bx=originX+tx*profile.cells*size+4,by=originY+ty*profile.cells*size+4;
+            if(bx>=originX+cols*size||by>=originY+rows*size)continue;
+            const label=`${ty+1}-${tx+1}`,tw=ctx.measureText(label).width,bw=tw+8,bh=fontSize+6;
+            ctx.fillStyle='rgba(128,42,23,.85)';ctx.fillRect(bx,by,bw,bh);
+            ctx.fillStyle='#ffffff';ctx.fillText(label,bx+4,by+3);
+          }
+        }
+        ctx.restore();
+      }
     }
 
     function drawPatternCell(ctx, x, y) {
@@ -1007,6 +1049,15 @@ import {
           }
           if(focused===value&&!completed){
             ctx.strokeStyle='#b54827';ctx.lineWidth=Math.max(2,size*.14);ctx.strokeRect(px+1,py+1,Math.max(0,size-2),Math.max(0,size-2));
+          }
+        } else if (state.hoverHighlightColor !== null) {
+          if (value === state.hoverHighlightColor) {
+            ctx.strokeStyle = '#d9480f';
+            ctx.lineWidth = Math.max(2, size * .18);
+            ctx.strokeRect(px + 1, py + 1, Math.max(0, size - 2), Math.max(0, size - 2));
+          } else {
+            ctx.fillStyle = 'rgba(246, 243, 237, .62)';
+            ctx.fillRect(px, py, size, size);
           }
         }
       }
@@ -1281,10 +1332,19 @@ import {
           const swatch=document.createElement('span');swatch.className='stat-swatch';swatch.style.background=color.displayHex;
           const copy=document.createElement('span');copy.className='stat-copy';const strong=document.createElement('strong');strong.textContent=`${color.code} · ${localizedColorName(color)}`;const hex=document.createElement('span');hex.textContent=color.hex.toUpperCase();copy.append(strong,hex);
           const amount=document.createElement('span');amount.className='stat-count';amount.append(document.createTextNode(formatNumber(count)));const percent=document.createElement('em');percent.className='stat-percent';percent.textContent=share.label;amount.append(percent);focus.append(swatch,copy,amount);focus.addEventListener('click',()=>setMakingFocus(index));
+          row.addEventListener('mouseenter',()=>{if(!state.makingMode){state.hoverHighlightColor=index;drawPattern();}});
+          row.addEventListener('mouseleave',()=>{if(!state.makingMode&&state.hoverHighlightColor===index){state.hoverHighlightColor=null;drawPattern();}});
           const done=document.createElement('button');done.type='button';done.className='stat-done';done.textContent=completed?'✓':'○';done.setAttribute('aria-label',t(completed?'aria.markColorUndone':'aria.markColorDone',{code:color.code}));done.setAttribute('aria-pressed',String(completed));done.addEventListener('click',()=>{state.makingMode=true;state.makingShowAll=false;state.makingFocusColor=index;toggleFocusedColorComplete();});
           row.append(bar,focus,done);
           els.statsList.appendChild(row);
         });
+      }
+      if (els.rareColorHint && els.rareColorHintText) {
+        const merges = total > 0 ? suggestColorMerges(state.grid, PALETTE, { maxBeadCount: 2, maxDeltaE: 18, protectAnchors: true }) : [];
+        els.rareColorHint.hidden = merges.length === 0;
+        if (merges.length > 0) {
+          els.rareColorHintText.textContent = t('stats.rareHint', { count: merges.length });
+        }
       }
 
       const compactCodeHint=state.showCodes&&cellSize()<14;
@@ -1990,6 +2050,27 @@ import {
       toast('toast.replaceColorDone', 'success', { count: replacedCount, from: currentColor.code, to: targetColor.code });
     }
 
+    function simplifyRareColors() {
+      if (blockMutationDuringConversion()) return;
+      const merges = suggestColorMerges(state.grid, PALETTE, { maxBeadCount: 2, maxDeltaE: 18, protectAnchors: true });
+      if (!merges.length) return;
+      let working = new Int16Array(state.grid);
+      let totalBeadsAdjusted = 0;
+      for (const merge of merges) {
+        const res = replaceGridColor(working, merge.fromIndex, merge.toIndex);
+        working = res.cells;
+        totalBeadsAdjusted += res.replacedCount;
+      }
+      if (totalBeadsAdjusted > 0) {
+        state.grid = working;
+        markCustomSettings();
+        commitHistory('history.simplifyRare');
+        renderAll();
+        toast('toast.rareMerged', 'success', { count: merges.length, beads: totalBeadsAdjusted });
+        if (state.annaRuntime) void triggerMobileHaptic(state.annaRuntime, 'light');
+      }
+    }
+
     function setZoom(next) {
       const centerX = els.canvasViewport.scrollLeft + els.canvasViewport.clientWidth/2;
       const centerY = els.canvasViewport.scrollTop + els.canvasViewport.clientHeight/2;
@@ -2259,7 +2340,9 @@ import {
     function saveDraftNow() {
       window.clearTimeout(draftTimer);
       if(!state.grid.some(value=>value>=0)){try{localStorage.removeItem(DRAFT_KEY);}catch(_){}updateRecoveryUI();return;}
-      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(buildProjectData()));} catch(_) {toast('toast.draftStorage','error');}
+      const data = buildProjectData();
+      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(data));} catch(_) {toast('toast.draftStorage','error');}
+      if (state.annaRuntime) void saveAnnaProjectState(state.annaRuntime, data);
       updateRecoveryUI();
     }
 
@@ -2350,6 +2433,232 @@ import {
         setStatus(fromDraft?'status.projectRestored':'status.projectLoaded',fromDraft?{cols,rows}:{cols,rows,migration:legacy?t('status.projectMigration'):''});updateRecoveryUI();
       }catch(error){if(loadJob!==state.sourceLoadJob)return;toast(error.message==='size'?'toast.projectTooLarge':'toast.projectInvalid','error');setStatus('status.projectLoadFailed');}
       finally{els.projectInput.value='';}
+    }
+
+    async function loadImageFromUrl(url, fileName = 'ai-bead-art.png') {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      const file = new File([blob], fileName, { type: blob.type || 'image/png' });
+      state.lastAiImageUrl = url;
+      await loadImageFile(file);
+    }
+
+    async function loadRawProjectObject(projectData, fallbackTitle = 'anna-pattern') {
+      const blob = new Blob([JSON.stringify(projectData)], { type: 'application/json' });
+      const file = new File([blob], `${fallbackTitle}-bead.json`, { type: 'application/json' });
+      await loadProjectFile(file, { skipConfirm: true, fromDraft: true });
+    }
+
+    async function handleAnnaEntryPayload(payload) {
+      if (!payload || typeof payload !== 'object') return;
+      if (payload.prompt && els.annaPromptInput) {
+        els.annaPromptInput.value = String(payload.prompt).slice(0, 240);
+      }
+      if (payload.pattern && payload.pattern.type === 'bead-grid-studio') {
+        await loadRawProjectObject(payload.pattern, payload.pattern.title || 'anna-pattern');
+        return;
+      }
+      if (Array.isArray(payload.matrix) && payload.matrix.length > 0) {
+        const model = createPatternFromMatrix({
+          matrix: payload.matrix,
+          colorMap: payload.colorMap || {},
+          palette: PALETTE_PROVIDER,
+          title: String(payload.title || 'AI Pixel Pattern').slice(0, 80),
+        });
+        await loadRawProjectObject({
+          type: 'bead-grid-studio',
+          version: PROJECT_VERSION,
+          title: model.title,
+          grid: model.grid,
+          settings: { showCodes: true, showGrid: true },
+        }, model.title);
+        return;
+      }
+      if (payload.imageUrl) {
+        try {
+          await loadImageFromUrl(payload.imageUrl, 'ai-bead-art.png');
+        } catch {
+          toast('toast.imageDamaged', 'error');
+        }
+      }
+    }
+
+    function setAnnaBusy(busy) {
+      [els.annaGenerateBtn, els.annaSimplifyPhotoBtn, els.annaCoachBtn, els.annaSendChatBtn].forEach((btn) => {
+        if (btn) btn.disabled = busy;
+      });
+    }
+
+    async function runAnnaGenerate() {
+      const anna = state.annaRuntime;
+      if (!anna) return;
+      const promptText = (els.annaPromptInput?.value || '').trim();
+      if (!promptText) {
+        els.annaPromptInput?.focus();
+        return;
+      }
+      setAnnaBusy(true);
+      if (els.annaCoachOutput) {
+        els.annaCoachOutput.hidden = false;
+        els.annaCoachOutput.textContent = t('anna.generating');
+      }
+      try {
+        const img = await generateBeadArtImage(anna, promptText);
+        await loadImageFromUrl(img.url, 'ai-bead-art.png');
+        if (els.annaCoachOutput) els.annaCoachOutput.hidden = true;
+        void triggerMobileHaptic(anna, 'light');
+      } catch (err) {
+        if (els.annaCoachOutput) {
+          els.annaCoachOutput.hidden = false;
+          els.annaCoachOutput.textContent = formatAnnaRpcError(err);
+        }
+      } finally {
+        setAnnaBusy(false);
+      }
+    }
+
+    async function runAnnaSimplifyPhoto() {
+      const anna = state.annaRuntime;
+      if (!anna) return;
+      if (!state.referenceImage && !state.lastAiImageUrl) {
+        toast('anna.needImage', 'info');
+        return;
+      }
+      setAnnaBusy(true);
+      if (els.annaCoachOutput) {
+        els.annaCoachOutput.hidden = false;
+        els.annaCoachOutput.textContent = t('anna.simplifying');
+      }
+      try {
+        let base64Png = null;
+        if (!state.lastAiImageUrl && state.referenceImage) {
+          const raster = renderReferenceRaster({ contentOnly: true });
+          if (raster) {
+            base64Png = raster.toDataURL('image/png').split(',')[1];
+          }
+        }
+        const img = await simplifyImageForBeads(anna, {
+          imageUrl: state.lastAiImageUrl,
+          base64Png,
+        });
+        await loadImageFromUrl(img.url, 'ai-simplified.png');
+        if (els.annaCoachOutput) els.annaCoachOutput.hidden = true;
+        void triggerMobileHaptic(anna, 'light');
+      } catch (err) {
+        if (els.annaCoachOutput) {
+          els.annaCoachOutput.hidden = false;
+          els.annaCoachOutput.textContent = formatAnnaRpcError(err);
+        }
+      } finally {
+        setAnnaBusy(false);
+      }
+    }
+
+    async function runAnnaCoach() {
+      const anna = state.annaRuntime;
+      if (!anna) return;
+      const { counts, total } = getStats();
+      if (!total) {
+        toast('anna.needPattern', 'info');
+        return;
+      }
+      setAnnaBusy(true);
+      if (els.annaCoachOutput) {
+        els.annaCoachOutput.hidden = false;
+        els.annaCoachOutput.textContent = t('anna.coaching');
+      }
+      try {
+        const projectData = buildProjectData();
+        const complexity = analyzeBuildComplexity(projectData);
+        const topColors = sortedMaterialRows(counts).slice(0, 12).map(([idx, count]) => ({
+          code: PALETTE[idx].code,
+          name: localizedColorName(PALETTE[idx]),
+          count,
+        }));
+        const mergeSuggestions = suggestColorMerges(state.grid, PALETTE, { maxBeadCount: 2, maxDeltaE: 18 });
+        const plan = await generateCraftBuildPlan(anna, {
+          complexity,
+          topColors,
+          mergeSuggestions,
+          locale: getLocale(),
+        });
+        if (els.annaCoachOutput) {
+          els.annaCoachOutput.hidden = false;
+          els.annaCoachOutput.textContent = plan || `${complexity.difficulty} · ~${complexity.estimatedMinutes} min`;
+        }
+      } catch (err) {
+        if (els.annaCoachOutput) {
+          els.annaCoachOutput.hidden = false;
+          els.annaCoachOutput.textContent = formatAnnaRpcError(err);
+        }
+      } finally {
+        setAnnaBusy(false);
+      }
+    }
+
+    async function runAnnaSendToChat() {
+      const anna = state.annaRuntime;
+      if (!anna) return;
+      const { total } = getStats();
+      if (!total) {
+        toast('anna.needPattern', 'info');
+        return;
+      }
+      const patternData = buildProjectData();
+      const complexity = analyzeBuildComplexity(patternData);
+      const summary = `${patternData.title} (${patternData.grid.cols}x${patternData.grid.rows}, ${complexity.totalBeads} beads, ${complexity.usedColors} colors, ~${complexity.estimatedMinutes} min)`;
+      const ok = await sendPatternArtifactToChat(anna, {
+        title: patternData.title,
+        summary,
+        patternData,
+        complexity,
+      });
+      if (ok) {
+        toast('anna.sentChat', 'success');
+        void triggerMobileHaptic(anna, 'light');
+      }
+    }
+
+    async function initAnnaIntegration() {
+      const anna = await connectAnnaRuntime();
+      if (!anna) return;
+      state.annaRuntime = anna;
+      if (els.annaAiPanel) els.annaAiPanel.hidden = false;
+
+      if (anna.theme) document.documentElement.dataset.theme = anna.theme;
+      if (typeof anna.onThemeChange === 'function') {
+        anna.onThemeChange(({ theme }) => {
+          if (theme) document.documentElement.dataset.theme = theme;
+        });
+      }
+      const mappedLocale = mapAnnaLocaleToStudio(anna.locale);
+      if (mappedLocale) setLocale(mappedLocale, { persist: false });
+      if (typeof anna.onLocaleChange === 'function') {
+        anna.onLocaleChange(({ lang }) => {
+          const nextLocale = mapAnnaLocaleToStudio(lang);
+          if (nextLocale) setLocale(nextLocale, { persist: false });
+        });
+      }
+
+      if (anna.entryPayload) {
+        await handleAnnaEntryPayload(anna.entryPayload);
+      } else {
+        const stored = await loadAnnaProjectState(anna);
+        if (stored && !state.grid.some((value) => value >= 0)) {
+          await loadRawProjectObject(stored, stored.title || 'anna-pattern');
+          setStatus('anna.synced');
+        }
+      }
+
+      if (typeof anna.on === 'function') {
+        anna.on('entry_payload', (payload) => { void handleAnnaEntryPayload(payload); });
+        anna.on('runtime_state_synced', (rs) => {
+          if (rs && rs['bead-grid-studio:project'] && !state.dirty) {
+            void loadRawProjectObject(rs['bead-grid-studio:project'], 'anna-pattern');
+          }
+        });
+      }
     }
 
     function buildPrintTileCanvas(startX,startY,cols,rows,pageNumber,pageCount) {
@@ -2990,6 +3299,12 @@ import {
       els.clearBtn.addEventListener('click',clearGrid);
       els.despeckleBtn?.addEventListener('click',despecklePattern);
       els.replaceColorBtn?.addEventListener('click',replaceColorPattern);
+      els.simplifyColorsBtn?.addEventListener('click',simplifyRareColors);
+      els.annaGenerateBtn?.addEventListener('click',()=>void runAnnaGenerate());
+      els.annaSimplifyPhotoBtn?.addEventListener('click',()=>void runAnnaSimplifyPhoto());
+      els.annaCoachBtn?.addEventListener('click',()=>void runAnnaCoach());
+      els.annaSendChatBtn?.addEventListener('click',()=>void runAnnaSendToChat());
+      els.annaPromptInput?.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();void runAnnaGenerate();}});
       els.undoBtn.addEventListener('click',undo);els.redoBtn.addEventListener('click',redo);
       els.zoomOutBtn.addEventListener('click',()=>setZoom(state.zoom-.25));els.zoomInBtn.addEventListener('click',()=>setZoom(state.zoom+.25));
       els.fitCanvasBtn.addEventListener('click',()=>fitCanvasToViewport());
@@ -3072,6 +3387,7 @@ import {
       renderAll();
       setTool('brush');
       updateRecoveryUI();
+      void initAnnaIntegration();
       if(location.protocol==='https:'&&'serviceWorker' in navigator){
         navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(error=>console.warn('[豆格工坊] 离线缓存注册失败',error));
       }

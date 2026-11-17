@@ -1,0 +1,7 @@
+{
+  "slug": "bead-craft-coach",
+  "name": "Bead Craft Coach",
+  "version": "1.0.0",
+  "executa_type": "skill",
+  "description": "Design and crafting skill for Bead Grid Studio. Guides the Anna assistant on creating pixel-bead character matrices, matching MARD-221 codes, optimizing stray beads, and launching the interactive Bead Grid Studio workspace."
+}

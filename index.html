@@ -182,6 +182,26 @@
           </details>
         </section>
 
+        <section class="panel-section anna-ai-panel" id="annaAiPanel" hidden>
+          <div class="section-head">
+            <h2 data-i18n="anna.title">Anna AI 创意工坊</h2>
+            <small data-i18n="anna.badge">AI 原生增强</small>
+          </div>
+          <label class="field" for="annaPromptInput">
+            <span class="field-label" data-i18n="anna.promptLabel">文字生成拼豆底图</span>
+            <input id="annaPromptInput" type="search" maxlength="240" placeholder="例如：抱着竹子的Q版小熊猫，白底" data-i18n-placeholder="anna.promptPlaceholder">
+          </label>
+          <div class="button-row" style="margin-top:8px">
+            <button class="button primary compact" id="annaGenerateBtn" type="button" data-i18n="anna.generate">AI 生成并转拼豆</button>
+            <button class="button secondary compact" id="annaSimplifyPhotoBtn" type="button" data-i18n="anna.simplifyPhoto">AI 简化原图</button>
+          </div>
+          <div class="button-row">
+            <button class="button secondary compact" id="annaCoachBtn" type="button" data-i18n="anna.coach">AI 施工规划</button>
+            <button class="button secondary compact" id="annaSendChatBtn" type="button" data-i18n="anna.sendToChat">发送到对话</button>
+          </div>
+          <div class="anna-coach-output" id="annaCoachOutput" role="status" aria-live="polite" hidden></div>
+        </section>
+
         <section class="panel-section" id="sizeSection">
           <div class="section-head"><h2 data-i18n="size.title">图纸尺寸</h2><small data-i18n="size.subtitle">图案与底板分开</small></div>
           <div class="size-mode-tabs" role="group" aria-label="尺寸设置方式" data-i18n-aria="aria.sizeMode">
@@ -424,6 +444,10 @@
             <div class="summary-item"><strong id="usedColors">0</strong><span data-i18n="stats.colors">使用颜色</span></div>
             <div class="summary-item"><strong id="emptyCells">3,600</strong><span data-i18n="stats.empty">空格</span></div>
           </div>
+          <div class="rare-merge-hint" id="rareColorHint" hidden>
+            <span id="rareColorHintText"></span>
+            <button class="head-action" id="simplifyColorsBtn" type="button" data-i18n="stats.simplifyRare">一键精简稀有色</button>
+          </div>
           <div class="stats-list" id="statsList"><div class="empty-list" data-i18n="stats.emptyList">上传图片或使用画笔后，这里会实时列出每种颜色的用量。</div></div>
         </section>
       </aside>
@@ -436,7 +460,7 @@
       <span id="statusBeads">0</span>
       <span id="statusZoom">100%</span>
       <span class="status-message" id="statusMessage" data-i18n="status.ready">准备就绪 · 所有处理均在本机完成</span>
-      <span class="release-badge" id="appVersion">v1.2.0</span>
+      <span class="release-badge" id="appVersion">v1.5.0</span>
       <nav class="release-links" aria-label="项目与许可" data-i18n-aria="aria.projectLicense"><a href="https://github.com/zwhy149/bead-grid-studio" target="_blank" rel="noopener noreferrer">GitHub</a><a href="./privacy.html" data-i18n="footer.privacy">隐私</a><a href="./terms.html" data-i18n="footer.terms">条款</a><a href="./LICENSE.txt" data-i18n="footer.license">开源许可</a><a href="./NOTICE.txt" data-i18n="footer.notices">第三方许可</a></nav>
     </footer>
   </div>

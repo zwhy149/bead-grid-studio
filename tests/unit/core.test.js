@@ -4,15 +4,18 @@ import path from 'node:path';
 import test from 'node:test';
 
 import {
+  analyzeBuildComplexity,
   analyzeLineArtSubject,
   analyzePattern,
   analyzeSourceComplexity,
   assessPatternQuality,
   createCustomPalette,
   createPattern,
+  createPatternFromMatrix,
   deltaE2000,
   deserializePattern,
   despeckleGrid,
+  findNearestPaletteColor,
   fitPatternInsideBoard,
   generateBeadPattern,
   getPaletteProvider,
@@ -22,11 +25,13 @@ import {
   quantizePixels,
   recommendAutoHdSettings,
   recommendDocumentGrid,
+  renderPatternSvg,
   replaceGridColor,
   rgbToCielab,
   rgbToHex,
   rgbToOklab,
   serializePattern,
+  suggestColorMerges,
   validatePattern,
 } from '../../packages/core/src/index.js';
 import { decodePng } from '../../src/adapters/png.js';
@@ -264,4 +269,57 @@ test('pattern color replace: replaceGridColor remapps all matching beads', () =>
     9, 3, 9,
     1, 9, 1,
   ]);
+});
+
+test('matrix pattern & SVG: createPatternFromMatrix produces valid pattern and SVG sheet', () => {
+  const pattern = createPatternFromMatrix({
+    title: 'Mini Heart',
+    matrix: [
+      '.RR.RR.',
+      'RRRRRRR',
+      'RRRRRRR',
+      '.RRRRR.',
+      '..RRR..',
+      '...R...',
+    ],
+    colorMap: {
+      R: '#E7002F',
+    },
+  });
+
+  assert.equal(pattern.grid.cols, 7);
+  assert.equal(pattern.grid.rows, 6);
+  assert.equal(pattern.statistics.totalBeads, 27);
+  assert.equal(pattern.statistics.colors[0].code, 'F5');
+  assert.equal(validatePattern(pattern).valid, true);
+
+  const svg = renderPatternSvg(pattern, { cellSize: 20, showCodes: true });
+  assert.match(svg, /^<svg\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
+  assert.match(svg, /Mini Heart/);
+  assert.match(svg, /F5/);
+
+  const complexity = analyzeBuildComplexity(pattern);
+  assert.equal(complexity.totalBeads, 27);
+  assert.equal(complexity.usedColors, 1);
+  assert.equal(complexity.difficulty, 'beginner');
+  assert.ok(complexity.estimatedMinutes >= 5);
+});
+
+test('palette match & merge advisor: findNearestPaletteColor and suggestColorMerges work perceptually', () => {
+  const matched = findNearestPaletteColor('#000000');
+  assert.equal(matched?.color.code, 'H7');
+  assert.equal(matched?.deltaE, 0);
+
+  const palette = getPaletteProvider().colors;
+  const f4 = palette.findIndex((c) => c.code === 'F4');
+  const f3 = palette.findIndex((c) => c.code === 'F3');
+  const h7 = palette.findIndex((c) => c.code === 'H7');
+  const grid = new Int16Array(16).fill(f4);
+  grid[0] = f3; // rare 1 bead near F4
+  grid[15] = h7; // protected black anchor
+
+  const merges = suggestColorMerges(grid, palette, { maxBeadCount: 2, maxDeltaE: 20, protectAnchors: true });
+  assert.equal(merges.length, 1);
+  assert.equal(merges[0].fromCode, 'F3');
+  assert.equal(merges[0].toCode, 'F4');
 });

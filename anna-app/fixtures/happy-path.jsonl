@@ -1,0 +1,2 @@
+{"id":"smoke-lookup","method":"tools.invoke","args":{"tool_id":"tool-dev-bead-studio","method":"lookup_palette","arguments":{"query":"#000000"}}}
+{"id":"smoke-matrix","method":"tools.invoke","args":{"tool_id":"tool-dev-bead-studio","method":"create_pixel_pattern","arguments":{"title":"Smoke Heart","matrix":[".RR.RR.","RRRRRRR","RRRRRRR",".RRRRR.","..RRR..","...R..."],"colorMap":{"R":"#E7002F"}}}}

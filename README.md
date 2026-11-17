@@ -25,7 +25,7 @@
   <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-87351c"></a>
   <a href="https://github.com/zwhy149/bead-grid-studio/releases"><img alt="Release" src="https://img.shields.io/github/v/release/zwhy149/bead-grid-studio?display_name=tag"></a>
   <a href="docs/project-health.md"><img alt="Offline Downloads" src="https://img.shields.io/badge/Offline%20Downloads-156+-blue"></a>
-  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.2.0-brightgreen"></a>
+  <a href="packages/core/README.md"><img alt="Core" src="https://img.shields.io/badge/%40bead--grid%2Fcore-v1.5.0-brightgreen"></a>
 </p>
 
 Bead Grid Studio is a **local-first fuse-bead pattern generator**. It has no account, image-upload API, analytics SDK, or cloud conversion service.
@@ -47,7 +47,9 @@ Both sides use the repository's original rocket fixture. The right side is a scr
 - **Image → bead pattern** for line art, cartoons, photos, document structure, and pixel art.
 - **Automatic color matching** with black/white anchors and protection for important accent colors.
 - **Editable grid** with brush, eraser, picker, mirror, rotate, undo, and redo.
-- **Making-ready details** with per-cell color codes, four-side coordinates, board guides, seams, and material counts.
+- **Making-ready details** with per-cell color codes, four-side coordinates, board guides, multi-pegboard partition badges (`1-1`, `1-2`, ...), and material counts.
+- **Hover-to-locate & rare-color merge**: hover any color row to spotlight only those beads on the canvas, and merge `<=2`-bead rare accents in one click.
+- **Anna AI OS Edition (`anna-app/`)**: optional native `schema: 4` app package (`bead-studio` stdio Executa, `bead-craft-coach` Skill, APS state sync) with zero overhead standalone.
 - **Color-by-color Making Assistant** that isolates one code, advances after completion, and keeps progress locally.
 - **Printable and resumable output** as a construction-sheet PNG and editable JSON project.
 - **Portable material lists** as UTF-8 CSV with codes, color names, quantities, and completion state.
@@ -72,6 +74,7 @@ You can instead select **Choose Image** and use PNG, JPEG, WebP, or GIF. The ima
 | Work offline or carry the app on a USB drive | [Download the portable HTML](https://github.com/zwhy149/bead-grid-studio/releases/latest) | None |
 | Batch conversion / Headless script automation | [CLI Tool (`bead-grid`)](#command-line-cli--automation) | Node.js |
 | Embed conversion engine in Node.js or web app | [@bead-grid/core package](packages/core/README.md) | Node.js |
+| Run inside Anna AI OS (AI Coach + Executa) | [Anna AI OS Edition](anna-app/README.md) | Anna OS / `npm run build:anna` |
 | Publish your own copy | [Fork and deployment guide](docs/deployment.md) | GitHub account; Cloudflare optional |
 | Modify or contribute code | [Developer Guide](docs/developer-guide.md) | Node.js |
 
@@ -147,6 +150,7 @@ You can generate pattern specifications directly from your terminal or automated
 ```bash
 # Generate 29x29 standard bead pattern with truecolor ANSI terminal preview
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 --despeckle --format svg > rocket.svg
 
 # Quantize using a custom 12-color starter palette and output JSON pattern
 node bin/bead-grid.mjs image.png -w 29 -p examples/palettes/mini-starter-12.json -o pattern.json
@@ -201,6 +205,8 @@ Run executable integration examples:
 ```bash
 node examples/node/index.mjs
 node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 -h 29 --format ascii
+node bin/bead-grid.mjs tests/fixtures/rocket-badge.png -w 29 --despeckle --format svg > rocket.svg
+npm run build:anna
 npm run schema:validate
 ```
 
@@ -288,6 +294,7 @@ Report security issues privately through [SECURITY.md](SECURITY.md). Do not atta
 For full system architecture diagrams and ASCII data flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```text
+anna-app/                 Anna AI OS schema-4 app package (manifest, bead-studio Executa, Craft Coach skill)
 packages/core/            Decoupled DOM-free core quantization engine & TypeScript definitions
 schemas/                  Open data specifications (Pattern & Palette JSON Schema 2020-12)
 bin/                      Headless Node.js CLI tool (bead-grid)

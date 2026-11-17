@@ -1,3 +1,4 @@
+import { deltaE2000, hexToRgb, rgbToCielab } from './color.js';
 import { fitGeometryMetrics } from './geometry.js';
 import { getPaletteProvider, LEGACY_TO_MARD } from './palette.js';
 
@@ -147,7 +148,7 @@ export function createPattern({
     schemaVersion: 1,
     type: 'bead-grid-studio',
     version: 2,
-    appVersion: '1.4.0',
+    appVersion: '1.5.0',
     title,
     createdAt: new Date().toISOString(),
     grid: {
@@ -378,4 +379,361 @@ export function replaceGridColor(grid, sourceColor, targetColor) {
     }
   }
   return { cells, replacedCount };
+}
+
+function resolveColorLab(color) {
+  if (color.cieLab) return color.cieLab;
+  const rgb = color.rgb || hexToRgb(color.hex);
+  return rgbToCielab(rgb);
+}
+
+/**
+ * Matches a CSS HEX color or palette code to the closest palette color using CIEDE2000.
+ * @param {string} token Hex string (#RRGGBB) or palette code
+ * @param {readonly object[]} [palette]
+ * @param {{ includeTransparent?: boolean }} [options]
+ * @returns {{ color: object, deltaE: number } | null}
+ */
+export function findNearestPaletteColor(token, palette = getPaletteProvider().colors, { includeTransparent = false } = {}) {
+  const raw = String(token || '').trim();
+  if (!raw) return null;
+  const upper = raw.toUpperCase();
+  const exact = palette.find((c) => c.code.toUpperCase() === upper);
+  if (exact && (includeTransparent || !exact.isTransparent)) {
+    return { color: exact, deltaE: 0 };
+  }
+
+  const hexMatch = /^#?[0-9A-F]{6}$/.test(upper);
+  if (!hexMatch) return null;
+  const hex = upper.startsWith('#') ? upper : `#${upper}`;
+  const targetLab = rgbToCielab(hexToRgb(hex));
+
+  let bestColor = null;
+  let bestDistance = Infinity;
+  for (const color of palette) {
+    if (!includeTransparent && color.isTransparent) continue;
+    const dE = deltaE2000(targetLab, resolveColorLab(color));
+    if (dE < bestDistance) {
+      bestDistance = dE;
+      bestColor = color;
+    }
+  }
+  return bestColor ? { color: bestColor, deltaE: Math.round(bestDistance * 100) / 100 } : null;
+}
+
+/**
+ * Converts a character matrix or 2D array of tokens into a validated schema-compliant PatternModel.
+ * Ideal for AI pixel-art generation, programmatic patterns, and ASCII templates.
+ * @param {{
+ *   matrix: string[] | (string | null)[][],
+ *   colorMap?: Record<string, string>,
+ *   palette?: any,
+ *   title?: string,
+ *   metadata?: Record<string, any>
+ * }} config
+ */
+export function createPatternFromMatrix({
+  matrix,
+  colorMap = {},
+  palette = getPaletteProvider(),
+  title = 'Matrix Pattern',
+  metadata = {},
+}) {
+  if (!Array.isArray(matrix) || matrix.length === 0) {
+    throw new Error('matrix must be a non-empty array of row strings or arrays');
+  }
+  const paletteObj = typeof palette === 'string' ? getPaletteProvider(palette) : palette;
+  const colorList = paletteObj.colors || paletteObj;
+  const normalizedRows = matrix.map((row) => (typeof row === 'string' ? [...row] : Array.isArray(row) ? row : []));
+  const rawCols = Math.max(...normalizedRows.map((r) => r.length), 0);
+  const cols = Math.max(4, Math.min(160, rawCols));
+  const rows = Math.max(4, Math.min(160, normalizedRows.length));
+
+  const tokenCache = new Map();
+  const resolveToken = (rawToken) => {
+    if (rawToken === null || rawToken === undefined) return -1;
+    const key = String(rawToken);
+    if (key === '' || key === '.' || key === ' ' || key === '_') return -1;
+    if (tokenCache.has(key)) return tokenCache.get(key);
+
+    const mapped = colorMap[key] ?? colorMap[key.toUpperCase()] ?? key;
+    if (mapped === null || mapped === '' || mapped === '.' || mapped === ' ') {
+      tokenCache.set(key, -1);
+      return -1;
+    }
+    const matched = findNearestPaletteColor(mapped, colorList, { includeTransparent: true });
+    const idx = matched ? matched.color.index ?? colorList.indexOf(matched.color) : -1;
+    tokenCache.set(key, idx);
+    return idx;
+  };
+
+  const cells = new Array(cols * rows).fill(-1);
+  for (let y = 0; y < Math.min(rows, normalizedRows.length); y++) {
+    const row = normalizedRows[y];
+    for (let x = 0; x < Math.min(cols, row.length); x++) {
+      cells[y * cols + x] = resolveToken(row[x]);
+    }
+  }
+
+  return createPattern({ width: cols, height: rows, cells, palette: paletteObj, title, metadata });
+}
+
+/**
+ * Identifies rare colors in a grid and computes perceptual CIEDE2000 merge targets
+ * already present in the pattern so crafters can reduce jar count with minimal visual shift.
+ */
+export function suggestColorMerges(
+  grid,
+  palette = getPaletteProvider().colors,
+  { maxBeadCount = 2, maxDeltaE = 18, protectAnchors = true } = {},
+) {
+  const counts = new Map();
+  for (let i = 0; i < grid.length; i++) {
+    const val = grid[i];
+    if (typeof val === 'number') {
+      if (val >= 0 && palette[val]) counts.set(val, (counts.get(val) || 0) + 1);
+    } else if (typeof val === 'string') {
+      const idx = palette.findIndex((c) => c.code === val);
+      if (idx >= 0) counts.set(idx, (counts.get(idx) || 0) + 1);
+    }
+  }
+
+  const activeIndices = [...counts.keys()];
+  if (activeIndices.length <= 1) return [];
+
+  const suggestions = [];
+  for (const fromIndex of activeIndices) {
+    const fromCount = counts.get(fromIndex) || 0;
+    const fromColor = palette[fromIndex];
+    if (!fromColor || fromColor.isTransparent || fromCount > maxBeadCount) continue;
+    if (protectAnchors && (fromColor.code === 'H2' || fromColor.code === 'H7')) continue;
+
+    const fromLab = resolveColorLab(fromColor);
+    let bestTarget = null;
+    let bestDeltaE = Infinity;
+
+    for (const toIndex of activeIndices) {
+      if (toIndex === fromIndex) continue;
+      const toCount = counts.get(toIndex) || 0;
+      const toColor = palette[toIndex];
+      if (!toColor || toColor.isTransparent || toCount <= fromCount) continue;
+      const dE = deltaE2000(fromLab, resolveColorLab(toColor));
+      if (dE < bestDeltaE) {
+        bestDeltaE = dE;
+        bestTarget = toColor;
+      }
+    }
+
+    if (bestTarget && bestDeltaE <= maxDeltaE) {
+      const roundedDelta = Math.round(bestDeltaE * 10) / 10;
+      suggestions.push({
+        fromIndex,
+        fromCode: fromColor.code,
+        fromHex: fromColor.hex,
+        fromCount,
+        toIndex: bestTarget.index ?? palette.indexOf(bestTarget),
+        toCode: bestTarget.code,
+        toHex: bestTarget.hex,
+        toCount: counts.get(bestTarget.index ?? palette.indexOf(bestTarget)) || 0,
+        deltaE: roundedDelta,
+      });
+    }
+  }
+
+  return suggestions.sort((a, b) => a.deltaE - b.deltaE || a.fromCount - b.fromCount);
+}
+
+/**
+ * Computes grounded crafting complexity metrics and a recommended bead placement order.
+ * @param {{ grid: { cols: number, rows: number, cells: (string | null)[] }, statistics?: any }} pattern
+ */
+export function analyzeBuildComplexity(pattern, { boardCells = 52 } = {}) {
+  const cols = pattern?.grid?.cols || 0;
+  const rows = pattern?.grid?.rows || 0;
+  const cells = pattern?.grid?.cells || [];
+  const counts = new Map();
+  let totalBeads = 0;
+  let isolatedBeads = 0;
+  let colorSwitches = 0;
+
+  for (let y = 0; y < rows; y++) {
+    let prev = null;
+    for (let x = 0; x < cols; x++) {
+      const val = cells[y * cols + x];
+      const empty = val === null || val === undefined || val === -1;
+      if (empty) {
+        prev = null;
+        continue;
+      }
+      totalBeads++;
+      counts.set(val, (counts.get(val) || 0) + 1);
+      if (prev !== null && prev !== val) colorSwitches++;
+      prev = val;
+
+      let sameOrthogonal = 0;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && cells[ny * cols + nx] === val) {
+          sameOrthogonal++;
+        }
+      }
+      if (sameOrthogonal === 0) isolatedBeads++;
+    }
+  }
+
+  const usedColors = counts.size;
+  const estimatedMinutes = totalBeads === 0
+    ? 0
+    : Math.max(5, Math.round(totalBeads * 0.045 + usedColors * 0.8 + isolatedBeads * 0.15));
+  const difficulty = totalBeads >= 1500 || usedColors >= 24
+    ? 'advanced'
+    : totalBeads >= 400 || usedColors >= 12
+      ? 'intermediate'
+      : 'beginner';
+
+  const recommendedOrder = [...counts.entries()]
+    .sort((a, b) => {
+      const aAnchor = a[0] === 'H7' || a[0] === 'H2' ? 1 : 0;
+      const bAnchor = b[0] === 'H7' || b[0] === 'H2' ? 1 : 0;
+      return bAnchor - aAnchor || b[1] - a[1];
+    })
+    .map(([code, count]) => ({
+      code: String(code),
+      count,
+      role: code === 'H7' || code === 'H2' ? 'outline' : count >= Math.max(12, totalBeads * 0.08) ? 'fill' : 'accent',
+    }));
+
+  const boardsX = Math.max(1, Math.ceil(cols / boardCells));
+  const boardsY = Math.max(1, Math.ceil(rows / boardCells));
+
+  return {
+    cols,
+    rows,
+    totalBeads,
+    usedColors,
+    isolatedBeads,
+    colorSwitches,
+    estimatedMinutes,
+    difficulty,
+    boardsRequired: boardsX * boardsY,
+    boardGrid: `${boardsX}x${boardsY}`,
+    recommendedOrder,
+  };
+}
+
+function escapeXml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function contrastInk(hex) {
+  const [r, g, b] = hexToRgb(hex);
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return lum > 0.56 ? '#1f1d1a' : '#ffffff';
+}
+
+/**
+ * Generates a pure, DOM-free SVG construction sheet for headless CLI, Node.js, and Agent tools.
+ * @param {ReturnType<typeof createPattern>} pattern
+ * @param {{ cellSize?: number, showCodes?: boolean, showGrid?: boolean, majorGridStep?: number, includeLegend?: boolean }} [options]
+ * @returns {string}
+ */
+export function renderPatternSvg(
+  pattern,
+  {
+    cellSize = 24,
+    showCodes = true,
+    showGrid = true,
+    majorGridStep = 10,
+    includeLegend = true,
+  } = {},
+) {
+  const cols = pattern?.grid?.cols || 0;
+  const rows = pattern?.grid?.rows || 0;
+  const cells = pattern?.grid?.cells || [];
+  const palette = getPaletteProvider(pattern?.palette?.id).colors;
+  const byCode = new Map(palette.map((c) => [c.code, c]));
+
+  const pad = 28;
+  const headerH = 44;
+  const gridW = cols * cellSize;
+  const gridH = rows * cellSize;
+  const colors = pattern?.statistics?.colors || analyzePattern(cells, palette).colors;
+  const legendCols = Math.max(1, Math.min(4, Math.floor(Math.max(360, gridW + pad * 2) / 140)));
+  const legendRows = includeLegend && colors.length ? Math.ceil(colors.length / legendCols) : 0;
+  const legendH = legendRows ? 26 + legendRows * 24 : 0;
+
+  const width = Math.max(360, gridW + pad * 2);
+  const height = headerH + pad + gridH + pad + legendH;
+  const ox = Math.round((width - gridW) / 2);
+  const oy = headerH + pad;
+
+  const chunks = [
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${escapeXml(pattern.title || 'Bead Pattern')}">`,
+    `<rect width="${width}" height="${height}" fill="#fbfaf7"/>`,
+    `<text x="${ox}" y="22" font-family="ui-sans-serif,system-ui,sans-serif" font-size="14" font-weight="700" fill="#24221f">${escapeXml(pattern.title || 'Bead Grid Studio Pattern')}</text>`,
+    `<text x="${ox}" y="38" font-family="ui-monospace,monospace" font-size="10" fill="#6d675f">${cols}x${rows} · ${colors.length} colors · ${pattern?.statistics?.totalBeads ?? 0} beads</text>`,
+    `<rect x="${ox}" y="${oy}" width="${gridW}" height="${gridH}" fill="#ffffff" stroke="#beb6aa" stroke-width="1"/>`,
+  ];
+
+  for (let x = 0; x < cols; x++) {
+    if (x === 0 || (x + 1) % 5 === 0 || cols <= 16) {
+      chunks.push(`<text x="${ox + x * cellSize + cellSize / 2}" y="${oy - 6}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="8" fill="#6d675f">${x + 1}</text>`);
+    }
+  }
+  for (let y = 0; y < rows; y++) {
+    if (y === 0 || (y + 1) % 5 === 0 || rows <= 16) {
+      chunks.push(`<text x="${ox - 6}" y="${oy + y * cellSize + cellSize / 2 + 3}" text-anchor="end" font-family="ui-monospace,monospace" font-size="8" fill="#6d675f">${y + 1}</text>`);
+    }
+  }
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const code = cells[y * cols + x];
+      if (!code) continue;
+      const info = byCode.get(code);
+      const fill = info?.displayHex || info?.hex || '#cccccc';
+      const cx = ox + x * cellSize;
+      const cy = oy + y * cellSize;
+      chunks.push(`<rect x="${cx}" y="${cy}" width="${cellSize}" height="${cellSize}" fill="${escapeXml(fill)}"/>`);
+      if (showCodes && cellSize >= 14) {
+        const ink = contrastInk(fill);
+        const fontSize = Math.max(7, Math.floor(cellSize * 0.34));
+        chunks.push(`<text x="${cx + cellSize / 2}" y="${cy + cellSize / 2 + fontSize * 0.34}" text-anchor="middle" font-family="ui-monospace,monospace" font-size="${fontSize}" font-weight="700" fill="${ink}">${escapeXml(code)}</text>`);
+      }
+    }
+  }
+
+  if (showGrid) {
+    for (let x = 1; x < cols; x++) {
+      const major = majorGridStep >= 2 && x % majorGridStep === 0;
+      chunks.push(`<line x1="${ox + x * cellSize}" y1="${oy}" x2="${ox + x * cellSize}" y2="${oy + gridH}" stroke="${major ? '#24221f' : '#d8d2c8'}" stroke-opacity="${major ? '0.65' : '0.7'}" stroke-width="${major ? 1.5 : 0.6}"/>`);
+    }
+    for (let y = 1; y < rows; y++) {
+      const major = majorGridStep >= 2 && y % majorGridStep === 0;
+      chunks.push(`<line x1="${ox}" y1="${oy + y * cellSize}" x2="${ox + gridW}" y2="${oy + y * cellSize}" stroke="${major ? '#24221f' : '#d8d2c8'}" stroke-opacity="${major ? '0.65' : '0.7'}" stroke-width="${major ? 1.5 : 0.6}"/>`);
+    }
+  }
+
+  if (legendRows > 0) {
+    const ly = oy + gridH + pad;
+    const colW = Math.floor((width - pad * 2) / legendCols);
+    chunks.push(`<text x="${ox}" y="${ly}" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11" font-weight="700" fill="#24221f">Materials (${colors.length})</text>`);
+    colors.forEach((c, i) => {
+      const col = i % legendCols;
+      const row = Math.floor(i / legendCols);
+      const lx = ox + col * colW;
+      const ry = ly + 12 + row * 22;
+      chunks.push(`<rect x="${lx}" y="${ry}" width="14" height="14" rx="3" fill="${escapeXml(c.hex)}" stroke="#beb6aa" stroke-width="0.7"/>`);
+      chunks.push(`<text x="${lx + 20}" y="${ry + 11}" font-family="ui-monospace,monospace" font-size="10" fill="#24221f">${escapeXml(c.code)} × ${c.count}</text>`);
+    });
+  }
+
+  chunks.push('</svg>');
+  return chunks.join('\n');
 }

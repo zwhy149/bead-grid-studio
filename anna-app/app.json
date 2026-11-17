@@ -1,0 +1,21 @@
+{
+  "slug": "bead-grid-studio",
+  "name": "Bead Grid Studio",
+  "version": "1.5.0",
+  "tagline": "AI-assisted fuse-bead pattern studio: turn prompts or photos into MARD-coded pegboard blueprints.",
+  "description": "Bead Grid Studio combines Anna's AI image and reasoning capabilities with a deterministic, perceptual-color quantization engine (CIEDE2000 + OKLab) to produce build-ready fuse-bead patterns.\n\n**Highlights**\n\n- **Text-to-Bead & AI Photo Simplification**: Generate bead-friendly chibi/pixel artwork or simplify noisy photos via Anna's host image services, then quantize directly into MARD-compatible 221 color codes.\n- **AI Pixel Matrix Design + Craft Coach**: Ask Anna in chat to design a custom sprite matrix or generate an assembly/ironing plan grounded in real bead counts and isolated-bead risk analysis.\n- **Smart Despeckle & Rare-Color Simplifier**: One-click cleanup of 1-bead stray noise and perceptual merging of <=2-bead accent colors to cut down bead jar clutter.\n- **Multi-Pegboard & Making Assistant**: Real 29x29 and 52x52 pegboard partition badges (1-1, 1-2...), hover-to-locate color highlighting, color-by-color progress tracking, SVG/PNG construction sheets, and CSV shopping lists.",
+  "category": "creative",
+  "logo_file": "bundle/app-icon.svg",
+  "cover_url": "https://zwhy149.github.io/bead-grid-studio/social-preview.png",
+  "screenshots": [
+    "https://raw.githubusercontent.com/zwhy149/bead-grid-studio/main/docs/assets/app-desktop-en.png",
+    "https://raw.githubusercontent.com/zwhy149/bead-grid-studio/main/docs/assets/app-mobile-en.png"
+  ],
+  "homepage_url": "https://github.com/zwhy149/bead-grid-studio",
+  "support_url": "https://github.com/zwhy149/bead-grid-studio/issues",
+  "privacy_url": "https://zwhy149.github.io/bead-grid-studio/privacy.en.html",
+  "bundled_executas": {
+    "bead-studio": { "path": "./executas/bead-studio" },
+    "bead-craft-coach": { "path": "./executas/bead-craft-coach" }
+  }
+}

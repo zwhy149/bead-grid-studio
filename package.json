@@ -1,6 +1,6 @@
 {
   "name": "bead-grid-studio",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "Topology-aware, local-first fuse-bead pattern generator with printable color codes and material counts.",
   "type": "module",
@@ -34,6 +34,7 @@
     "setup": "npm install && playwright install chromium firefox webkit",
     "dev": "vite",
     "build": "vite build && node scripts/build-portable.mjs",
+    "build:anna": "npm run build && node scripts/build-anna-app.mjs",
     "preview": "vite preview",
     "capture:docs": "npm run build && node scripts/capture-docs.mjs",
     "metrics": "node scripts/repo-metrics.mjs",

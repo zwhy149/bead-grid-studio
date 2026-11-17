@@ -2,6 +2,19 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-11-17
+
+### Added
+- **Craft Quality & Visualization Upgrades (Web, CLI & Core)**:
+  - **Hover-to-locate color highlighting** (`stat-row` hover focus dims non-matching beads on the canvas and spotlights active cells).
+  - **One-click rare-color perceptual merge** (`suggestColorMerges`) in the BOM stats panel to collapse `<=2`-bead rare accents (`deltaE <= 18`) into their nearest active neighbor.
+  - **Multi-pegboard partition badges** (`1-1`, `1-2`, ...) drawn on 29x29 and 52x52 physical pegboard seam junctions.
+  - **Vector SVG sheet rendering & stray-bead despeckling** in `@bead-grid/core` (`createPatternFromMatrix`, `renderPatternSvg`, `suggestColorMerges`, `analyzeBuildComplexity`, `findNearestPaletteColor`) and headless CLI (`--format svg`, `--despeckle`).
+- **Anna AI OS App Edition (`anna-app/`)**:
+  - `schema: 4` Anna AI OS manifest supporting desktop + mobile form factors (`360x520` minimum viewport), host theme sync, locale mapping, and optional APS project storage sync.
+  - Self-contained Node.js JSON-RPC 2.0 stdio Executa (`anna-app/executas/bead-studio`) exposing `create_pixel_pattern`, `generate_pattern`, `optimize_pattern`, and `lookup_palette`, paired with declarative skill `bead-craft-coach` and `npm run build:anna`.
+  - Conditional host adapter (`src/adapters/anna-runtime.js`) activating strictly inside Anna OS iframes (`?wid=...&t=...`) with zero impact on standalone Web, PWA, GitHub Pages, or portable single-file offline builds.
+
 ## [1.2.0] - 2026-08-26
 
 ### Added

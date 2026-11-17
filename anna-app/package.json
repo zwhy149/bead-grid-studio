@@ -1,0 +1,12 @@
+{
+  "name": "anna-app-bead-grid-studio",
+  "private": true,
+  "version": "1.5.0",
+  "description": "Anna AI OS edition of Bead Grid Studio — SPA bundle, Node.js Executa plugin, and declarative Craft Coach skill.",
+  "scripts": {
+    "build:bundle": "node ../scripts/build-anna-app.mjs",
+    "dev": "anna-app dev",
+    "validate": "anna-app validate --strict",
+    "fixture:verify": "anna-app fixture verify fixtures/*.jsonl"
+  }
+}

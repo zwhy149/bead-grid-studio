@@ -4,9 +4,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodePng } from '../src/adapters/png.js';
 import {
-  generateBeadPattern,
+  analyzeBuildComplexity,
   createCustomPalette,
+  createPattern,
+  despeckleGrid,
+  generateBeadPattern,
   PALETTE_PROVIDERS,
+  renderPatternSvg,
   serializePattern,
 } from '../packages/core/src/index.js';
 
@@ -34,8 +38,9 @@ Options:
   --white-mode <mode>     White background handling: auto | keep (default: "auto")
   --merge <num>           Color merge strength threshold (default: 10)
   --no-protect-dark       Disable dark outline protection
-  -o, --output <file>     Write pattern JSON output to file
-  --format <fmt>          Output display format: summary | ascii | json (default: summary)
+  --despeckle             Clean isolated 1-bead stray pixels before export
+  -o, --output <file>     Write pattern JSON or SVG output to file
+  --format <fmt>          Output display format: summary | ascii | json | svg (default: summary)
   -v, --version           Show version number
   --help                  Show this help message
 
@@ -60,6 +65,7 @@ function parseArgs(args) {
     whiteMode: 'auto',
     mergeStrength: 10,
     protectDark: true,
+    despeckle: false,
     output: null,
     format: 'summary',
   };
@@ -90,6 +96,8 @@ function parseArgs(args) {
       options.mergeStrength = parseFloat(args[++i]);
     } else if (arg === '--no-protect-dark') {
       options.protectDark = false;
+    } else if (arg === '--despeckle') {
+      options.despeckle = true;
     } else if (arg === '-o' || arg === '--output') {
       options.output = args[++i];
     } else if (arg === '--format') {
@@ -185,7 +193,7 @@ async function main() {
     });
   }
 
-  const pattern = await generateBeadPattern(imageData, {
+  let pattern = await generateBeadPattern(imageData, {
     cols: options.width,
     rows: options.height,
     palette,
@@ -197,11 +205,28 @@ async function main() {
     title: path.basename(inputPath, path.extname(inputPath)),
   });
 
+  if (options.despeckle) {
+    const cleaned = despeckleGrid(pattern.rawIndices, pattern.grid.cols, pattern.grid.rows);
+    if (cleaned.changedCount > 0) {
+      pattern = createPattern({
+        width: pattern.grid.cols,
+        height: pattern.grid.rows,
+        cells: cleaned.cells,
+        palette,
+        title: pattern.title,
+        metadata: { ...pattern.metadata, despeckledCount: cleaned.changedCount },
+      });
+    }
+  }
+
+  const wantsSvg = options.format === 'svg' || (options.output && options.output.toLowerCase().endsWith('.svg'));
+
   if (options.output) {
     const outPath = path.resolve(process.cwd(), options.output);
     fs.mkdirSync(path.dirname(outPath), { recursive: true });
-    fs.writeFileSync(outPath, serializePattern(pattern, 2), 'utf8');
-    console.log(`Saved pattern to: ${outPath}`);
+    const outContent = wantsSvg ? renderPatternSvg(pattern) : serializePattern(pattern, 2);
+    fs.writeFileSync(outPath, outContent, 'utf8');
+    console.log(`Saved ${wantsSvg ? 'SVG sheet' : 'pattern'} to: ${outPath}`);
   }
 
   if (options.format === 'json') {
@@ -210,6 +235,15 @@ async function main() {
     }
     return;
   }
+
+  if (options.format === 'svg') {
+    if (!options.output) {
+      console.log(renderPatternSvg(pattern));
+    }
+    return;
+  }
+
+  const complexity = analyzeBuildComplexity(pattern);
 
   if (options.format === 'ascii') {
     console.log('\nPattern Preview:');
@@ -223,6 +257,7 @@ async function main() {
   console.log(`Empty Cells: ${pattern.statistics.emptyCells}`);
   console.log(`Used Colors: ${pattern.statistics.usedColors}`);
   console.log(`Fill Rate:   ${Math.round(pattern.statistics.density * 100)}%`);
+  console.log(`Difficulty:  ${complexity.difficulty} (~${complexity.estimatedMinutes} min, ${complexity.isolatedBeads} isolated beads)`);
 
   console.log('\nTop Material Usage:');
   const topColors = pattern.statistics.colors.slice(0, 15);
