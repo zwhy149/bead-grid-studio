@@ -194,6 +194,7 @@ test('bead-studio Executa responds to describe, health, lookup_palette, create_p
   const { responses } = await runExecutaRpcSession(requests);
 
   assert.equal(responses.get(1).result.status, 'ok');
+  assert.equal(responses.get(2).result.name, 'bead-studio');
   assert.equal(responses.get(2).result.tools.length, 4);
 
   const hexLookup = responses.get(3).result;

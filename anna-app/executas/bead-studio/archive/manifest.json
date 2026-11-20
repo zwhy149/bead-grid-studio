@@ -1,0 +1,20 @@
+{
+  "name": "bead-studio",
+  "version": "1.5.2",
+  "runtime": {
+    "requires": {
+      "node": ">=20"
+    },
+    "fallback": "fail",
+    "binary": {
+      "entrypoint": {
+        "default": "bin/bead-studio",
+        "windows-x86_64": "bin/bead-studio.cmd",
+        "windows-arm64": "bin/bead-studio.cmd"
+      },
+      "permissions": {
+        "bin/bead-studio": "0o755"
+      }
+    }
+  }
+}

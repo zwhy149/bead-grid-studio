@@ -44,7 +44,9 @@ async function collectArchiveFiles(dir, baseDir = dir, rels = []) {
 
 function buildTarGz(entries) {
   const chunks = [];
-  for (const { name, data, mode } of entries) {
+  const emittedDirs = new Set();
+
+  function writeTarHeader({ name, size, mode, typeflag }) {
     const nameBytes = Buffer.from(name, 'utf8');
     if (nameBytes.length > 99) {
       throw new Error(`Tar entry name exceeds 99 bytes: ${name}`);
@@ -54,18 +56,32 @@ function buildTarGz(entries) {
     header.write(`${mode.toString(8).padStart(7, '0')}\0`, 100, 'ascii');
     header.write('0000000\0', 108, 'ascii');
     header.write('0000000\0', 116, 'ascii');
-    header.write(`${data.length.toString(8).padStart(11, '0')}\0`, 124, 'ascii');
+    header.write(`${size.toString(8).padStart(11, '0')}\0`, 124, 'ascii');
     header.write(`${Math.floor(Date.now() / 1000).toString(8).padStart(11, '0')}\0`, 136, 'ascii');
     header.fill(0x20, 148, 156);
-    header.write('0', 156, 'ascii');
+    header.write(typeflag, 156, 'ascii');
     header.write('ustar\0', 257, 'ascii');
     header.write('00', 263, 'ascii');
+    header.write('0000000\0', 329, 'ascii');
+    header.write('0000000\0', 337, 'ascii');
 
     let sum = 0;
     for (let i = 0; i < 512; i++) sum += header[i];
     header.write(`${sum.toString(8).padStart(6, '0')}\0 `, 148, 'ascii');
+    chunks.push(header);
+  }
 
-    chunks.push(header, data);
+  for (const { name, data, mode } of entries) {
+    const parts = name.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      const dirName = `${parts.slice(0, i).join('/')}/`;
+      if (!emittedDirs.has(dirName)) {
+        emittedDirs.add(dirName);
+        writeTarHeader({ name: dirName, size: 0, mode: 0o755, typeflag: '5' });
+      }
+    }
+    writeTarHeader({ name, size: data.length, mode, typeflag: '0' });
+    chunks.push(data);
     const rem = data.length % 512;
     if (rem !== 0) chunks.push(Buffer.alloc(512 - rem, 0));
   }
@@ -154,24 +170,24 @@ async function exportExecutaProtocolManifest() {
 async function buildExecutaArchives() {
   const vendorRels = await collectArchiveFiles(vendorDir);
   const relFiles = [
-    'bin/bead-studio',
-    'bin/bead-studio.cmd',
-    'bead_studio_plugin.js',
-    'manifest.json',
-    'package.json',
-    ...vendorRels.map((r) => `vendor/${r}`),
+    { archiveName: 'bin/bead-studio', sourcePath: join(executaDir, 'bin', 'bead-studio') },
+    { archiveName: 'bin/bead-studio.cmd', sourcePath: join(executaDir, 'bin', 'bead-studio.cmd') },
+    { archiveName: 'bead_studio_plugin.js', sourcePath: join(executaDir, 'bead_studio_plugin.js') },
+    { archiveName: 'manifest.json', sourcePath: join(executaDir, 'archive', 'manifest.json') },
+    { archiveName: 'package.json', sourcePath: join(executaDir, 'package.json') },
+    ...vendorRels.map((r) => ({ archiveName: `vendor/${r}`, sourcePath: join(vendorDir, r) })),
   ];
 
   const entries = [];
-  for (const rel of relFiles) {
-    let data = await readFile(join(executaDir, rel));
-    // Guarantee POSIX shell shim & JS files retain LF inside cross-platform tarballs.
-    if (rel === 'bin/bead-studio') {
+  for (const { archiveName, sourcePath } of relFiles) {
+    let data = await readFile(sourcePath);
+    // Guarantee POSIX shell shim retains LF inside cross-platform tarballs.
+    if (archiveName === 'bin/bead-studio') {
       data = Buffer.from(data.toString('utf8').replace(/\r\n/g, '\n'), 'utf8');
     }
-    const isExec = rel === 'bin/bead-studio';
+    const isExec = archiveName === 'bin/bead-studio';
     entries.push({
-      name: rel,
+      name: archiveName,
       data,
       mode: isExec ? 0o755 : 0o644,
       unixMode: isExec ? 0o100755 : 0o100644,

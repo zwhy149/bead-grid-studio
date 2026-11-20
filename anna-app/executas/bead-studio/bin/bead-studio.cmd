@@ -1,7 +1,8 @@
 @echo off
 setlocal
+if "%EXECUTA_HOME%"=="" set "EXECUTA_HOME=%~dp0.."
 if not "%ANNA_NODE_EXECUTABLE%"=="" (
-  "%ANNA_NODE_EXECUTABLE%" "%~dp0..\bead_studio_plugin.js" %*
+  "%ANNA_NODE_EXECUTABLE%" "%EXECUTA_HOME%\bead_studio_plugin.js" %*
   exit /b %errorlevel%
 )
-node "%~dp0..\bead_studio_plugin.js" %*
+node "%EXECUTA_HOME%\bead_studio_plugin.js" %*

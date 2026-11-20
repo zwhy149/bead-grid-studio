@@ -31,12 +31,15 @@ import {
 import { decodePng } from './vendor/adapters/png.js';
 
 const MANIFEST = {
+  name: 'bead-studio',
   display_name: 'Bead Grid Studio Engine',
-  version: '1.5.1',
+  version: '1.5.2',
   description:
     'Deterministic fuse-bead pattern quantization, AI matrix-to-pattern compilation, stray-bead despeckling, perceptual color matching (CIEDE2000), and SVG construction-sheet rendering.',
   author: 'zwhy149',
   homepage: 'https://github.com/zwhy149/bead-grid-studio',
+  icon: '🎨',
+  category: 'creative',
   license: 'Apache-2.0',
   tags: ['creative', 'fuse-beads', 'pixel-art', 'quantization', 'anna-app'],
   tools: [
@@ -356,9 +359,10 @@ function send(message) {
 }
 
 function main() {
-  process.stderr.write(`[bead-studio] ${MANIFEST.display_name} v${MANIFEST.version} ready (node)\n`);
+  process.stderr.write(`[bead-studio] ${MANIFEST.display_name} v${MANIFEST.version} ready (node ${process.versions.node})\n`);
   const rl = readline.createInterface({ input: process.stdin });
-  rl.on('line', async (raw) => {
+  let chain = Promise.resolve();
+  rl.on('line', (raw) => {
     const line = raw.trim();
     if (!line) return;
     let req;
@@ -372,16 +376,18 @@ function main() {
     const method = req.method;
     const params = req.params || {};
     const handler = METHOD_DISPATCH[method];
-    if (!handler) {
-      send({ jsonrpc: '2.0', id: reqId, error: { code: -32601, message: `method not found: ${method}` } });
-      return;
-    }
-    try {
-      const result = await handler(params);
-      send({ jsonrpc: '2.0', id: reqId, result });
-    } catch (err) {
-      send({ jsonrpc: '2.0', id: reqId, error: { code: -32000, message: err.message || String(err) } });
-    }
+    chain = chain.then(async () => {
+      if (!handler) {
+        send({ jsonrpc: '2.0', id: reqId, error: { code: -32601, message: `method not found: ${method}` } });
+        return;
+      }
+      try {
+        const result = await handler(params);
+        send({ jsonrpc: '2.0', id: reqId, result });
+      } catch (err) {
+        send({ jsonrpc: '2.0', id: reqId, error: { code: -32000, message: err.message || String(err) } });
+      }
+    });
   });
 }
 

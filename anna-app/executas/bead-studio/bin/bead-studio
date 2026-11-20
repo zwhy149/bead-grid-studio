@@ -1,6 +1,18 @@
 #!/bin/sh
 set -eu
 NODE_BIN="${ANNA_NODE_EXECUTABLE:-$(command -v node || true)}"
-: "${NODE_BIN:?Node.js >= 20 is required to run bead-studio.}"
-SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-exec "$NODE_BIN" "$SCRIPT_DIR/bead_studio_plugin.js" "$@"
+if [ -z "$NODE_BIN" ]; then
+  echo "bead-studio: ANNA_NODE_EXECUTABLE is not set and node was not found on PATH." >&2
+  echo "This Executa requires Node.js >= 20 (Anna shared Node 22 runtime)." >&2
+  exit 78
+fi
+APP_HOME="${EXECUTA_HOME:-}"
+if [ -z "$APP_HOME" ]; then
+  SELF="$0"
+  if command -v readlink >/dev/null 2>&1; then
+    RESOLVED="$(readlink -f "$SELF" 2>/dev/null || true)"
+    [ -n "$RESOLVED" ] && SELF="$RESOLVED"
+  fi
+  APP_HOME="$(CDPATH= cd -- "$(dirname -- "$SELF")/.." && pwd)"
+fi
+exec "$NODE_BIN" "$APP_HOME/bead_studio_plugin.js" "$@"
