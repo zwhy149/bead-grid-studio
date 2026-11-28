@@ -39,7 +39,10 @@
     ],
     "form_factors": ["desktop", "mobile"],
     "browser_permissions": ["web-share"],
-    "csp_overrides": {},
+    "csp_overrides": {
+      "img-src": ["'self'", "https:", "data:", "blob:"],
+      "connect-src": ["'self'", "https:"]
+    },
     "state_merge": "last_writer_wins"
   },
   "dev": {

@@ -284,3 +284,118 @@ test('standalone hides Anna AI panel while hover-highlight and Anna host workflo
   await expect.poll(() => page.evaluate(() => window.__annaChatArtifacts.length)).toBeGreaterThan(0);
   await expect.poll(() => page.evaluate(() => window.__annaSavedStates.length)).toBeGreaterThan(0);
 });
+
+test('Anna sandboxed iframe opens sample without data-fetch or blob-worker, recovers AI simplify on fal.ai 422, and restores drawing on reopen', async ({ browser }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop-chromium', 'Anna sandboxed iframe review regression runs in Chromium');
+
+  const rocketPngB64 = (await readFile('tests/fixtures/rocket-badge.png')).toString('base64');
+  const rocketDataUrl = `data:image/png;base64,${rocketPngB64}`;
+
+  const context = await browser.newContext();
+  let persistedApsValue = null;
+  let lastUploadArgs = null;
+
+  await context.exposeFunction('__testApsGet', (key) => {
+    if (key === 'projects/active' && persistedApsValue) {
+      return { exists: true, value: persistedApsValue };
+    }
+    return { exists: false, value: null };
+  });
+  await context.exposeFunction('__testApsSet', (key, value) => {
+    if (key.includes(':')) throw new Error(`invalid_path: ${key}`);
+    persistedApsValue = value;
+    return { etag: 'W/"1"', generation: 1 };
+  });
+  await context.exposeFunction('__testRecordUpload', (args) => {
+    lastUploadArgs = args;
+  });
+
+  await context.addInitScript((sampleOutUrl) => {
+    // Enforce Anna iframe CSP constraints: block fetch('data:...') and blob: Web Workers.
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (input, init) => {
+      const url = typeof input === 'string' ? input : input?.url || '';
+      if (url.startsWith('data:')) {
+        throw new TypeError("Refused to connect to 'data:...' because it violates CSP directive connect-src 'self'");
+      }
+      return nativeFetch(input, init);
+    };
+    window.Worker = class BlockedByIframeCspWorker {
+      constructor() {
+        throw new DOMException("Refused to create a worker from 'blob:...' because it violates CSP script-src 'self'", 'SecurityError');
+      }
+    };
+
+    // Match real AnnaAppRuntime.connect() v0.29.0 where entryPayload defaults to `{}` (truthy empty object).
+    window.__ANNA_MOCK_RUNTIME__ = {
+      theme: 'light',
+      locale: 'en-US',
+      entryPayload: {},
+      on() {},
+      storage: {
+        async get({ key }) { return window.__testApsGet(key); },
+        async set({ key, value }) { return window.__testApsSet(key, value); },
+      },
+      upload: {
+        async inline(args) {
+          await window.__testRecordUpload(args);
+          return {
+            r2_key: 'uploads/review/bead-input.png',
+            download_url: 'https://r2.anna.example/transient/bead-input.png',
+            expires_in: 1800,
+          };
+        },
+      },
+      image: {
+        async edit() {
+          const err = new Error('image edit failed: Exception: fal.ai image API call failed (HTTP 422): Failed to download the file.');
+          err.code = 'APP_PROVIDER_ERROR';
+          throw err;
+        },
+        async generate() {
+          return { images: [{ url: sampleOutUrl }] };
+        },
+      },
+      llm: {
+        async complete() {
+          return { role: 'assistant', content: { type: 'text', text: 'cute chibi rocket emblem on white background' } };
+        },
+      },
+      chat: { async append_artifact() { return { ok: true }; } },
+      mobile: { async haptics() {} },
+    };
+  }, rocketDataUrl);
+
+  const page1 = await context.newPage();
+  await page1.goto('/?wid=win-review-1&t=tok-review-1');
+  await expect(page1.locator('#annaAiPanel')).toBeVisible();
+
+  // Issue #1: Clicking "View Sample Drawing" must open cleanly with no fetch('data:...') and no Worker.
+  await page1.locator('#trySampleBtn').click();
+  await waitForPattern(page1);
+  const initialBeads = Number((await page1.locator('#totalBeads').textContent())?.replace(/\D/g, '') || 0);
+  expect(initialBeads).toBeGreaterThan(50);
+
+  // Issue #2: Clicking "AI Simplify Photo" stages image_input PNG and recovers cleanly from fal.ai HTTP 422.
+  await page1.locator('#annaSimplifyPhotoBtn').click();
+  await expect(page1.locator('#annaCoachOutput')).toBeHidden({ timeout: 15000 });
+  expect(lastUploadArgs?.purpose).toBe('image_input');
+  expect(lastUploadArgs?.mime_type).toBe('image/png');
+  expect((lastUploadArgs?.content_b64 || '').length).toBeGreaterThan(100);
+  await waitForPattern(page1);
+
+  const savedBeadsBeforeClose = Number((await page1.locator('#totalBeads').textContent())?.replace(/\D/g, '') || 0);
+  expect(savedBeadsBeforeClose).toBeGreaterThan(50);
+  await expect.poll(() => Boolean(persistedApsValue)).toBe(true);
+  await page1.close();
+
+  // Issue #3: Closing and reopening the app in a fresh Anna window (?wid=win-review-2) must auto-restore the drawing!
+  const page2 = await context.newPage();
+  await page2.goto('/?wid=win-review-2&t=tok-review-2');
+  await waitForPattern(page2);
+  await expect(page2.locator('#emptyState')).toBeHidden();
+  const restoredBeads = Number((await page2.locator('#totalBeads').textContent())?.replace(/\D/g, '') || 0);
+  expect(restoredBeads).toBe(savedBeadsBeforeClose);
+
+  await context.close();
+});

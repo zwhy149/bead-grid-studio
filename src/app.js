@@ -22,11 +22,14 @@ import {
   formatAnnaRpcError,
   generateBeadArtImage,
   generateCraftBuildPlan,
+  hasAnnaEntryContent,
+  isAnnaHostEnvironment,
   loadAnnaProjectState,
   mapAnnaLocaleToStudio,
   saveAnnaProjectState,
   sendPatternArtifactToChat,
   simplifyImageForBeads,
+  STORAGE_PROJECT_KEY,
   triggerMobileHaptic,
 } from './adapters/anna-runtime.js';
 import { LEGACY_64_HEX } from './palettes/mard221.js';
@@ -48,8 +51,8 @@ import {
     const BASE_CELL = 16;
     const MAX_HISTORY = 50;
     const PROJECT_VERSION = 2;
-    const APP_VERSION = '1.5.0';
-    const BUILD_DATE = '2026-11-17';
+    const APP_VERSION = '1.5.2';
+    const BUILD_DATE = '2026-11-28';
     const DRAFT_KEY = 'bead-grid-studio:draft:v2';
     const WORKER_TIMEOUT_MS = 12000;
     const PALETTE_PROVIDER = getPaletteProvider(DEFAULT_PALETTE_PROVIDER_ID);
@@ -826,7 +829,8 @@ import {
       state.historyIndex = state.history.length - 1;
       state.dirty = true;
       updateHistoryButtons();
-      scheduleDraftSave();
+      if (labelKey === 'history.converted') saveDraftNow();
+      else scheduleDraftSave();
       setStatus('history.undoAvailable',{action:t(labelKey,labelParams),count:Math.min(state.historyIndex, MAX_HISTORY - 1)});
     }
 
@@ -1680,6 +1684,16 @@ import {
       return null;
     }
 
+    function dataUrlToFile(dataUrl, fileName = 'image.png', fallbackType = 'image/png') {
+      const match = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(String(dataUrl || ''));
+      if (!match) return null;
+      const mimeType = match[1] || fallbackType;
+      const raw = match[2] ? atob(match[3]) : decodeURIComponent(match[3]);
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      return new File([bytes], fileName, { type: mimeType });
+    }
+
     async function decodeImageFile(file,dimensions) {
       const maxDecodedPixels=DEVICE_LIMITS.decodePixels;
       if(dimensions&&typeof createImageBitmap==='function'){
@@ -1689,12 +1703,21 @@ import {
         try{return await createImageBitmap(file,options);}catch(_){/* 某些旧浏览器回退到 Blob URL 解码。 */}
       }
       if(!dimensions||dimensions.width*dimensions.height>maxDecodedPixels)throw new Error('safe-decode');
-      const url=URL.createObjectURL(file);
       try{
-        return await new Promise((resolve,reject)=>{
-          const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('decode'));img.src=url;
+        const url=URL.createObjectURL(file);
+        try{
+          return await new Promise((resolve,reject)=>{
+            const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('decode'));img.src=url;
+          });
+        }finally{URL.revokeObjectURL(url);}
+      }catch(_){
+        const dataUrl=await new Promise((resolve,reject)=>{
+          const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(new Error('decode'));reader.readAsDataURL(file);
         });
-      }finally{URL.revokeObjectURL(url);}
+        return await new Promise((resolve,reject)=>{
+          const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('decode'));img.src=dataUrl;
+        });
+      }
     }
 
     async function loadImageFile(file) {
@@ -1725,6 +1748,8 @@ import {
         if(sourceWidth*sourceHeight>60000000){image.close?.();throw new Error('pixels');}
         state.referenceImage?.close?.();
         state.referenceImage = image;
+        state.lastAiImageUrl = null;
+        state.lastAiImageAt = 0;
         state.makingMode=false;state.makingFocusColor=null;state.makingShowAll=false;state.completedColorCodes.clear();
         state.referenceFileName = file.name;
         state.referenceFileSize = file.size;
@@ -1771,10 +1796,14 @@ import {
     async function loadSampleImage() {
       try {
         setStatus('status.loadingSample');
-        const response=await fetch(SAMPLE_IMAGE_URL);
-        if(!response.ok)throw new Error('sample-fetch');
-        const blob=await response.blob();
-        await loadImageFile(new File([blob],'rocket-badge.png',{type:blob.type||'image/png'}));
+        let file = dataUrlToFile(SAMPLE_IMAGE_URL, 'rocket-badge.png', 'image/png');
+        if (!file) {
+          const response=await fetch(SAMPLE_IMAGE_URL);
+          if(!response.ok)throw new Error('sample-fetch');
+          const blob=await response.blob();
+          file = new File([blob],'rocket-badge.png',{type:blob.type||'image/png'});
+        }
+        await loadImageFile(file);
       }catch(error){
         if(error?.message!=='sample-fetch'&&state.referenceFileName==='rocket-badge.png')return;
         toast('toast.sampleFailed','error');setStatus('status.sampleFailed');
@@ -1788,8 +1817,29 @@ import {
         let worker;
         let settled=false;
         let watchdog=0;
-        const finishReject=error=>{if(settled)return;settled=true;window.clearTimeout(watchdog);state.cancelConversion=null;reject(error);};
-        const finishResolve=value=>{if(settled)return;settled=true;window.clearTimeout(watchdog);state.cancelConversion=null;resolve(value);};
+        let mainThreadTimer=0;
+        const fallbackPixels = new Uint8ClampedArray(payload.data);
+        const finishReject=error=>{if(settled)return;settled=true;window.clearTimeout(watchdog);window.clearTimeout(mainThreadTimer);state.cancelConversion=null;reject(error);};
+        const finishResolve=value=>{if(settled)return;settled=true;window.clearTimeout(watchdog);window.clearTimeout(mainThreadTimer);state.cancelConversion=null;resolve(value);};
+        const runMainThreadFallback=()=>{
+          if(settled)return;
+          window.clearTimeout(watchdog);
+          if(worker){try{worker.terminate();}catch(_){}if(state.converter===worker)state.converter=null;worker=null;}
+          state.cancelConversion=()=>{window.clearTimeout(mainThreadTimer);finishReject(new Error('cancelled'));};
+          mainThreadTimer=window.setTimeout(()=>{
+            if(settled)return;
+            try{
+              const result=convertPixels({...payload,data:fallbackPixels});
+              finishResolve(result);
+            }catch(err){
+              finishReject(err instanceof Error?err:new Error(String(err)));
+            }
+          },0);
+        };
+        if (typeof Worker !== 'function' || typeof URL?.createObjectURL !== 'function') {
+          runMainThreadFallback();
+          return;
+        }
         try {
           const source = `self.onmessage=function(event){try{const result=(${convertPixels.toString()})(event.data);self.postMessage(result,[result.buffer]);}catch(error){self.postMessage({error:error&&error.message?error.message:String(error)});}}`;
           const url = URL.createObjectURL(new Blob([source], {type:'text/javascript'}));
@@ -1797,24 +1847,24 @@ import {
           URL.revokeObjectURL(url);
           state.converter = worker;
           watchdog=window.setTimeout(()=>{
-            worker.terminate();if(state.converter===worker)state.converter=null;finishReject(new Error('timeout'));
+            worker?.terminate();if(state.converter===worker)state.converter=null;finishReject(new Error('timeout'));
           },WORKER_TIMEOUT_MS);
           state.cancelConversion = () => {
-            worker.terminate();
+            worker?.terminate();
             if (state.converter === worker) state.converter = null;
             finishReject(new Error('cancelled'));
           };
           worker.onmessage = event => {
-            worker.terminate();
+            worker?.terminate();
             if (state.converter === worker) state.converter = null;
             if (event.data.error) finishReject(new Error(event.data.error)); else finishResolve(event.data);
           };
-          worker.onerror = error => { worker.terminate(); if (state.converter === worker) state.converter=null; finishReject(error); };
+          worker.onerror = () => {
+            runMainThreadFallback();
+          };
           worker.postMessage(payload, [payload.data.buffer]);
-        } catch (error) {
-          if (worker) worker.terminate();
-          state.converter = null;
-          finishReject(new Error('worker-unavailable'));
+        } catch (_) {
+          runMainThreadFallback();
         }
       });
     }
@@ -2331,9 +2381,16 @@ import {
     }
 
     let draftTimer=0;
+    function readLocalDraftProject() {
+      try {
+        const draft=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
+        if(draft?.type==='bead-grid-studio'&&Array.isArray(draft?.grid?.cells)&&draft.grid.cells.some(Boolean))return draft;
+      } catch(_) {}
+      return null;
+    }
+
     function updateRecoveryUI() {
-      let available=false;
-      try {const draft=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');available=Boolean(draft?.type==='bead-grid-studio'&&Array.isArray(draft?.grid?.cells)&&draft.grid.cells.some(Boolean));} catch(_) {}
+      const available=Boolean(readLocalDraftProject());
       els.recoveryActions.hidden=!available||Boolean(state.referenceImage)||state.grid.some(value=>value>=0);
     }
 
@@ -2341,14 +2398,14 @@ import {
       window.clearTimeout(draftTimer);
       if(!state.grid.some(value=>value>=0)){try{localStorage.removeItem(DRAFT_KEY);}catch(_){}updateRecoveryUI();return;}
       const data = buildProjectData();
-      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(data));} catch(_) {toast('toast.draftStorage','error');}
+      try {localStorage.setItem(DRAFT_KEY,JSON.stringify(data));} catch(_) {if(!isAnnaHostEnvironment())toast('toast.draftStorage','error');}
       if (state.annaRuntime) void saveAnnaProjectState(state.annaRuntime, data);
       updateRecoveryUI();
     }
 
     function scheduleDraftSave() {
       window.clearTimeout(draftTimer);
-      draftTimer=window.setTimeout(saveDraftNow,500);
+      draftTimer=window.setTimeout(saveDraftNow,200);
     }
 
     function clearDraft() {
@@ -2429,6 +2486,7 @@ import {
         setProjectSubtitle('project.loadedSubtitle');
         state.referenceImage?.close?.();state.referenceImage=null;state.referenceRaster=null;state.referenceTransforms=[];state.referenceFileName='';state.referenceSourceWidth=0;state.referenceSourceHeight=0;state.sourceAnalysis=null;state.lastConversionDiagnostics=null;state.crop={x:0,y:0,w:1,h:1};state.cropPreview=null;state.cropPreviewBase=null;state.smartMode=false;state.smartPhase='custom';els.fileMeta.hidden=true;els.smartCard.hidden=true;els.detailAdvice.hidden=true;els.stageQualityBanner.hidden=true;els.convertBtn.disabled=true;
         resetHistory();renderPalette();updateSelectedColor();syncSizeModeUI();syncAspectStatus();renderAll();state.dirty=Boolean(fromDraft);
+        saveDraftNow();
         if(fromDraft)toast('toast.projectRestored','success');else toast(legacy?'toast.projectMigrated':'toast.projectLoaded','success');
         setStatus(fromDraft?'status.projectRestored':'status.projectLoaded',fromDraft?{cols,rows}:{cols,rows,migration:legacy?t('status.projectMigration'):''});updateRecoveryUI();
       }catch(error){if(loadJob!==state.sourceLoadJob)return;toast(error.message==='size'?'toast.projectTooLarge':'toast.projectInvalid','error');setStatus('status.projectLoadFailed');}
@@ -2436,12 +2494,60 @@ import {
     }
 
     async function loadImageFromUrl(url, fileName = 'ai-bead-art.png') {
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const blob = await resp.blob();
-      const file = new File([blob], fileName, { type: blob.type || 'image/png' });
-      state.lastAiImageUrl = url;
+      const targetUrl = String(url || '').trim();
+      if (!targetUrl) throw new Error('empty-url');
+      let file = dataUrlToFile(targetUrl, fileName, 'image/png');
+      if (!file) {
+        try {
+          const resp = await fetch(targetUrl, { mode: 'cors', credentials: 'omit' });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const blob = await resp.blob();
+          file = new File([blob], fileName, { type: blob.type || 'image/png' });
+        } catch (fetchErr) {
+          const img = await new Promise((resolve, reject) => {
+            const el = new Image();
+            el.crossOrigin = 'anonymous';
+            el.onload = () => resolve(el);
+            el.onerror = () => reject(fetchErr);
+            el.src = targetUrl;
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, img.naturalWidth || img.width);
+          canvas.height = Math.max(1, img.naturalHeight || img.height);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          const blob = await new Promise((resolve, reject) => {
+            canvas.toBlob((b) => (b ? resolve(b) : reject(fetchErr)), 'image/png');
+          });
+          file = new File([blob], fileName, { type: 'image/png' });
+        }
+      }
       await loadImageFile(file);
+      if (/^https?:\/\//i.test(targetUrl)) {
+        state.lastAiImageUrl = targetUrl;
+        state.lastAiImageAt = Date.now();
+      }
+    }
+
+    function buildAiSourcePngBase64() {
+      const sourceCanvas = state.referenceImage
+        ? renderReferenceRaster({ contentOnly: true })
+        : (state.grid.some((value) => value >= 0) ? sharePatternCanvas() : null);
+      if (!sourceCanvas || !sourceCanvas.width || !sourceCanvas.height) return null;
+      const maxEdge = 1024;
+      const scale = Math.min(1, maxEdge / Math.max(sourceCanvas.width, sourceCanvas.height));
+      const outW = Math.max(1, Math.round(sourceCanvas.width * scale));
+      const outH = Math.max(1, Math.round(sourceCanvas.height * scale));
+      const normalized = document.createElement('canvas');
+      normalized.width = outW;
+      normalized.height = outH;
+      const ctx = normalized.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, outW, outH);
+      ctx.imageSmoothingEnabled = Boolean(state.referenceImage);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(sourceCanvas, 0, 0, outW, outH);
+      return normalized.toDataURL('image/png').split(',')[1] || null;
     }
 
     async function loadRawProjectObject(projectData, fallbackTitle = 'anna-pattern') {
@@ -2496,6 +2602,10 @@ import {
       const promptText = (els.annaPromptInput?.value || '').trim();
       if (!promptText) {
         els.annaPromptInput?.focus();
+        if (els.annaCoachOutput && els.annaPromptInput?.placeholder) {
+          els.annaCoachOutput.hidden = false;
+          els.annaCoachOutput.textContent = els.annaPromptInput.placeholder;
+        }
         return;
       }
       setAnnaBusy(true);
@@ -2521,7 +2631,8 @@ import {
     async function runAnnaSimplifyPhoto() {
       const anna = state.annaRuntime;
       if (!anna) return;
-      if (!state.referenceImage && !state.lastAiImageUrl) {
+      const hasGrid = state.grid.some((value) => value >= 0);
+      if (!state.referenceImage && !hasGrid && !state.lastAiImageUrl) {
         toast('anna.needImage', 'info');
         return;
       }
@@ -2531,16 +2642,22 @@ import {
         els.annaCoachOutput.textContent = t('anna.simplifying');
       }
       try {
-        let base64Png = null;
-        if (!state.lastAiImageUrl && state.referenceImage) {
-          const raster = renderReferenceRaster({ contentOnly: true });
-          if (raster) {
-            base64Png = raster.toDataURL('image/png').split(',')[1];
-          }
-        }
+        const base64Png = buildAiSourcePngBase64();
+        const freshAiUrl = state.lastAiImageUrl && (Date.now() - (state.lastAiImageAt || 0) < 15 * 60 * 1000)
+          ? state.lastAiImageUrl
+          : null;
+        const { counts } = getStats();
+        const topColorNames = sortedMaterialRows(counts)
+          .slice(0, 4)
+          .map(([idx]) => PALETTE[idx]?.enName || PALETTE[idx]?.name || '')
+          .filter(Boolean)
+          .join(', ');
+        const titleHint = (els.projectTitle?.textContent || '').trim();
+        const fallbackSubject = [titleHint, topColorNames ? `featuring ${topColorNames} colors` : ''].filter(Boolean).join(', ');
         const img = await simplifyImageForBeads(anna, {
-          imageUrl: state.lastAiImageUrl,
+          imageUrl: freshAiUrl,
           base64Png,
+          fallbackSubject,
         });
         await loadImageFromUrl(img.url, 'ai-simplified.png');
         if (els.annaCoachOutput) els.annaCoachOutput.hidden = true;
@@ -2621,8 +2738,15 @@ import {
     }
 
     async function initAnnaIntegration() {
+      if (!isAnnaHostEnvironment()) return;
       const anna = await connectAnnaRuntime();
-      if (!anna) return;
+      if (!anna) {
+        const fallbackDraft = readLocalDraftProject();
+        if (fallbackDraft && !state.grid.some((value) => value >= 0)) {
+          await loadRawProjectObject(fallbackDraft, fallbackDraft.title || 'anna-pattern');
+        }
+        return;
+      }
       state.annaRuntime = anna;
       if (els.annaAiPanel) els.annaAiPanel.hidden = false;
 
@@ -2641,10 +2765,16 @@ import {
         });
       }
 
-      if (anna.entryPayload) {
+      if (anna.entryPayload?.prompt && els.annaPromptInput) {
+        els.annaPromptInput.value = String(anna.entryPayload.prompt).slice(0, 240);
+      }
+
+      if (hasAnnaEntryContent(anna.entryPayload)) {
         await handleAnnaEntryPayload(anna.entryPayload);
+      } else if (state.grid.some((value) => value >= 0)) {
+        void saveAnnaProjectState(anna, buildProjectData());
       } else {
-        const stored = await loadAnnaProjectState(anna);
+        const stored = (await loadAnnaProjectState(anna)) || readLocalDraftProject();
         if (stored && !state.grid.some((value) => value >= 0)) {
           await loadRawProjectObject(stored, stored.title || 'anna-pattern');
           setStatus('anna.synced');
@@ -2654,8 +2784,9 @@ import {
       if (typeof anna.on === 'function') {
         anna.on('entry_payload', (payload) => { void handleAnnaEntryPayload(payload); });
         anna.on('runtime_state_synced', (rs) => {
-          if (rs && rs['bead-grid-studio:project'] && !state.dirty) {
-            void loadRawProjectObject(rs['bead-grid-studio:project'], 'anna-pattern');
+          const incoming = rs?.[STORAGE_PROJECT_KEY] || rs?.['bead-grid-studio:project'];
+          if (incoming && !state.dirty) {
+            void loadRawProjectObject(incoming, incoming.title || 'anna-pattern');
           }
         });
       }
@@ -3363,8 +3494,12 @@ import {
         if(event.key.toLowerCase()==='e')setTool('eraser');
         if(event.key.toLowerCase()==='i')setTool('picker');
       });
-      window.addEventListener('beforeunload',event=>{if(state.dirty){saveDraftNow();event.preventDefault();event.returnValue='';}});
-      window.addEventListener('pagehide',()=>{if(state.dirty)saveDraftNow();});
+      window.addEventListener('beforeunload',event=>{
+        if(state.grid.some(value=>value>=0))saveDraftNow();
+        if(state.dirty&&!isAnnaHostEnvironment()){event.preventDefault();event.returnValue='';}
+      });
+      window.addEventListener('pagehide',()=>{if(state.grid.some(value=>value>=0))saveDraftNow();});
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&state.grid.some(value=>value>=0))saveDraftNow();});
 
       document.querySelectorAll('[data-mobile-target]').forEach(button=>button.addEventListener('click',()=>openMobilePanel(button.dataset.mobileTarget)));
       document.querySelectorAll('.sheet-close').forEach(button=>button.addEventListener('click',closeMobilePanels));

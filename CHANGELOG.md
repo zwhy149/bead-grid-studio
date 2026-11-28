@@ -2,6 +2,13 @@
 
 All notable changes are documented here. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.2] - 2026-11-28
+
+### Fixed
+- **Sandboxed Iframe Sample Drawing & Worker Fallback**: Decoded inline `data:` sample assets directly without `fetch('data:...')` CSP violations, configured `csp_overrides` (`img-src` / `connect-src`) for R2 presigned images, and added automatic main-thread quantization fallback when `blob:` Web Workers are blocked by host iframe CSP.
+- **Resilient AI Photo Simplification (`anna.upload.inline` + `editAwait` + Vision Fallback)**: Normalized input rasters onto opaque white PNGs (`purpose: 'image_input'`), preferred platform-rehosted `anna.image.editAwait`, parsed MCP-shaped `llm.complete` content blocks, and added automatic multimodal `llm.complete` + `anna.image.generate` fallback when upstream providers (`fal.ai` HTTP 422) cannot download presigned input URLs.
+- **Automatic Session Persistence & Reopen Restoration**: Fixed empty-object `entryPayload` (`{}`) bypassing stored session restoration on Anna AI OS window reopen, migrated APS storage key to path-valid `projects/active` (with legacy fallback), and flushed drafts immediately upon conversion, project load, and `pagehide`/`visibilitychange`.
+
 ## [1.5.0] - 2026-11-17
 
 ### Added

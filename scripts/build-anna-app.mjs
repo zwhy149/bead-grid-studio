@@ -57,7 +57,7 @@ function buildTarGz(entries) {
     header.write('0000000\0', 108, 'ascii');
     header.write('0000000\0', 116, 'ascii');
     header.write(`${size.toString(8).padStart(11, '0')}\0`, 124, 'ascii');
-    header.write(`${Math.floor(Date.now() / 1000).toString(8).padStart(11, '0')}\0`, 136, 'ascii');
+    header.write('00000000000\0', 136, 'ascii');
     header.fill(0x20, 148, 156);
     header.write(typeflag, 156, 'ascii');
     header.write('ustar\0', 257, 'ascii');
@@ -226,13 +226,26 @@ async function buildAnnaApp() {
   await cp(join(root, 'packages', 'core', 'src'), join(vendorDir, 'core'), { recursive: true });
   await cp(join(root, 'src', 'adapters', 'png.js'), join(vendorDir, 'adapters', 'png.js'));
 
-  // 3. Export protocol manifest & cross-platform distribution archives for Anna CDN
+  // 3. Export protocol manifest & cross-platform distribution archives when requested or missing
   await exportExecutaProtocolManifest();
-  const sizes = await buildExecutaArchives();
+  const forceExecuta = process.argv.includes('--rebuild-executa');
+  let hasArchives = false;
+  try {
+    const existingPosix = await readFile(join(artifactDistDir, 'bead-studio-posix.tar.gz'));
+    const existingWin = await readFile(join(artifactDistDir, 'bead-studio-win.zip'));
+    hasArchives = existingPosix.length > 0 && existingWin.length > 0;
+  } catch {
+    hasArchives = false;
+  }
+  if (forceExecuta || !hasArchives) {
+    const sizes = await buildExecutaArchives();
+    console.log(`Built Executa CDN archives -> posix=${sizes.posixBytes}B, win=${sizes.winBytes}B`);
+  } else {
+    console.log('Preserved existing frozen Executa CDN archives (pass --rebuild-executa to regenerate).');
+  }
 
   console.log(`Synced Anna App bundle -> ${bundleDir}`);
   console.log(`Synced Executa vendor -> ${vendorDir}`);
-  console.log(`Built Executa CDN archives -> posix=${sizes.posixBytes}B, win=${sizes.winBytes}B`);
 }
 
 buildAnnaApp().catch((err) => {

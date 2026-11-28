@@ -5,6 +5,16 @@ import { spawn } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import {
+  extractLlmText,
+  generateCraftBuildPlan,
+  hasAnnaEntryContent,
+  loadAnnaProjectState,
+  saveAnnaProjectState,
+  simplifyImageForBeads,
+  STORAGE_PROJECT_KEY,
+} from '../../src/adapters/anna-runtime.js';
+
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ANNA_DIR = path.join(ROOT_DIR, 'anna-app');
 const EXECUTA_ENTRY = path.join(ANNA_DIR, 'executas', 'bead-studio', 'bead_studio_plugin.js');
@@ -99,6 +109,10 @@ test('anna-app manifests conform to schema 4 and self-contained packaging rules'
   assert.ok(manifest.ui.form_factors.includes('mobile'));
   assert.ok(manifest.ui.views[0].min_size.h <= 600);
   assert.equal(manifest.ui.bundle.format, 'static-spa');
+  assert.ok(manifest.ui.csp_overrides['img-src']?.includes('https:'));
+  assert.ok(manifest.ui.csp_overrides['img-src']?.includes('data:'));
+  assert.ok(manifest.ui.csp_overrides['img-src']?.includes('blob:'));
+  assert.ok(manifest.ui.csp_overrides['connect-src']?.includes('https:'));
 
   assert.equal(appMeta.slug, 'bead-grid-studio');
   assert.ok(appMeta.bundled_executas['bead-studio']);
@@ -233,4 +247,79 @@ test('CLI supports --format svg and --despeckle on PNG fixtures', async () => {
   assert.match(stdout, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
   assert.match(stdout, /24x24 · \d+ colors · \d+ beads/);
   assert.match(stdout, /<\/svg>\s*$/);
+});
+
+test('anna-runtime handles empty entryPayload, APS path keys, MCP LLM blocks, and fal.ai 422 fallback', async () => {
+  assert.equal(STORAGE_PROJECT_KEY, 'projects/active');
+  assert.equal(hasAnnaEntryContent({}), false);
+  assert.equal(hasAnnaEntryContent({ prompt: 'cute cat' }), false);
+  assert.equal(hasAnnaEntryContent({ matrix: ['AA'] }), true);
+
+  // APS storage round-trip + legacy key fallback
+  const store = new Map();
+  const mockAnna = {
+    storage: {
+      async get({ key }) {
+        return store.has(key) ? { exists: true, value: store.get(key) } : { exists: false, value: null };
+      },
+      async set({ key, value }) {
+        assert.equal(key.includes(':'), false, 'APS key must be path-safe without colons');
+        store.set(key, value);
+        return { etag: 'W/"1"', generation: 1, size_bytes: 128 };
+      },
+    },
+    uploadCalls: [],
+    upload: {
+      async inline(args) {
+        mockAnna.uploadCalls.push(args);
+        return {
+          r2_key: 'uploads/u1/bead-input.png',
+          download_url: 'https://r2.anna.example/transient/bead-input.png',
+          expires_in: 1800,
+        };
+      },
+    },
+    image: {
+      async edit() {
+        const err = new Error('image edit failed: Exception: fal.ai image API call failed (HTTP 422): Failed to download the file.');
+        err.code = 'APP_PROVIDER_ERROR';
+        throw err;
+      },
+      async generate({ prompt }) {
+        assert.match(prompt, /rocket emblem/i);
+        return { images: [{ url: 'https://r2.anna.example/generated/clean-rocket.png' }] };
+      },
+    },
+    llm: {
+      async complete() {
+        return {
+          role: 'assistant',
+          content: { type: 'text', text: 'cute red and blue rocket emblem' },
+        };
+      },
+    },
+  };
+
+  const saved = await saveAnnaProjectState(mockAnna, { type: 'bead-grid-studio', title: 'Rocket' });
+  assert.equal(saved, true);
+  const loaded = await loadAnnaProjectState(mockAnna);
+  assert.equal(loaded.title, 'Rocket');
+
+  assert.equal(extractLlmText({ content: { type: 'text', text: '  hello craft  ' } }), 'hello craft');
+  const coachText = await generateCraftBuildPlan(mockAnna, {
+    complexity: { cols: 10, rows: 10, totalBeads: 50, usedColors: 3, isolatedBeads: 0, estimatedMinutes: 8, difficulty: 'easy', boardGrid: '1x1' },
+    topColors: [{ code: 'H7', name: 'Black', count: 20 }],
+    mergeSuggestions: [],
+    locale: 'en-US',
+  });
+  assert.equal(coachText, 'cute red and blue rocket emblem');
+
+  const simplified = await simplifyImageForBeads(mockAnna, {
+    imageUrl: 'blob:https://anna.partners/not-fetchable',
+    base64Png: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    fallbackSubject: 'fallback rocket',
+  });
+  assert.equal(mockAnna.uploadCalls.length, 1);
+  assert.equal(mockAnna.uploadCalls[0].purpose, 'image_input');
+  assert.equal(simplified.url, 'https://r2.anna.example/generated/clean-rocket.png');
 });
